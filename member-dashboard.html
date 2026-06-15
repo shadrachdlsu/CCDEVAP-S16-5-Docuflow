@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuFlow - Member Dashboard</title>
+
+    <link rel="stylesheet" href="../css/member-dashboard.css">
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <h2>DocuFlow</h2>
+        </div>
+
+        <nav>
+            <ul>
+                <li><a href="#">Dashboard</a></li>
+                <li><a href="#">Pending Signatures</a></li>
+                <li><a href="#">Signature History</a></li>
+                <li><a href="#">Paper Trail</a></li>
+                <li><a href="#">Submit Request</a></li>
+                <li>
+                    <a href="#" class="logout-link">
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1>Member Dashboard</h1>
+            <p>Welcome to DocuFlow</p>
+        </header>
+
+        <!-- Profile -->
+        <section class="user-profile">
+
+            <div class="profile-card">
+                <h3>Juan Dela Cruz</h3>
+                <p>College Secretary Office</p>
+                <p>Member</p>
+            </div>
+
+        </section>
+
+        <!-- Statistics -->
+        <section class="statistics-container">
+
+            <div class="statistics-card">
+                <h3>Pending</h3>
+                <p id="pending-count">0</p>
+            </div>
+
+            <div class="statistics-card">
+                <h3>Approved</h3>
+                <p id="approved-count">0</p>
+            </div>
+
+            <div class="statistics-card">
+                <h3>Rejected</h3>
+                <p id="rejected-count">0</p>
+            </div>
+
+        </section>
+
+        <!-- Pending Documents -->
+        <section class="pending-documents">
+
+            <h2>Pending Signatures</h2>
+
+            <table>
+
+                <caption>
+                    Pending Documents Awaiting Signature
+                </caption>
+
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="documents-table-body">
+                </tbody>
+
+            </table>
+
+        </section>
+
+        <!-- Document Details -->
+        <section class="document-details">
+
+            <h2>Document Details</h2>
+
+            <div class="details-card">
+
+                <p>
+                    <strong>Title:</strong>
+                    <span id="document-title">
+                        Select a document
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Type:</strong>
+                    <span id="document-type">
+                        -
+                    </span>
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    <span id="document-status">
+                        -
+                    </span>
+                </p>
+
+                <textarea
+                    id="document-remarks"
+                    rows="5"
+                    placeholder="Enter remarks...">
+                </textarea>
+
+                <div class="action-buttons">
+
+                    <button
+                        id="approve-document-button"
+                        class="approve-button">
+                        Approve
+                    </button>
+
+                    <button
+                        id="reject-document-button"
+                        class="reject-button">
+                        Reject
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Paper Trail -->
+        <section class="paper-trail">
+
+            <h2>Paper Trail</h2>
+
+            <div class="timeline">
+
+                <div class="timeline-step">
+                    Created by Secretary
+                </div>
+
+                <div class="timeline-step">
+                    Reviewed by Department Head
+                </div>
+
+                <div class="timeline-step active-step">
+                    Waiting for Your Approval
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Submit Request -->
+        <section class="submit-request">
+
+            <h2>Submit Request</h2>
+
+            <form id="request-form">
+
+                <input
+                    type="text"
+                    placeholder="Request Title"
+                    required>
+
+                <label
+                    for="request-type"
+                    class="sr-only">
+                    Request Type
+                </label>
+
+                <select
+                    id="request-type"
+                    required>
+
+                    <option value="">
+                        Select Request Type
+                    </option>
+
+                    <option>
+                        Memorandum
+                    </option>
+
+                    <option>
+                        Proposal
+                    </option>
+
+                    <option>
+                        Clearance
+                    </option>
+
+                    <option>
+                        Letter
+                    </option>
+
+                </select>
+
+                <textarea
+                    rows="5"
+                    placeholder="Request Details">
+                </textarea>
+
+                <button type="submit">
+                    Submit Request
+                </button>
+
+            </form>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="../js/member-dashboard.js"></script>
+
+</body>
+</html>

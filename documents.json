@@ -1,0 +1,17 @@
+[
+    {
+        "title":"Budget Proposal",
+        "type":"Proposal",
+        "status":"Pending"
+    },
+    {
+        "title":"Department Memorandum",
+        "type":"Memo",
+        "status":"Approved"
+    },
+    {
+        "title":"Clearance Form",
+        "type":"Clearance",
+        "status":"Rejected"
+    }
+]
