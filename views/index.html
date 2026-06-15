@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docuflow - Sign Up</title>
+    <link rel="stylesheet" href="../css/index.css">
+</head>
+<body>
+
+    <button id="themeToggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+        🌙
+    </button>
+
+    <div class="card-container">    
+        <div class="logo-container">
+            <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        </div>
+
+        <h1 class="title">Docuflow</h1>
+        <p class="subtitle">Document Tracking System</p>
+
+        <form id="signupForm">
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="your.email@office.gov" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+
+            <div class="input-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Sign Up</button>
+            
+            <div id="message" class="message"></div>
+        </form>
+
+        <div class="footer-text">
+            Already have an account? <a href="login.html">Log in here</a>
+        </div>
+    </div>
+
+    <script src="../js/index.js"></script>
+</body>
+</html>

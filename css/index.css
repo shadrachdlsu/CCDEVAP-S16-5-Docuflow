@@ -1,0 +1,178 @@
+:root {
+    --bg-gradient: linear-gradient(135deg, #eef2f9 0%, #e3eaf5 100%);
+    --card-bg: #ffffff;
+    --text-main: #1a1a1a;
+    --text-muted: #888;
+    --input-bg: #fafafa;
+    --input-border: #e1e4e8;
+    --input-text: #333;
+    --primary-color: #5655f5;
+    --primary-hover: #4544d6;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode {
+    --bg-gradient: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+    --card-bg: #2d2d2d;
+    --text-main: #f5f5f5;
+    --text-muted: #aaaaaa;
+    --input-bg: #1a1a1a;
+    --input-border: #444444;
+    --input-text: #f5f5f5;
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: var(--bg-gradient);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.3s ease;
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;    
+    background-color: var(--card-bg);
+    border: 1px solid var(--input-border);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+.card-container {
+    background-color: var(--card-bg);
+    width: 100%;
+    max-width: 380px;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo-container {
+    background-color: var(--primary-color);
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 15px auto;
+}
+
+.logo-icon {
+    width: 24px;
+    height: 24px;
+    color: #ffffff;
+}
+
+.title {
+    font-size: 1.25rem;
+    color: var(--text-main);
+    font-weight: 600;
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
+}
+
+.subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 30px;
+    transition: color 0.3s ease;
+}
+
+.input-group {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-main);
+    font-weight: 600;
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.submit-btn:hover {
+    background-color: var(--primary-hover);
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 0.8rem;
+    min-height: 15px;
+}
+
+.message.error { color: #ff6b6b; }
+.message.success { color: #28a745; }
+
+.footer-text {
+    margin-top: 25px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+}
+
+.footer-text a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-text a:hover {
+    text-decoration: underline;
+}
