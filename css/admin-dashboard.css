@@ -1,0 +1,155 @@
+:root {
+    --bg-color: #f0f2f5;       /* light gray bg*/ 
+    --card-bg: #ffffff;        /* white for card */
+    --text-main: #000000;      /* text color black */
+    --text-muted: #666666;     /* slight gray for subtitle */
+    --primary-green: #22c55e;  /* green theme */
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* shadow */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-header {
+    background-color: var(--card-bg);
+    height: 70px;
+    padding: 0 30px;
+    box-shadow: var(--shadow);
+    
+    display: flex; 
+    justify-content: space-between;
+    align-items: center; 
+}
+
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-left h1 {
+    font-size: 1.5rem;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    text-align: right; 
+}
+
+.user-role {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.user-email {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.theme-toggle, .logout-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.admin-main {
+    padding: 40px;
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.stats-grid, .action-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 25px;
+    margin-bottom: 30px; 
+}
+
+.stat-card, .action-card {
+    background-color: var(--card-bg);
+    border-radius: 12px; 
+    padding: 25px;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: var(--text-main);
+}
+
+.icon-small svg {
+    width: 40px;
+    height: 40px;
+}
+
+/* ICON STYLE */
+.icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    margin-bottom: 15px; 
+}
+
+.green-icon {
+    background-color: #eaffea; 
+    color: var(--primary-green);
+}
+
+.icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* STAT CARD */
+.stat-card h2 {
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.stat-card p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* ACTION CARDS */
+.action-card {
+    display: flex;
+    align-items: center; 
+    gap: 15px; 
+}
+
+.action-card .icon {
+    margin-bottom: 0; 
+}
+
+.action-card span {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* FOOTER */
+.admin-footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
