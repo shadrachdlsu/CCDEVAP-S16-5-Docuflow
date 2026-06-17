@@ -70,7 +70,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (validCredentials[email] === password) {
         // Login successful - redirect to dashboard
-        window.location.replace("./member-dashboard.html");
+        if (email === "member@office.gov") {
+          window.location.replace("./member-dashboard.html");
+        } else if (email === "secretary@office.gov") {
+          window.location.replace("./secretary-dashboard.html");
+        } else if (email === "admin@office.gov") {
+          window.location.replace("./admin-dashboard.html");
+        }
       } else {
         alert("Invalid email or password. Please try again.");
       }

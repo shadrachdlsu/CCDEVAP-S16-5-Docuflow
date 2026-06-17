@@ -6,26 +6,35 @@
     <title>Docuflow - Member Dashboard</title>
     <link rel="stylesheet" href="../css/member-dashboard.css" />
   </head>
-  <body>
+  <body class="member-body">
     <header class="topbar">
-      <div class="topbar-left">
-        <div class="logo">Document Approvals</div>
-        <div class="subtitle">Review &amp; Sign Documents</div>
-      </div>
-      <div class="topbar-right">
-        <div class="user-info">
-          <div class="user-email">member@office.gov</div>
-          <div class="user-role">Office Member</div>
+      <div class="header-left">
+        <div class="logo-area">
+          <span class="web-logo">📄 Docuflow</span>
         </div>
-        <button
-          id="themeToggle"
-          class="icon-button mode-icon"
-          type="button"
-          aria-label="Toggle Dark Mode"
-        >
-          <span class="moon-icon">☾</span>
-          <span class="sun-icon">☀</span>
-        </button>
+        <div class="header-title-area">
+          <h1 class="office-title">Member Dashboard</h1>
+          <p class="page-subtitle">
+            Review &amp; sign documents for your office
+          </p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="user-info">
+          <span class="user-email">member@office.gov</span>
+          <span class="user-role">Office Member</span>
+        </div>
+        <div class="header-actions">
+          <button
+            id="themeToggle"
+            class="icon-btn"
+            type="button"
+            aria-label="Toggle dark/light mode"
+          >
+            <span class="moon-icon">☾</span>
+            <span class="sun-icon">☀</span>
+          </button>
+        </div>
       </div>
     </header>
 
