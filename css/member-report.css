@@ -3,10 +3,12 @@
 ========================================== */
 
 *{
+
     margin:0;
     padding:0;
     box-sizing:border-box;
     font-family:"Segoe UI",sans-serif;
+
 }
 
 body{
@@ -30,8 +32,8 @@ body{
 .main-content{
 
     flex:1;
-    padding:30px;
     margin-left:270px;
+    padding:30px;
 
 }
 
@@ -42,21 +44,24 @@ body{
 .sidebar{
 
     position:fixed;
+
     top:0;
+
     left:0;
 
     width:270px;
+
     height:100vh;
 
     background:#1e3a8a;
 
     color:#ffffff;
 
+    padding:25px;
+
     overflow-y:auto;
 
-    z-index:999;
-
-    padding:25px;
+    z-index:1000;
 
 }
 
@@ -78,9 +83,9 @@ body{
 
 .sidebar-header p{
 
-    opacity:.75;
-
     margin-top:5px;
+
+    opacity:.8;
 
 }
 
@@ -104,11 +109,11 @@ body{
 
     gap:12px;
 
+    padding:14px;
+
     color:#ffffff;
 
     text-decoration:none;
-
-    padding:14px;
 
     border-radius:10px;
 
@@ -154,9 +159,9 @@ body{
 
 .dashboard-header p{
 
-    margin-top:5px;
-
     color:#6b7280;
+
+    margin-top:6px;
 
 }
 
@@ -194,7 +199,7 @@ body{
 
 .statistics-card:hover{
 
-    transform:translateY(-6px);
+    transform:translateY(-5px);
 
 }
 
@@ -202,7 +207,7 @@ body{
 
     color:#6b7280;
 
-    margin-bottom:10px;
+    margin-bottom:12px;
 
 }
 
@@ -267,6 +272,32 @@ body{
 }
 
 /* ==========================================
+   REPORT SUMMARY
+========================================== */
+
+.report-item{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    font-size:16px;
+
+    margin:10px 0;
+
+}
+
+.report-item strong{
+
+    color:#2563eb;
+
+    font-size:18px;
+
+}
+
+/* ==========================================
    TABLES
 ========================================== */
 
@@ -286,11 +317,11 @@ table{
 
 .table th{
 
-    font-weight:600;
-
     text-align:center;
 
     vertical-align:middle;
+
+    font-weight:600;
 
 }
 
@@ -392,260 +423,6 @@ table{
 
 }
 
-.btn-success{
-
-    background:#16a34a;
-
-    border:none;
-
-}
-
-.btn-success:hover{
-
-    background:#15803d;
-
-}
-
-.btn-danger{
-
-    background:#dc2626;
-
-    border:none;
-
-}
-
-.btn-danger:hover{
-
-    background:#b91c1c;
-
-}
-
-.btn-secondary{
-
-    border:none;
-
-}
-
-.btn i{
-
-    margin-right:6px;
-
-}
-
-/* ==========================================
-   ACTION BUTTONS
-========================================== */
-
-.action-button{
-
-    width:38px;
-
-    height:38px;
-
-    border:none;
-
-    border-radius:8px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    color:#ffffff;
-
-    cursor:pointer;
-
-    transition:.25s;
-
-}
-
-.preview-button{
-
-    background:#2563eb;
-
-}
-
-.download-button{
-
-    background:#0ea5e9;
-
-}
-
-.sign-button{
-
-    background:#16a34a;
-
-}
-
-.reject-button{
-
-    background:#dc2626;
-
-}
-
-.upload-button{
-
-    background:#7c3aed;
-
-}
-
-.action-button:hover{
-
-    transform:scale(1.08);
-
-}
-
-/* ==========================================
-   BADGES
-========================================== */
-
-.badge{
-
-    padding:8px 14px;
-
-    border-radius:30px;
-
-    font-size:13px;
-
-    font-weight:600;
-
-}
-
-/* ==========================================
-   BOOTSTRAP MODALS
-========================================== */
-
-.modal-content{
-
-    border:none;
-    border-radius:15px;
-    overflow:hidden;
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
-
-}
-
-.modal-header{
-
-    border-bottom:none;
-
-}
-
-.modal-header h5{
-
-    font-weight:600;
-
-}
-
-.modal-body{
-
-    padding:25px;
-
-}
-
-.modal-footer{
-
-    border-top:none;
-
-    padding:20px;
-
-}
-
-.modal textarea{
-
-    resize:vertical;
-
-}
-
-/* ==========================================
-   FORM CONTROLS
-========================================== */
-
-.form-label{
-
-    font-weight:600;
-    margin-bottom:8px;
-    color:#374151;
-
-}
-
-.form-control,
-.form-select{
-
-    border-radius:10px;
-    border:1px solid #d1d5db;
-    padding:12px;
-
-}
-
-.form-control:focus,
-.form-select:focus{
-
-    border-color:#2563eb;
-    box-shadow:0 0 0 .2rem rgba(37,99,235,.15);
-
-}
-
-/* ==========================================
-   FILE UPLOAD
-========================================== */
-
-#signed-file{
-
-    padding:12px;
-
-}
-
-.upload-area{
-
-    border:2px dashed #cbd5e1;
-    border-radius:10px;
-    background:#f8fafc;
-    padding:35px;
-    text-align:center;
-    transition:.3s;
-
-}
-
-.upload-area:hover{
-
-    border-color:#2563eb;
-    background:#eff6ff;
-
-}
-
-/* ==========================================
-   PAPER TRAIL
-========================================== */
-
-#paper-trail-table tbody tr{
-
-    transition:.25s;
-
-}
-
-#paper-trail-table tbody tr:hover{
-
-    background:#eff6ff;
-
-}
-
-/* ==========================================
-   DOCUMENT TABLE
-========================================== */
-
-#documents-table tbody tr{
-
-    transition:.25s;
-
-}
-
-#documents-table tbody tr:hover{
-
-    background:#eff6ff;
-
-}
-
 /* ==========================================
    DATATABLES
 ========================================== */
@@ -658,16 +435,20 @@ table{
 
 .dataTables_filter input{
 
-    border-radius:8px;
     border:1px solid #d1d5db;
+
+    border-radius:8px;
+
     padding:8px 12px;
 
 }
 
 .dataTables_length select{
 
-    border-radius:8px;
     border:1px solid #d1d5db;
+
+    border-radius:8px;
+
     padding:5px 8px;
 
 }
@@ -685,32 +466,118 @@ table{
 }
 
 /* ==========================================
-   QUICK ACTION BUTTONS
+   CHART
 ========================================== */
 
-.quick-actions{
+canvas{
 
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:20px;
+    width:100% !important;
 
-}
-
-.quick-actions .btn{
-
-    height:60px;
-    font-size:15px;
+    max-height:350px;
 
 }
 
 /* ==========================================
-   CHART
+   STATUS LEGEND
 ========================================== */
 
-#document-chart{
+.badge{
 
-    width:100%;
-    min-height:320px;
+    font-size:14px;
+
+    padding:8px 14px;
+
+    border-radius:20px;
+
+    margin-right:8px;
+
+}
+
+.bg-warning{
+
+    color:#000;
+
+}
+
+.bg-primary{
+
+    color:#fff;
+
+}
+
+.bg-success{
+
+    color:#fff;
+
+}
+
+/* ==========================================
+   EXPORT BUTTON
+========================================== */
+
+#download-report{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+}
+
+#download-report i{
+
+    font-size:16px;
+
+}
+
+/* ==========================================
+   CARD ANIMATION
+========================================== */
+
+.statistics-card,
+.dashboard-card{
+
+    transition:all .3s ease;
+
+}
+
+.statistics-card:hover,
+.dashboard-card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:0 10px 25px rgba(0,0,0,.12);
+
+}
+
+/* ==========================================
+   SCROLLBAR
+========================================== */
+
+::-webkit-scrollbar{
+
+    width:10px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:#e5e7eb;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#2563eb;
+
+    border-radius:20px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:#1d4ed8;
 
 }
 
@@ -718,28 +585,28 @@ table{
    RESPONSIVE
 ========================================== */
 
-@media(max-width:1200px){
+@media(max-width:992px){
 
     .statistics-container{
 
-        grid-template-columns:repeat(2,1fr);
+        grid-template-columns:1fr;
 
     }
-
-}
-
-@media(max-width:992px){
 
     .main-content{
 
         margin-left:0;
+
+        padding:20px;
 
     }
 
     .sidebar{
 
         position:relative;
+
         width:100%;
+
         height:auto;
 
     }
@@ -750,57 +617,53 @@ table{
 
     }
 
-}
-
-@media(max-width:768px){
-
     .dashboard-header{
 
         flex-direction:column;
+
         align-items:flex-start;
+
         gap:15px;
 
     }
 
-    .statistics-container{
+}
 
-        grid-template-columns:1fr;
+@media(max-width:768px){
 
-    }
+    .table{
 
-    .quick-actions{
-
-        grid-template-columns:repeat(2,1fr);
+        font-size:13px;
 
     }
 
-    table{
+    .statistics-card{
 
-        min-width:900px;
+        padding:20px;
+
+    }
+
+    .dashboard-card{
+
+        margin-bottom:20px;
 
     }
 
     .card-body{
 
-        overflow-x:auto;
+        padding:18px;
+
+    }
+
+    canvas{
+
+        max-height:250px;
 
     }
 
 }
 
-@media(max-width:480px){
-
-    .quick-actions{
-
-        grid-template-columns:1fr;
-
-    }
-
-    .statistics-card h2{
-
-        font-size:32px;
-
-    }
+@media(max-width:576px){
 
     .dashboard-header h1{
 
@@ -808,33 +671,39 @@ table{
 
     }
 
+    .statistics-card h2{
+
+        font-size:30px;
+
+    }
+
+    .sidebar-header h2{
+
+        font-size:24px;
+
+    }
+
+    .sidebar-menu a{
+
+        padding:12px;
+
+        font-size:15px;
+
+    }
+
 }
 
 /* ==========================================
-   ANIMATIONS
+   ACCESSIBILITY
 ========================================== */
 
-.dashboard-card,
-.statistics-card{
+button:focus,
+input:focus,
+select:focus,
+textarea:focus{
 
-    animation:fadeIn .4s ease-in-out;
+    outline:3px solid rgba(37,99,235,.3);
 
-}
-
-@keyframes fadeIn{
-
-    from{
-
-        opacity:0;
-        transform:translateY(10px);
-
-    }
-
-    to{
-
-        opacity:1;
-        transform:translateY(0);
-
-    }
+    outline-offset:2px;
 
 }

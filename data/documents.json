@@ -47,7 +47,7 @@
     "signedAt": "2026-06-15T14:00:00Z",
     "status": "Signed",
     "url": "../views/document-view.html?id=doc-2024-048",
-    "file": "../pdfs/CCPROG1 Term 1, AY 2024- 2025 syllabus.docx (1).pdf"
+    "file": "../pdfs/CCPROG1 Term 1, AY 2024-2025 syllabus.pdf"
   },
   {
     "id": "doc-2024-049",
@@ -55,9 +55,9 @@
     "priority": "Low",
     "title": "Clearance Form - Visitor",
     "category": "Clearance",
-    "department": "Admin",
+    "department": "Admin Office",
     "uploadedAt": "2026-06-10T12:00:00Z",
-    "status": "Rejected",
+    "status": "Finished",
     "url": "../views/document-view.html?id=doc-2024-049",
     "file": "../pdfs/doc-2024-049.pdf"
   }

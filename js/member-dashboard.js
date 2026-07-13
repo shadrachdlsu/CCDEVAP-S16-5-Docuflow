@@ -1,353 +1,840 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const DATA_URL = "../data/documents.json";
-  const pendingList = document.getElementById("pending-list");
-  const pendingChartPanel = document.getElementById("pending-chart-panel");
-  const pendingChartContent = document.getElementById("pending-chart-content");
-  const documentsTitle = document.getElementById("documents-title");
-  const statPending = document.querySelector(
-    ".stats-row .stat-card:nth-child(1)",
-  );
-  const statSignedToday = document.querySelector(
-    ".stats-row .stat-card:nth-child(2)",
-  );
-  const statTotalSigned = document.querySelector(
-    ".stats-row .stat-card:nth-child(3)",
-  );
-  const themeToggle = document.getElementById("themeToggle");
-  const logoutButton = document.querySelector(".logout-btn");
-  const viewAllButton = document.querySelector(".view-all");
+/* ==========================================
+   MEMBER DASHBOARD
+========================================== */
 
-  let docs = [];
-  let selectedDoc = null;
-  let currentFilter = "pending";
+let documents = [];
+let paperTrail = [];
+let documentChart = null;
 
-  const priorityColors = {
-    High: "#dc2626",
-    Medium: "#f59e0b",
-    Low: "#2563eb",
-  };
+/* ==========================================
+   INITIALIZE DASHBOARD
+========================================== */
 
-  const signedTodaySamples = [
-    {
-      id: "sample-signed-001",
-      docNumber: "DOC-2024-052",
-      title: "Travel Authority Approval",
-      category: "Leave/Travel",
-      department: "HR Office",
-      priority: "Medium",
-      status: "Signed",
-      uploadedAt: new Date().toISOString(),
-      file: "../pdfs/PAJE_FLOWCHART.pdf",
-    },
-    {
-      id: "sample-signed-002",
-      docNumber: "DOC-2024-053",
-      title: "Office Supply Request",
-      category: "Requisition",
-      department: "Administration",
-      priority: "Low",
-      status: "Signed",
-      uploadedAt: new Date().toISOString(),
-      file: "../pdfs/CCPROG1 Term 1, AY 2024- 2025 syllabus.docx (1).pdf",
-    },
-    {
-      id: "sample-signed-003",
-      docNumber: "DOC-2024-054",
-      title: "Training Attendance Memo",
-      category: "Memorandum",
-      department: "HR Office",
-      priority: "High",
-      status: "Approved",
-      uploadedAt: new Date().toISOString(),
-      file: "../pdfs/ITSRAQA MCO1.pdf",
-    },
-  ];
+document.addEventListener(
 
-  function getFilteredItems() {
-    if (currentFilter === "pending") {
-      return docs.filter((d) => d.status.toLowerCase() === "pending");
+    "DOMContentLoaded",
+
+    function(){
+
+        loadDashboard();
+
+        registerEvents();
+
     }
 
-    if (currentFilter === "today") {
-      return signedTodaySamples;
+);
+
+/* ==========================================
+   LOAD DASHBOARD
+========================================== */
+
+async function loadDashboard(){
+
+    try{
+
+        let responses = await Promise.all([
+
+            fetch("../data/documents.json"),
+
+            fetch("../data/paper-trail.json")
+
+        ]);
+
+        documents =
+            await responses[0].json();
+
+        paperTrail =
+            await responses[1].json();
+
+        populateDocumentsTable();
+
+        populatePaperTrailTable();
+
+        initializeDataTables();
+
+        updateStatistics();
+
+        initializeChart();
+
     }
 
-    if (currentFilter === "signed") {
-      return getAllSignedItems();
+    catch(error){
+
+        console.error(
+
+            "Failed to load dashboard.",
+
+            error
+
+        );
+
     }
 
-    return docs;
-  }
+}
 
-  function getSignedDocs() {
-    return docs.filter((d) =>
-      ["signed", "approved"].includes(d.status.toLowerCase()),
+/* ==========================================
+   DOCUMENT TABLE
+========================================== */
+
+function populateDocumentsTable(){
+
+    let tableBody =
+
+        document.querySelector(
+
+            "#documents-table tbody"
+
+        );
+
+    tableBody.innerHTML = "";
+
+    documents.forEach(function(documentItem){
+
+        tableBody.innerHTML += `
+
+        <tr>
+
+            <td>
+
+                ${documentItem.title}
+
+            </td>
+
+            <td>
+
+                ${documentItem.type}
+
+            </td>
+
+            <td>
+
+                <span class="status-${documentItem.status.toLowerCase()}">
+
+                    ${documentItem.status}
+
+                </span>
+
+            </td>
+
+            <td>
+
+                <button
+
+                    class="btn btn-primary btn-sm preview-button"
+
+                    data-id="${documentItem.id}">
+
+                    <i class="fas fa-eye"></i>
+
+                </button>
+
+            </td>
+
+            <td>
+
+                <a
+
+                    href="${documentItem.file}"
+
+                    download
+
+                    class="btn btn-info btn-sm">
+
+                    <i class="fas fa-download"></i>
+
+                </a>
+
+            </td>
+
+            <td>
+
+                <button
+
+                    class="btn btn-success btn-sm sign-button"
+
+                    data-id="${documentItem.id}">
+
+                    <i class="fas fa-signature"></i>
+
+                </button>
+
+            </td>
+
+            <td>
+
+                <button
+
+                    class="btn btn-danger btn-sm reject-button"
+
+                    data-id="${documentItem.id}">
+
+                    <i class="fas fa-times"></i>
+
+                </button>
+
+            </td>
+
+            <td>
+
+                <button
+
+                    class="btn btn-secondary btn-sm upload-button"
+
+                    data-id="${documentItem.id}">
+
+                    <i class="fas fa-upload"></i>
+
+                </button>
+
+            </td>
+
+        </tr>
+
+        `;
+
+    });
+
+}
+
+/* ==========================================
+   PAPER TRAIL TABLE
+========================================== */
+
+function populatePaperTrailTable(){
+
+    let tableBody =
+
+        document.querySelector(
+
+            "#paper-trail-table tbody"
+
+        );
+
+    tableBody.innerHTML = "";
+
+    paperTrail.forEach(function(item){
+
+        tableBody.innerHTML += `
+
+        <tr>
+
+            <td>${item.date}</td>
+
+            <td>${item.action}</td>
+
+            <td>${item.user}</td>
+
+            <td>
+
+                <span class="status-${item.status.toLowerCase()}">
+
+                    ${item.status}
+
+                </span>
+
+            </td>
+
+        </tr>
+
+        `;
+
+    });
+
+}
+
+/* ==========================================
+   INITIALIZE DATATABLES
+========================================== */
+
+function initializeDataTables(){
+
+    if($.fn.DataTable.isDataTable("#documents-table")){
+
+        $("#documents-table")
+        .DataTable()
+        .destroy();
+
+    }
+
+    if($.fn.DataTable.isDataTable("#paper-trail-table")){
+
+        $("#paper-trail-table")
+        .DataTable()
+        .destroy();
+
+    }
+
+    $("#documents-table").DataTable({
+
+        pageLength:5,
+
+        responsive:true,
+
+        ordering:true,
+
+        searching:true,
+
+        info:true,
+
+        lengthMenu:[
+            [5,10,25,50,-1],
+            [5,10,25,50,"All"]
+        ]
+
+    });
+
+    $("#paper-trail-table").DataTable({
+
+        pageLength:5,
+
+        responsive:true,
+
+        ordering:true,
+
+        searching:true,
+
+        info:true
+
+    });
+
+}
+
+/* ==========================================
+   UPDATE DASHBOARD STATISTICS
+========================================== */
+
+function updateStatistics(){
+
+    let pending = 0;
+    let signed = 0;
+    let finished = 0;
+
+    documents.forEach(function(documentItem){
+
+        if(documentItem.status === "Pending"){
+
+            pending++;
+
+        }
+
+        else if(documentItem.status === "Signed"){
+
+            signed++;
+
+        }
+
+        else if(documentItem.status === "Finished"){
+
+            finished++;
+
+        }
+
+    });
+
+    document.getElementById(
+        "pending-count"
+    ).textContent = pending;
+
+    document.getElementById(
+        "signed-count"
+    ).textContent = signed;
+
+    document.getElementById(
+        "finished-count"
+    ).textContent = finished;
+
+}
+
+/* ==========================================
+   CHART.JS
+========================================== */
+
+function initializeChart(){
+
+    let chartCanvas =
+        document.getElementById(
+            "document-chart"
+        );
+
+    if(!chartCanvas){
+
+        return;
+
+    }
+
+    let pending =
+        documents.filter(function(documentItem){
+
+            return documentItem.status === "Pending";
+
+        }).length;
+
+    let signed =
+        documents.filter(function(documentItem){
+
+            return documentItem.status === "Signed";
+
+        }).length;
+
+    let finished =
+        documents.filter(function(documentItem){
+
+            return documentItem.status === "Finished";
+
+        }).length;
+
+    if(documentChart !== null){
+
+        documentChart.destroy();
+
+    }
+
+    documentChart = new Chart(chartCanvas,{
+
+        type:"doughnut",
+
+        data:{
+
+            labels:[
+
+                "Pending",
+
+                "Signed",
+
+                "Finished"
+
+            ],
+
+            datasets:[{
+
+                data:[
+
+                    pending,
+
+                    signed,
+
+                    finished
+
+                ],
+
+                backgroundColor:[
+
+                    "#f59e0b",
+
+                    "#3b82f6",
+
+                    "#22c55e"
+
+                ],
+
+                borderWidth:0
+
+            }]
+
+        },
+
+        options:{
+
+            responsive:true,
+
+            maintainAspectRatio:false,
+
+            plugins:{
+
+                legend:{
+
+                    position:"bottom"
+
+                }
+
+            }
+
+        }
+
+    });
+
+}
+
+/* ==========================================
+   REFRESH DASHBOARD
+========================================== */
+
+function refreshDashboard(){
+
+    populateDocumentsTable();
+
+    populatePaperTrailTable();
+
+    initializeDataTables();
+
+    updateStatistics();
+
+    initializeChart();
+
+}
+
+/* ==========================================
+   REGISTER EVENTS
+========================================== */
+
+function registerEvents(){
+
+    document.addEventListener(
+
+        "click",
+
+        handleDocumentActions
+
     );
-  }
 
-  function getAllSignedItems() {
-    return [...getSignedDocs(), ...signedTodaySamples];
-  }
+    document
 
-  function formatDateISO(iso) {
-    try {
-      return new Date(iso).toLocaleString();
-    } catch (e) {
-      return iso;
+    .getElementById(
+
+        "request-form"
+
+    )
+
+    .addEventListener(
+
+        "submit",
+
+        submitRequest
+
+    );
+
+}
+
+/* ==========================================
+   DOCUMENT ACTIONS
+========================================== */
+
+function handleDocumentActions(event){
+
+    let button = event.target.closest("button");
+
+    if(!button){
+
+        return;
+
     }
-  }
 
-  function setActiveStat(activeCard) {
-    [statPending, statSignedToday, statTotalSigned].forEach((card) => {
-      card.classList.remove("active");
+    let documentId = button.dataset.id;
+
+    if(button.classList.contains("preview-button")){
+
+        previewDocument(documentId);
+
+    }
+
+    else if(button.classList.contains("sign-button")){
+
+        signDocument(documentId);
+
+    }
+
+    else if(button.classList.contains("reject-button")){
+
+        rejectDocument(documentId);
+
+    }
+
+    else if(button.classList.contains("upload-button")){
+
+        uploadSignedDocument(documentId);
+
+    }
+
+}
+
+/* ==========================================
+   PREVIEW DOCUMENT
+========================================== */
+
+function previewDocument(documentId){
+
+    let documentItem = documents.find(function(item){
+
+        return item.id === documentId;
+
     });
 
-    if (activeCard) {
-      activeCard.classList.add("active");
-    }
-  }
+    if(!documentItem){
 
-  function renderPendingChart() {
-    const pendingItems = docs.filter((d) => d.status.toLowerCase() === "pending");
-    const chartRows = ["High", "Medium", "Low"].map((priority) => ({
-      label: `${priority} Priority`,
-      value: pendingItems.filter((doc) => doc.priority === priority).length,
-      color: priorityColors[priority],
-    }));
-    let start = 0;
-    const total = pendingItems.length;
-    const gradient =
-      total === 0
-        ? "#e5e7eb 0 100%"
-        : chartRows
-            .map((row) => {
-              const end = start + (row.value / total) * 100;
-              const segment = `${row.color} ${start}% ${end}%`;
-              start = end;
-              return segment;
-            })
-            .join(", ");
+        return;
 
-    pendingChartPanel.style.display = "block";
-    pendingChartContent.innerHTML = `
-      <div class="member-chart-layout">
-        <div
-          class="pie-chart"
-          style="background: conic-gradient(${gradient})"
-          aria-label="Pending signed distribution"
-        >
-          <span>${total}</span>
-        </div>
-        <div class="chart-list">
-          ${chartRows
-            .map(
-              (row) => `
-                <div class="chart-row">
-                  <span class="chart-swatch" style="background: ${row.color}"></span>
-                  <span>${row.label}</span>
-                  <strong>${row.value}</strong>
-                </div>
-              `,
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
-  }
-
-  function hidePendingChart() {
-    pendingChartPanel.style.display = "none";
-  }
-
-  function setDocumentsTitle(title) {
-    if (documentsTitle) {
-      documentsTitle.textContent = title;
-    }
-  }
-
-  function renderPendingList(items, showActions = false) {
-    pendingList.innerHTML = "";
-
-    if (items.length === 0) {
-      pendingList.innerHTML =
-        '<div class="preview-unavailable">No documents found.</div>';
-      return;
     }
 
-    items.forEach((doc) => {
-      const article = document.createElement("article");
-      article.className = "pending-item";
-      article.dataset.id = doc.id;
-      article.innerHTML = `
-        <div class="pending-main">
-          <button class="doc-icon" type="button" aria-label="Open ${doc.title}">
-            <i class="fas fa-file-alt"></i>
-          </button>
-          <div class="pending-details">
-            <div class="meta">${doc.docNumber} <span class="priority ${doc.priority.toLowerCase()}">${doc.priority}</span></div>
-            <h3>${doc.title}</h3>
-            <div class="sub">${doc.category} - ${doc.department}</div>
-            <div class="time">${formatDateISO(doc.uploadedAt)}</div>
-          </div>
-          <span class="status-badge">${doc.status}</span>
-        </div>
-        ${
-          showActions
-            ? `<div class="inline-actions">
-                <button class="action-btn action-approve" type="button">Approve</button>
-                <button class="action-btn action-deny" type="button">Deny</button>
-                <button class="action-btn action-cancel" type="button">Cancel</button>
-              </div>`
-            : ""
+    document.getElementById(
+
+        "preview-frame"
+
+    ).src = documentItem.file;
+
+    let modal = new bootstrap.Modal(
+
+        document.getElementById(
+
+            "previewModal"
+
+        )
+
+    );
+
+    modal.show();
+
+}
+
+/* ==========================================
+   SIGN DOCUMENT
+========================================== */
+
+function signDocument(documentId){
+
+    let remarks = prompt(
+
+        "Optional remarks before signing:"
+
+    );
+
+    documents.forEach(function(item){
+
+        if(item.id === documentId){
+
+            item.status = "Signed";
+
+            item.remarks = remarks;
+
         }
-      `;
 
-      article.querySelector(".doc-icon").addEventListener("click", (e) => {
-        e.stopPropagation();
-        const target = doc.file || doc.url;
+    });
 
-        if (target) {
-          window.open(target, "_blank");
+    paperTrail.unshift({
+
+        date:new Date().toLocaleDateString(),
+
+        action:"Document Signed",
+
+        user:"Current Member",
+
+        status:"Signed"
+
+    });
+
+    refreshDashboard();
+
+    alert("Document signed successfully.");
+
+}
+
+/* ==========================================
+   REJECT DOCUMENT
+========================================== */
+
+function rejectDocument(documentId){
+
+    let reason = prompt(
+
+        "Enter rejection reason:"
+
+    );
+
+    if(reason === null){
+
+        return;
+
+    }
+
+    if(reason.trim() === ""){
+
+        alert(
+
+            "Rejection reason is required."
+
+        );
+
+        return;
+
+    }
+
+    documents.forEach(function(item){
+
+        if(item.id === documentId){
+
+            item.status = "Pending";
+
+            item.rejectionReason = reason;
+
         }
-      });
 
-      if (showActions) {
-        article.addEventListener("click", () => {
-          selectedDoc = doc;
-          pendingList
-            .querySelectorAll(".pending-item.selected")
-            .forEach((item) => item.classList.remove("selected"));
-          article.classList.add("selected");
-        });
-
-        article
-          .querySelector(".action-approve")
-          .addEventListener("click", (e) => {
-            e.stopPropagation();
-            selectedDoc = doc;
-            updateDocumentStatus("Approved");
-          });
-
-        article.querySelector(".action-deny").addEventListener("click", (e) => {
-          e.stopPropagation();
-          selectedDoc = doc;
-          updateDocumentStatus("Denied");
-        });
-
-        article
-          .querySelector(".action-cancel")
-          .addEventListener("click", (e) => {
-            e.stopPropagation();
-            selectedDoc = null;
-            article.classList.remove("selected");
-          });
-      }
-
-      pendingList.appendChild(article);
     });
-  }
 
-  function updateDocumentStatus(status) {
-    if (!selectedDoc) return;
+    paperTrail.unshift({
 
-    selectedDoc.status = status;
-    updateStats();
-    renderPendingList(getFilteredItems());
+        date:new Date().toLocaleDateString(),
 
-    if (!getFilteredItems().includes(selectedDoc)) {
-      selectedDoc = null;
+        action:"Document Rejected",
+
+        user:"Current Member",
+
+        status:"Pending"
+
+    });
+
+    refreshDashboard();
+
+    alert(
+
+        "Document returned to the secretary."
+
+    );
+
+}
+
+/* ==========================================
+   UPLOAD SIGNED DOCUMENT
+========================================== */
+
+function uploadSignedDocument(documentId){
+
+    let fileInput = document.createElement("input");
+
+    fileInput.type = "file";
+
+    fileInput.accept = ".pdf";
+
+    fileInput.onchange = function(){
+
+        if(fileInput.files.length > 0){
+
+            alert(
+
+                "Signed document uploaded."
+
+            );
+
+            paperTrail.unshift({
+
+                date:new Date().toLocaleDateString(),
+
+                action:"Signed PDF Uploaded",
+
+                user:"Current Member",
+
+                status:"Signed"
+
+            });
+
+            refreshDashboard();
+
+        }
+
+    };
+
+    fileInput.click();
+
+}
+
+/* ==========================================
+   SUBMIT REQUEST
+========================================== */
+
+function submitRequest(event){
+
+    event.preventDefault();
+
+    let title =
+
+        document.getElementById(
+
+            "request-title"
+
+        ).value.trim();
+
+    let type =
+
+        document.getElementById(
+
+            "request-type"
+
+        ).value;
+
+    let email =
+
+        document.getElementById(
+
+            "secretary-email"
+
+        ).value.trim();
+
+    if(
+
+        title === "" ||
+
+        type === "" ||
+
+        email === ""
+
+    ){
+
+        alert(
+
+            "Please complete all required fields."
+
+        );
+
+        return;
+
     }
 
-    alert(`Document ${status.toLowerCase()}.`);
-  }
+    if(
 
-  function updateStats() {
-    const pendingCount = docs.filter(
-      (d) => d.status.toLowerCase() === "pending",
-    ).length;
-    const signedToday = signedTodaySamples.length;
-    const totalSigned = getAllSignedItems().length;
+        !email.includes("@") ||
 
-    statPending.querySelector(".stat-number").textContent = pendingCount;
-    statSignedToday.querySelector(".stat-number").textContent = signedToday;
-    statTotalSigned.querySelector(".stat-number").textContent = totalSigned;
-  }
+        !email.includes(".com")
 
-  function attachStatHandlers() {
-    statPending.addEventListener("click", () => {
-      currentFilter = "pending";
-      setActiveStat(statPending);
-      renderPendingChart();
-      setDocumentsTitle("Pending Signed");
-      renderPendingList(getFilteredItems());
-    });
+    ){
 
-    statSignedToday.addEventListener("click", () => {
-      currentFilter = "today";
-      setActiveStat(statSignedToday);
-      hidePendingChart();
-      setDocumentsTitle("Signed Today");
-      renderPendingList(getFilteredItems());
-    });
+        alert(
 
-    statTotalSigned.addEventListener("click", () => {
-      currentFilter = "signed";
-      setActiveStat(statTotalSigned);
-      hidePendingChart();
-      setDocumentsTitle("Total Signed");
-      renderPendingList(getFilteredItems());
-    });
-  }
+            "Email must contain @ and .com"
 
-  if (viewAllButton) {
-    viewAllButton.addEventListener("click", () => {
-      currentFilter = "all";
-      setActiveStat(null);
-      hidePendingChart();
-      setDocumentsTitle("All Documents");
-      renderPendingList(docs, true);
-    });
-  }
+        );
 
-  if (themeToggle) {
-    themeToggle.addEventListener("click", () => {
-      document.body.classList.toggle("dark-mode");
-      const icon = themeToggle.querySelector("i");
+        return;
 
-      if (document.body.classList.contains("dark-mode")) {
-        icon.classList.remove("fa-moon");
-        icon.classList.add("fa-sun");
-      } else {
-        icon.classList.remove("fa-sun");
-        icon.classList.add("fa-moon");
-      }
-    });
-  }
-
-  if (logoutButton) {
-    logoutButton.addEventListener("click", () => {
-      if (confirm("Are you sure you want to logout?")) {
-        window.location.href = "login.html";
-      }
-    });
-  }
-
-  async function init() {
-    try {
-      const res = await fetch(DATA_URL);
-      docs = await res.json();
-    } catch (e) {
-      console.error("Failed to load documents", e);
-      docs = [];
     }
 
-    updateStats();
-    attachStatHandlers();
-    setActiveStat(statPending);
-    renderPendingChart();
-    setDocumentsTitle("Pending Signed");
-    renderPendingList(getFilteredItems());
-  }
+    alert(
 
-  init();
-});
+        "Request submitted successfully."
+
+    );
+
+    event.target.reset();
+
+}
+
+/* ==========================================
+   LOGOUT
+========================================== */
+
+function logout(){
+
+    if(
+
+        confirm(
+
+            "Are you sure you want to logout?"
+
+        )
+
+    ){
+
+        window.location.href =
+
+        "login.html";
+
+    }
+
+}
