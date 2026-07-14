@@ -63,6 +63,31 @@ body.admin-body {
   letter-spacing: -0.05em;
 }
 
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gray-600);
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: 24px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+.back-btn:hover {
+  background: var(--gray-100);
+  color: var(--gray-800);
+}
+.dark-mode .back-btn {
+  color: var(--gray-400);
+}
+.dark-mode .back-btn:hover {
+  background: var(--gray-800);
+  color: var(--white);
+}
+
 /* 2x2 Grid for Dashboard Panels */
 .dashboard-2x2-grid {
   display: grid;

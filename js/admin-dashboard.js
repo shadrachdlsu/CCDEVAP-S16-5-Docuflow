@@ -130,11 +130,28 @@ document.addEventListener("DOMContentLoaded", () => {
   const pendingContent = document.getElementById("pending-content");
   if (pendingContent) pendingContent.innerHTML = renderPendingView(dashboardViews.pending);
 
+  // Load saved theme
+  if (localStorage.getItem("docuflow-theme") === "dark") {
+    document.body.classList.add("dark-mode");
+  }
+
   if (themeToggle) {
+    // Set initial icon state
+    const icon = themeToggle.querySelector("i");
+    if (document.body.classList.contains("dark-mode")) {
+      icon.classList.remove("fa-moon");
+      icon.classList.add("fa-sun");
+    } else {
+      icon.classList.remove("fa-sun");
+      icon.classList.add("fa-moon");
+    }
+
     themeToggle.addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
-      const icon = themeToggle.querySelector("i");
-      if (document.body.classList.contains("dark-mode")) {
+      const isDark = document.body.classList.contains("dark-mode");
+      localStorage.setItem("docuflow-theme", isDark ? "dark" : "light");
+
+      if (isDark) {
         icon.classList.remove("fa-moon");
         icon.classList.add("fa-sun");
       } else {
@@ -152,9 +169,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Mini Charts for Reports Grid ---
+  // REport Grid
   if (typeof Chart !== 'undefined') {
-    // 1. Office Bottlenecks Mini (Bar)
+    // Office Bottlenecks
     const ctxBottleneck = document.getElementById("miniBottleneckChart");
     if (ctxBottleneck) {
       new Chart(ctxBottleneck.getContext("2d"), {
@@ -180,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // 2. Volume Trends Mini (Line)
+    // 2. Volume Trends 
     const ctxTrends = document.getElementById("miniTrendsChart");
     if (ctxTrends) {
       new Chart(ctxTrends.getContext("2d"), {
@@ -209,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // 3. Document Types Mini (Pie)
+    // 3. Document Types
     const ctxTypes = document.getElementById("miniTypesChart");
     if (ctxTypes) {
       new Chart(ctxTypes.getContext("2d"), {
