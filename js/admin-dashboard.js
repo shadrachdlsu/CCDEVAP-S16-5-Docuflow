@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const statCards = document.querySelectorAll(".stat-card");
-  const actionCards = document.querySelectorAll(".action-card");
   const previewTitle = document.getElementById("preview-title");
   const previewDescription = document.getElementById("preview-description");
   const previewContent = document.getElementById("admin-preview-content");
@@ -74,41 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
-  const adminLists = {
-    documentTypes: [
-      {
-        name: "Memorandum",
-        subtypes: [
-          "Office Memorandum",
-          "Inter-Office Memorandum",
-          "Administrative Memorandum",
-          "Policy Memorandum",
-        ],
-      },
-      { name: "Budget Proposal", subtypes: [] },
-      { name: "Leave/Travel", subtypes: [] },
-      { name: "Contracts", subtypes: [] },
-    ],
-    users: [
-      {
-        name: "Maria Santos",
-        email: "maria.santos@office.gov",
-        office: "Records Office",
-      },
-      {
-        name: "Juan Dela Cruz",
-        email: "juan.delacruz@office.gov",
-        office: "Finance",
-      },
-      {
-        name: "Ana Reyes",
-        email: "ana.reyes@office.gov",
-        office: "Legal",
-      },
-    ],
-    offices: ["Finance", "Human Resources", "Administration", "Legal"],
-  };
-
   function renderPieView(view) {
     return `
       <div class="preview-layout">
@@ -176,7 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderView(viewKey) {
     const view = dashboardViews[viewKey];
 
-    actionCards.forEach((card) => card.classList.remove("active"));
     previewTitle.textContent = view.title;
     previewDescription.textContent = view.description;
 
@@ -193,185 +156,11 @@ document.addEventListener("DOMContentLoaded", () => {
     previewContent.innerHTML = renderPendingView(view);
   }
 
-  function renderDocumentTypes() {
-    previewTitle.textContent = "Document Types";
-    previewDescription.textContent = "Frontend-only list of allowed document categories.";
-    previewContent.innerHTML = `
-      <div class="admin-management-layout">
-        <form class="admin-form" id="document-type-form">
-          <label class="admin-field">
-            <span>New Document Type</span>
-            <input id="document-type-input" type="text" placeholder="e.g. Board Resolution" />
-          </label>
-          <button class="admin-submit" type="submit">Add Document Type</button>
-        </form>
-        <div class="management-list">
-          ${adminLists.documentTypes
-            .map((type) =>
-              type.subtypes.length
-                ? `
-                  <details class="management-row document-type-dropdown">
-                    <summary>
-                      <span>${type.name}</span>
-                      <strong>${type.subtypes.length} subtypes</strong>
-                    </summary>
-                    <div class="subtype-list">
-                      ${type.subtypes
-                        .map((subtype) => `<span>${subtype}</span>`)
-                        .join("")}
-                    </div>
-                  </details>
-                `
-                : `
-                  <div class="management-row">
-                    <span>${type.name}</span>
-                    <strong>Active</strong>
-                  </div>
-                `,
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
-
-    document
-      .getElementById("document-type-form")
-      .addEventListener("submit", (e) => {
-        e.preventDefault();
-        const input = document.getElementById("document-type-input");
-        const value = input.value.trim();
-
-        if (value) {
-          adminLists.documentTypes.push({ name: value, subtypes: [] });
-          renderDocumentTypes();
-        }
-      });
-  }
-
-  function renderUsers() {
-    previewTitle.textContent = "Manage Users";
-    previewDescription.textContent = "Add secretary users for offices.";
-    previewContent.innerHTML = `
-      <div class="admin-management-layout">
-        <form class="admin-form" id="user-form">
-          <label class="admin-field">
-            <span>Secretary Name</span>
-            <input id="user-name-input" type="text" placeholder="Full name" />
-          </label>
-          <label class="admin-field">
-            <span>Email</span>
-            <input id="user-email-input" type="email" placeholder="name@office.gov" />
-          </label>
-          <label class="admin-field">
-            <span>Office</span>
-            <select id="user-office-input">
-              ${adminLists.offices
-                .map((office) => `<option>${office}</option>`)
-                .join("")}
-            </select>
-          </label>
-          <button class="admin-submit" type="submit">Add Secretary</button>
-        </form>
-        <div class="management-list">
-          ${adminLists.users
-            .map(
-              (user) => `
-                <div class="management-row">
-                  <span>
-                    ${user.name}
-                    <small>${user.email} - ${user.office}</small>
-                  </span>
-                  <strong>Secretary</strong>
-                </div>
-              `,
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
-
-    document.getElementById("user-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const name = document.getElementById("user-name-input").value.trim();
-      const email = document.getElementById("user-email-input").value.trim();
-      const office = document.getElementById("user-office-input").value;
-
-      if (name && email) {
-        adminLists.users.push({ name, email, office });
-        renderUsers();
-      }
-    });
-  }
-
-  function renderOfficeManager() {
-    previewTitle.textContent = "Manage Offices";
-    previewDescription.textContent = "Add or remove offices from the frontend list.";
-    previewContent.innerHTML = `
-      <div class="admin-management-layout">
-        <form class="admin-form" id="office-form">
-          <label class="admin-field">
-            <span>New Office</span>
-            <input id="office-input" type="text" placeholder="e.g. Procurement" />
-          </label>
-          <button class="admin-submit" type="submit">Add Office</button>
-        </form>
-        <div class="management-list">
-          ${adminLists.offices
-            .map(
-              (office, index) => `
-                <div class="management-row">
-                  <span>${office}</span>
-                  <button class="admin-remove" type="button" data-office-index="${index}">
-                    Remove
-                  </button>
-                </div>
-              `,
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
-
-    document.getElementById("office-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const input = document.getElementById("office-input");
-      const value = input.value.trim();
-
-      if (value) {
-        adminLists.offices.push(value);
-        renderOfficeManager();
-      }
-    });
-
-    document.querySelectorAll("[data-office-index]").forEach((button) => {
-      button.addEventListener("click", () => {
-        adminLists.offices.splice(Number(button.dataset.officeIndex), 1);
-        renderOfficeManager();
-      });
-    });
-  }
-
   statCards.forEach((card) => {
     card.addEventListener("click", () => {
       statCards.forEach((item) => item.classList.remove("active"));
       card.classList.add("active");
       renderView(card.dataset.view);
-    });
-  });
-
-  actionCards.forEach((card) => {
-    card.addEventListener("click", () => {
-      statCards.forEach((item) => item.classList.remove("active"));
-      actionCards.forEach((item) => item.classList.remove("active"));
-      card.classList.add("active");
-
-      if (card.dataset.action === "documentTypes") {
-        renderDocumentTypes();
-      } else if (card.dataset.action === "users") {
-        renderUsers();
-      } else {
-        renderOfficeManager();
-      }
     });
   });
 

@@ -11,83 +11,110 @@
     <link rel="stylesheet" href="../css/admin-dashboard.css" />
   </head>
   <body class="admin-body">
-    <header class="admin-header">
-      <div class="header-left">
-        <div class="logo-area">
+    <div class="admin-layout">
+      <!-- Sticky Navigation Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
           <span class="web-logo">Docuflow</span>
         </div>
-      </div>
-      <div class="header-right">
-        <div class="user-info">
-          <span class="user-email">admin@office.gov</span>
-          <span class="user-role">Administrator</span>
-        </div>
-        <div class="header-actions">
-          <button
-            class="icon-btn toggle-theme"
-            id="themeToggle"
-            aria-label="Toggle dark/light mode"
-          >
-            <i class="fas fa-moon"></i>
+        <nav class="admin-nav">
+          <a class="nav-link active" href="admin-dashboard.html">
+            <i class="fas fa-chart-pie"></i> Dashboard
+          </a>
+          <a class="nav-link" href="admin-users.html">
+            <i class="fas fa-users"></i> List of Users
+          </a>
+          <a class="nav-link" href="admin-documents.html">
+            <i class="fas fa-file-alt"></i> List of Documents
+          </a>
+          <a class="nav-link" href="admin-offices.html">
+            <i class="fas fa-building"></i> Manage Office Departments
+          </a>
+          <a class="nav-link" href="admin-document-types.html">
+            <i class="fas fa-tags"></i> Document Types
+          </a>
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-header">
+          <div class="header-left">
+            <div class="logo-area" style="display: none;">
+              <span class="web-logo">Docuflow</span>
+            </div>
+          </div>
+          <div class="header-right">
+            <div class="user-info">
+              <span class="user-email">admin@office.gov</span>
+              <span class="user-role">Administrator</span>
+            </div>
+            <div class="header-actions">
+              <button
+                class="icon-btn toggle-theme"
+                id="themeToggle"
+                aria-label="Toggle dark/light mode"
+              >
+                <i class="fas fa-moon"></i>
+              </button>
+              <button class="icon-btn logout-btn" aria-label="Exit / Logout">
+                <i class="fas fa-sign-out-alt"></i>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dashboard Stats & Actions -->
+        <section class="stats-grid">
+          <button class="stat-card active" type="button" data-view="documents">
+            <span class="stat-icon"><i class="fas fa-file-alt"></i></span>
+            <span class="stat-number">1,234</span>
+            <span class="stat-label">Total Documents</span>
           </button>
-          <button class="icon-btn logout-btn" aria-label="Exit / Logout">
-            <i class="fas fa-sign-out-alt"></i>
+          <button class="stat-card" type="button" data-view="users">
+            <span class="stat-icon"><i class="fas fa-users"></i></span>
+            <span class="stat-number">248</span>
+            <span class="stat-label">Active Users</span>
           </button>
-        </div>
-      </div>
-    </header>
+          <button class="stat-card" type="button" data-view="offices">
+            <span class="stat-icon"><i class="fas fa-building"></i></span>
+            <span class="stat-number">12</span>
+            <span class="stat-label">Offices</span>
+          </button>
+          <button class="stat-card" type="button" data-view="pending">
+            <span class="stat-icon"><i class="fas fa-clock"></i></span>
+            <span class="stat-number">37</span>
+            <span class="stat-label">Pending Documents</span>
+          </button>
+        </section>
 
-    <main class="admin-main">
-      <section class="stats-grid">
-        <button class="stat-card active" type="button" data-view="documents">
-          <span class="stat-icon"><i class="fas fa-file-alt"></i></span>
-          <span class="stat-number">1,234</span>
-          <span class="stat-label">Total Documents</span>
-        </button>
-        <button class="stat-card" type="button" data-view="users">
-          <span class="stat-icon"><i class="fas fa-users"></i></span>
-          <span class="stat-number">248</span>
-          <span class="stat-label">Active Users</span>
-        </button>
-        <button class="stat-card" type="button" data-view="offices">
-          <span class="stat-icon"><i class="fas fa-building"></i></span>
-          <span class="stat-number">12</span>
-          <span class="stat-label">Offices</span>
-        </button>
-        <button class="stat-card" type="button" data-view="pending">
-          <span class="stat-icon"><i class="fas fa-clock"></i></span>
-          <span class="stat-number">37</span>
-          <span class="stat-label">Pending Documents</span>
-        </button>
-      </section>
+        <section class="admin-preview-panel">
+          <div class="preview-header">
+            <h2 class="section-title" id="preview-title">
+              Document Distribution
+            </h2>
+            <p class="preview-description" id="preview-description">
+              Breakdown of documents by current status.
+            </p>
+          </div>
+          <div class="admin-preview-content" id="admin-preview-content"></div>
+        </section>
 
-      <section class="admin-preview-panel">
-        <div class="preview-header">
-          <h2 class="section-title" id="preview-title">
-            Document Distribution
-          </h2>
-          <p class="preview-description" id="preview-description">
-            Breakdown of documents by current status.
-          </p>
-        </div>
-        <div class="admin-preview-content" id="admin-preview-content"></div>
-      </section>
-
-      <section class="action-grid">
-        <button class="action-card" type="button" data-action="documentTypes">
-          <span class="action-icon"><i class="fas fa-search"></i></span>
-          <span>Document Types</span>
-        </button>
-        <button class="action-card" type="button" data-action="users">
-          <span class="action-icon"><i class="fas fa-user-cog"></i></span>
-          <span>Manage Users</span>
-        </button>
-        <button class="action-card" type="button" data-action="offices">
-          <span class="action-icon"><i class="fas fa-briefcase"></i></span>
-          <span>Manage Offices</span>
-        </button>
-      </section>
-    </main>
+        <section class="action-grid">
+          <a class="action-card" href="admin-document-types.html">
+            <span class="action-icon"><i class="fas fa-search"></i></span>
+            <span>Document Types</span>
+          </a>
+          <a class="action-card" href="admin-users.html">
+            <span class="action-icon"><i class="fas fa-user-cog"></i></span>
+            <span>Manage Users</span>
+          </a>
+          <a class="action-card" href="admin-offices.html">
+            <span class="action-icon"><i class="fas fa-briefcase"></i></span>
+            <span>Manage Offices</span>
+          </a>
+        </section>
+      </main>
+    </div>
 
     <script src="../js/admin-dashboard.js"></script>
   </body>
