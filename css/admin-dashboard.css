@@ -35,8 +35,80 @@ body.admin-body {
     sans-serif;
   line-height: 1.5;
   min-height: 100vh;
+  /* Removed padding here, moved to .admin-main */
+}
+
+/* --- NEW LAYOUT ADDITIONS --- */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background: var(--white);
+  border-right: 1px solid var(--gray-200);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+}
+
+.sidebar-header {
+  margin-bottom: 32px;
+  padding-left: 12px;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-link {
+  background: transparent;
+  border: none;
+  color: var(--gray-700);
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+
+.nav-link i {
+  width: 20px;
+  text-align: center;
+}
+
+.nav-link:hover {
+  background: var(--gray-100);
+  color: var(--gray-900);
+}
+
+.nav-link.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   padding: 24px 32px;
 }
+/* ----------------------------- */
+
 
 .admin-header {
   align-items: center;
@@ -45,7 +117,6 @@ body.admin-body {
   box-shadow: var(--shadow-sm);
   display: flex;
   justify-content: space-between;
-  margin-bottom: 24px;
   padding: 16px 24px;
 }
 
@@ -105,16 +176,11 @@ body.admin-body {
   background: var(--gray-100);
 }
 
-.admin-main {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
 .stats-grid {
   display: grid;
   gap: 24px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 24px;
 }
 
 .action-grid {
@@ -317,6 +383,48 @@ body.admin-body {
   padding: 4px 10px;
 }
 
+/* Modals Addition */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-overlay.active {
+  display: flex;
+}
+.modal-content {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  width: 90%;
+  max-width: 500px;
+  padding: 24px;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* DataTables Overrides */
+table.dataTable thead th { border-bottom: 2px solid var(--gray-200); color: var(--gray-700); }
+table.dataTable tbody td { border-bottom: 1px solid var(--gray-200); color: var(--gray-900); }
+
+/* Small Button helpers */
+.btn-small {
+  border: none; border-radius: 4px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer; margin-right: 4px;
+}
+.btn-edit { background: #d1fae5; color: #065f46; }
+.btn-delete { background: #fee2e2; color: #991b1b; }
+
+
 .admin-management-layout {
   display: grid;
   gap: 18px;
@@ -488,10 +596,26 @@ body.dark-mode {
 body.dark-mode .admin-header,
 body.dark-mode .stat-card,
 body.dark-mode .action-grid,
-body.dark-mode .admin-preview-panel {
+body.dark-mode .admin-preview-panel,
+body.dark-mode .admin-sidebar,
+body.dark-mode .modal-content {
   background: #374151;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border-color: #4b5563;
 }
+
+body.dark-mode .nav-link {
+  color: #d1d5db;
+}
+body.dark-mode .nav-link:hover {
+  background: #4b5563;
+  color: #f9fafb;
+}
+body.dark-mode .nav-link.active {
+  background: rgba(92, 74, 228, 0.2);
+  color: #a78bfa;
+}
+
 
 body.dark-mode .web-logo {
   color: #8b5cf6;
@@ -529,8 +653,13 @@ body.dark-mode .section-title,
 body.dark-mode .stat-number,
 body.dark-mode .preview-row strong,
 body.dark-mode .office-card strong,
-body.dark-mode .pending-card strong {
+body.dark-mode .pending-card strong,
+body.dark-mode table.dataTable tbody td {
   color: #f3f4f6;
+}
+
+body.dark-mode table.dataTable thead th {
+  color: #d1d5db;
 }
 
 body.dark-mode .stat-card.active,
@@ -565,7 +694,8 @@ body.dark-mode .subtype-list {
 }
 
 body.dark-mode .admin-field input,
-body.dark-mode .admin-field select {
+body.dark-mode .admin-field select,
+body.dark-mode .dataTables_wrapper .dataTables_filter input {
   background: #374151;
   border-color: #6b7280;
   color: #f9fafb;
@@ -620,5 +750,9 @@ body.dark-mode .preview-row {
 
   .admin-form {
     grid-template-columns: 1fr;
+  }
+  
+  .admin-sidebar {
+    display: none;
   }
 }
