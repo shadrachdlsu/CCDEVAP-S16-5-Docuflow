@@ -40,26 +40,35 @@ body.admin-body {
 
 /* --- NEW LAYOUT ADDITIONS --- */
 .admin-layout {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr;
   min-height: 100vh;
 }
 
 .admin-sidebar {
-  width: 260px;
-  background: var(--white);
-  border-right: 1px solid var(--gray-200);
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  padding: 24px 16px;
+  display: none; /* Hide sidebar completely */
 }
 
-.sidebar-header {
-  margin-bottom: 32px;
-  padding-left: 12px;
+/* Header logo styles for when sidebar is hidden */
+.logo-area {
+  display: flex !important;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo-area .web-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.05em;
+}
+
+/* 2x2 Grid for Dashboard Panels */
+.dashboard-2x2-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
 }
 
 .admin-nav {
@@ -98,6 +107,15 @@ body.admin-body {
   background: var(--primary-light);
   color: var(--primary);
   font-weight: 600;
+}
+
+.nav-section-label {
+  color: var(--gray-400);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 16px 16px 4px;
 }
 
 .admin-main {
@@ -588,6 +606,49 @@ table.dataTable tbody td { border-bottom: 1px solid var(--gray-200); color: var(
   font-weight: 500;
 }
 
+
+.report-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.report-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-color: var(--primary-light);
+}
+
+.report-card-header {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.report-card-header strong {
+  font-size: 1.05rem;
+  color: var(--gray-900);
+}
+
+.report-card-header span {
+  font-size: 0.85rem;
+  color: var(--gray-500);
+}
+
+.report-chart-container {
+  position: relative;
+  height: 140px;
+  width: 100%;
+}
+
 body.dark-mode {
   background-color: #1f2937;
   color: #f9fafb;
@@ -598,10 +659,23 @@ body.dark-mode .stat-card,
 body.dark-mode .action-grid,
 body.dark-mode .admin-preview-panel,
 body.dark-mode .admin-sidebar,
-body.dark-mode .modal-content {
+body.dark-mode .modal-content,
+body.dark-mode .report-card {
   background: #374151;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   border-color: #4b5563;
+}
+
+body.dark-mode .report-card:hover {
+  border-color: #8b5cf6;
+}
+
+body.dark-mode .report-card-header strong {
+  color: #f9fafb;
+}
+
+body.dark-mode .report-card-header span {
+  color: #9ca3af;
 }
 
 body.dark-mode .nav-link {

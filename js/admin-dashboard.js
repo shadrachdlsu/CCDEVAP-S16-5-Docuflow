@@ -1,8 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const statCards = document.querySelectorAll(".stat-card");
-  const previewTitle = document.getElementById("preview-title");
-  const previewDescription = document.getElementById("preview-description");
-  const previewContent = document.getElementById("admin-preview-content");
   const themeToggle = document.getElementById("themeToggle");
   const logoutButton = document.querySelector(".logout-btn");
 
@@ -76,25 +72,17 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderPieView(view) {
     return `
       <div class="preview-layout">
-        <div
-          class="pie-chart"
-          style="background: conic-gradient(${view.gradient})"
-          aria-label="${view.title}"
-        >
+        <div class="pie-chart" style="background: conic-gradient(${view.gradient})" aria-label="${view.title}">
           <span>${view.total}</span>
         </div>
         <div class="preview-list">
-          ${view.rows
-            .map(
-              (row) => `
-                <div class="preview-row">
-                  <span class="preview-swatch" style="background: ${row.color}"></span>
-                  <span>${row.label}</span>
-                  <strong>${row.value}</strong>
-                </div>
-              `,
-            )
-            .join("")}
+          ${view.rows.map(row => `
+            <div class="preview-row">
+              <span class="preview-swatch" style="background: ${row.color}"></span>
+              <span>${row.label}</span>
+              <strong>${row.value}</strong>
+            </div>
+          `).join("")}
         </div>
       </div>
     `;
@@ -103,16 +91,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderOfficeView(view) {
     return `
       <div class="office-grid">
-        ${view.offices
-          .map(
-            (office) => `
-              <div class="office-card">
-                <strong>${office.name}</strong>
-                <span>${office.detail}</span>
-              </div>
-            `,
-          )
-          .join("")}
+        ${view.offices.map(office => `
+          <div class="office-card">
+            <strong>${office.name}</strong>
+            <span>${office.detail}</span>
+          </div>
+        `).join("")}
       </div>
     `;
   }
@@ -120,55 +104,36 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderPendingView(view) {
     return `
       <div class="pending-list">
-        ${view.documents
-          .map(
-            (doc) => `
-              <div class="pending-card">
-                <div>
-                  <strong>${doc.title}</strong>
-                  <span>${doc.id} - ${doc.office}</span>
-                </div>
-                <span class="pending-status">Pending</span>
-              </div>
-            `,
-          )
-          .join("")}
+        ${view.documents.map(doc => `
+          <div class="pending-card">
+            <div>
+              <strong>${doc.title}</strong>
+              <span>${doc.id} - ${doc.office}</span>
+            </div>
+            <span class="pending-status">Pending</span>
+          </div>
+        `).join("")}
       </div>
     `;
   }
 
-  function renderView(viewKey) {
-    const view = dashboardViews[viewKey];
+  // Render all views into their respective containers
+  const docDistContent = document.getElementById("doc-dist-content");
+  if (docDistContent) docDistContent.innerHTML = renderPieView(dashboardViews.documents);
 
-    previewTitle.textContent = view.title;
-    previewDescription.textContent = view.description;
+  const userDistContent = document.getElementById("user-dist-content");
+  if (userDistContent) userDistContent.innerHTML = renderPieView(dashboardViews.users);
 
-    if (view.rows) {
-      previewContent.innerHTML = renderPieView(view);
-      return;
-    }
+  const officesContent = document.getElementById("offices-content");
+  if (officesContent) officesContent.innerHTML = renderOfficeView(dashboardViews.offices);
 
-    if (view.offices) {
-      previewContent.innerHTML = renderOfficeView(view);
-      return;
-    }
-
-    previewContent.innerHTML = renderPendingView(view);
-  }
-
-  statCards.forEach((card) => {
-    card.addEventListener("click", () => {
-      statCards.forEach((item) => item.classList.remove("active"));
-      card.classList.add("active");
-      renderView(card.dataset.view);
-    });
-  });
+  const pendingContent = document.getElementById("pending-content");
+  if (pendingContent) pendingContent.innerHTML = renderPendingView(dashboardViews.pending);
 
   if (themeToggle) {
     themeToggle.addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
       const icon = themeToggle.querySelector("i");
-
       if (document.body.classList.contains("dark-mode")) {
         icon.classList.remove("fa-moon");
         icon.classList.add("fa-sun");
@@ -187,5 +152,83 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  renderView("documents");
+  // --- Mini Charts for Reports Grid ---
+  if (typeof Chart !== 'undefined') {
+    // 1. Office Bottlenecks Mini (Bar)
+    const ctxBottleneck = document.getElementById("miniBottleneckChart");
+    if (ctxBottleneck) {
+      new Chart(ctxBottleneck.getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: ["Fin", "HR", "Admin", "Legal", "Ops", "Rec"],
+          datasets: [{
+            data: [14, 8, 21, 5, 11, 18],
+            backgroundColor: ["#5c4ae4", "#2563eb", "#059669", "#f59e0b", "#dc2626", "#0f766e"],
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, title: { display: false } },
+          scales: {
+            y: { display: false },
+            x: { display: false }
+          },
+          layout: { padding: 0 }
+        }
+      });
+    }
+
+    // 2. Volume Trends Mini (Line)
+    const ctxTrends = document.getElementById("miniTrendsChart");
+    if (ctxTrends) {
+      new Chart(ctxTrends.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+          datasets: [{
+            data: [42, 58, 35, 74, 63, 91],
+            borderColor: "#5c4ae4",
+            backgroundColor: "rgba(92, 74, 228, 0.1)",
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, title: { display: false } },
+          scales: {
+            y: { display: false },
+            x: { display: false }
+          },
+          layout: { padding: 0 }
+        }
+      });
+    }
+
+    // 3. Document Types Mini (Pie)
+    const ctxTypes = document.getElementById("miniTypesChart");
+    if (ctxTypes) {
+      new Chart(ctxTypes.getContext("2d"), {
+        type: "pie",
+        data: {
+          labels: ["Memo", "Budget", "Leave", "Contracts"],
+          datasets: [{
+            data: [45, 20, 15, 20],
+            backgroundColor: ["#5c4ae4", "#2563eb", "#059669", "#f59e0b"],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, title: { display: false } },
+          layout: { padding: 10 }
+        }
+      });
+    }
+  }
 });
