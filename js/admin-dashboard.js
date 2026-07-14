@@ -1,9 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const statCards = document.querySelectorAll(".stat-card");
-  const actionCards = document.querySelectorAll(".action-card");
-  const previewTitle = document.getElementById("preview-title");
-  const previewDescription = document.getElementById("preview-description");
-  const previewContent = document.getElementById("admin-preview-content");
   const themeToggle = document.getElementById("themeToggle");
   const logoutButton = document.querySelector(".logout-btn");
 
@@ -74,63 +69,20 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
-  const adminLists = {
-    documentTypes: [
-      {
-        name: "Memorandum",
-        subtypes: [
-          "Office Memorandum",
-          "Inter-Office Memorandum",
-          "Administrative Memorandum",
-          "Policy Memorandum",
-        ],
-      },
-      { name: "Budget Proposal", subtypes: [] },
-      { name: "Leave/Travel", subtypes: [] },
-      { name: "Contracts", subtypes: [] },
-    ],
-    users: [
-      {
-        name: "Maria Santos",
-        email: "maria.santos@office.gov",
-        office: "Records Office",
-      },
-      {
-        name: "Juan Dela Cruz",
-        email: "juan.delacruz@office.gov",
-        office: "Finance",
-      },
-      {
-        name: "Ana Reyes",
-        email: "ana.reyes@office.gov",
-        office: "Legal",
-      },
-    ],
-    offices: ["Finance", "Human Resources", "Administration", "Legal"],
-  };
-
   function renderPieView(view) {
     return `
       <div class="preview-layout">
-        <div
-          class="pie-chart"
-          style="background: conic-gradient(${view.gradient})"
-          aria-label="${view.title}"
-        >
+        <div class="pie-chart" style="background: conic-gradient(${view.gradient})" aria-label="${view.title}">
           <span>${view.total}</span>
         </div>
         <div class="preview-list">
-          ${view.rows
-            .map(
-              (row) => `
-                <div class="preview-row">
-                  <span class="preview-swatch" style="background: ${row.color}"></span>
-                  <span>${row.label}</span>
-                  <strong>${row.value}</strong>
-                </div>
-              `,
-            )
-            .join("")}
+          ${view.rows.map(row => `
+            <div class="preview-row">
+              <span class="preview-swatch" style="background: ${row.color}"></span>
+              <span>${row.label}</span>
+              <strong>${row.value}</strong>
+            </div>
+          `).join("")}
         </div>
       </div>
     `;
@@ -139,16 +91,12 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderOfficeView(view) {
     return `
       <div class="office-grid">
-        ${view.offices
-          .map(
-            (office) => `
-              <div class="office-card">
-                <strong>${office.name}</strong>
-                <span>${office.detail}</span>
-              </div>
-            `,
-          )
-          .join("")}
+        ${view.offices.map(office => `
+          <div class="office-card">
+            <strong>${office.name}</strong>
+            <span>${office.detail}</span>
+          </div>
+        `).join("")}
       </div>
     `;
   }
@@ -156,231 +104,54 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderPendingView(view) {
     return `
       <div class="pending-list">
-        ${view.documents
-          .map(
-            (doc) => `
-              <div class="pending-card">
-                <div>
-                  <strong>${doc.title}</strong>
-                  <span>${doc.id} - ${doc.office}</span>
-                </div>
-                <span class="pending-status">Pending</span>
-              </div>
-            `,
-          )
-          .join("")}
+        ${view.documents.map(doc => `
+          <div class="pending-card">
+            <div>
+              <strong>${doc.title}</strong>
+              <span>${doc.id} - ${doc.office}</span>
+            </div>
+            <span class="pending-status">Pending</span>
+          </div>
+        `).join("")}
       </div>
     `;
   }
 
-  function renderView(viewKey) {
-    const view = dashboardViews[viewKey];
+  // Render all views into their respective containers
+  const docDistContent = document.getElementById("doc-dist-content");
+  if (docDistContent) docDistContent.innerHTML = renderPieView(dashboardViews.documents);
 
-    actionCards.forEach((card) => card.classList.remove("active"));
-    previewTitle.textContent = view.title;
-    previewDescription.textContent = view.description;
+  const userDistContent = document.getElementById("user-dist-content");
+  if (userDistContent) userDistContent.innerHTML = renderPieView(dashboardViews.users);
 
-    if (view.rows) {
-      previewContent.innerHTML = renderPieView(view);
-      return;
-    }
+  const officesContent = document.getElementById("offices-content");
+  if (officesContent) officesContent.innerHTML = renderOfficeView(dashboardViews.offices);
 
-    if (view.offices) {
-      previewContent.innerHTML = renderOfficeView(view);
-      return;
-    }
+  const pendingContent = document.getElementById("pending-content");
+  if (pendingContent) pendingContent.innerHTML = renderPendingView(dashboardViews.pending);
 
-    previewContent.innerHTML = renderPendingView(view);
+  // Load saved theme
+  if (localStorage.getItem("docuflow-theme") === "dark") {
+    document.body.classList.add("dark-mode");
   }
-
-  function renderDocumentTypes() {
-    previewTitle.textContent = "Document Types";
-    previewDescription.textContent = "Frontend-only list of allowed document categories.";
-    previewContent.innerHTML = `
-      <div class="admin-management-layout">
-        <form class="admin-form" id="document-type-form">
-          <label class="admin-field">
-            <span>New Document Type</span>
-            <input id="document-type-input" type="text" placeholder="e.g. Board Resolution" />
-          </label>
-          <button class="admin-submit" type="submit">Add Document Type</button>
-        </form>
-        <div class="management-list">
-          ${adminLists.documentTypes
-            .map((type) =>
-              type.subtypes.length
-                ? `
-                  <details class="management-row document-type-dropdown">
-                    <summary>
-                      <span>${type.name}</span>
-                      <strong>${type.subtypes.length} subtypes</strong>
-                    </summary>
-                    <div class="subtype-list">
-                      ${type.subtypes
-                        .map((subtype) => `<span>${subtype}</span>`)
-                        .join("")}
-                    </div>
-                  </details>
-                `
-                : `
-                  <div class="management-row">
-                    <span>${type.name}</span>
-                    <strong>Active</strong>
-                  </div>
-                `,
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
-
-    document
-      .getElementById("document-type-form")
-      .addEventListener("submit", (e) => {
-        e.preventDefault();
-        const input = document.getElementById("document-type-input");
-        const value = input.value.trim();
-
-        if (value) {
-          adminLists.documentTypes.push({ name: value, subtypes: [] });
-          renderDocumentTypes();
-        }
-      });
-  }
-
-  function renderUsers() {
-    previewTitle.textContent = "Manage Users";
-    previewDescription.textContent = "Add secretary users for offices.";
-    previewContent.innerHTML = `
-      <div class="admin-management-layout">
-        <form class="admin-form" id="user-form">
-          <label class="admin-field">
-            <span>Secretary Name</span>
-            <input id="user-name-input" type="text" placeholder="Full name" />
-          </label>
-          <label class="admin-field">
-            <span>Email</span>
-            <input id="user-email-input" type="email" placeholder="name@office.gov" />
-          </label>
-          <label class="admin-field">
-            <span>Office</span>
-            <select id="user-office-input">
-              ${adminLists.offices
-                .map((office) => `<option>${office}</option>`)
-                .join("")}
-            </select>
-          </label>
-          <button class="admin-submit" type="submit">Add Secretary</button>
-        </form>
-        <div class="management-list">
-          ${adminLists.users
-            .map(
-              (user) => `
-                <div class="management-row">
-                  <span>
-                    ${user.name}
-                    <small>${user.email} - ${user.office}</small>
-                  </span>
-                  <strong>Secretary</strong>
-                </div>
-              `,
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
-
-    document.getElementById("user-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const name = document.getElementById("user-name-input").value.trim();
-      const email = document.getElementById("user-email-input").value.trim();
-      const office = document.getElementById("user-office-input").value;
-
-      if (name && email) {
-        adminLists.users.push({ name, email, office });
-        renderUsers();
-      }
-    });
-  }
-
-  function renderOfficeManager() {
-    previewTitle.textContent = "Manage Offices";
-    previewDescription.textContent = "Add or remove offices from the frontend list.";
-    previewContent.innerHTML = `
-      <div class="admin-management-layout">
-        <form class="admin-form" id="office-form">
-          <label class="admin-field">
-            <span>New Office</span>
-            <input id="office-input" type="text" placeholder="e.g. Procurement" />
-          </label>
-          <button class="admin-submit" type="submit">Add Office</button>
-        </form>
-        <div class="management-list">
-          ${adminLists.offices
-            .map(
-              (office, index) => `
-                <div class="management-row">
-                  <span>${office}</span>
-                  <button class="admin-remove" type="button" data-office-index="${index}">
-                    Remove
-                  </button>
-                </div>
-              `,
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
-
-    document.getElementById("office-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const input = document.getElementById("office-input");
-      const value = input.value.trim();
-
-      if (value) {
-        adminLists.offices.push(value);
-        renderOfficeManager();
-      }
-    });
-
-    document.querySelectorAll("[data-office-index]").forEach((button) => {
-      button.addEventListener("click", () => {
-        adminLists.offices.splice(Number(button.dataset.officeIndex), 1);
-        renderOfficeManager();
-      });
-    });
-  }
-
-  statCards.forEach((card) => {
-    card.addEventListener("click", () => {
-      statCards.forEach((item) => item.classList.remove("active"));
-      card.classList.add("active");
-      renderView(card.dataset.view);
-    });
-  });
-
-  actionCards.forEach((card) => {
-    card.addEventListener("click", () => {
-      statCards.forEach((item) => item.classList.remove("active"));
-      actionCards.forEach((item) => item.classList.remove("active"));
-      card.classList.add("active");
-
-      if (card.dataset.action === "documentTypes") {
-        renderDocumentTypes();
-      } else if (card.dataset.action === "users") {
-        renderUsers();
-      } else {
-        renderOfficeManager();
-      }
-    });
-  });
 
   if (themeToggle) {
+    // Set initial icon state
+    const icon = themeToggle.querySelector("i");
+    if (document.body.classList.contains("dark-mode")) {
+      icon.classList.remove("fa-moon");
+      icon.classList.add("fa-sun");
+    } else {
+      icon.classList.remove("fa-sun");
+      icon.classList.add("fa-moon");
+    }
+
     themeToggle.addEventListener("click", () => {
       document.body.classList.toggle("dark-mode");
-      const icon = themeToggle.querySelector("i");
+      const isDark = document.body.classList.contains("dark-mode");
+      localStorage.setItem("docuflow-theme", isDark ? "dark" : "light");
 
-      if (document.body.classList.contains("dark-mode")) {
+      if (isDark) {
         icon.classList.remove("fa-moon");
         icon.classList.add("fa-sun");
       } else {
@@ -398,5 +169,83 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  renderView("documents");
+  // REport Grid
+  if (typeof Chart !== 'undefined') {
+    // Office Bottlenecks
+    const ctxBottleneck = document.getElementById("miniBottleneckChart");
+    if (ctxBottleneck) {
+      new Chart(ctxBottleneck.getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: ["Fin", "HR", "Admin", "Legal", "Ops", "Rec"],
+          datasets: [{
+            data: [14, 8, 21, 5, 11, 18],
+            backgroundColor: ["#5c4ae4", "#2563eb", "#059669", "#f59e0b", "#dc2626", "#0f766e"],
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, title: { display: false } },
+          scales: {
+            y: { display: false },
+            x: { display: false }
+          },
+          layout: { padding: 0 }
+        }
+      });
+    }
+
+    // 2. Volume Trends 
+    const ctxTrends = document.getElementById("miniTrendsChart");
+    if (ctxTrends) {
+      new Chart(ctxTrends.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+          datasets: [{
+            data: [42, 58, 35, 74, 63, 91],
+            borderColor: "#5c4ae4",
+            backgroundColor: "rgba(92, 74, 228, 0.1)",
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, title: { display: false } },
+          scales: {
+            y: { display: false },
+            x: { display: false }
+          },
+          layout: { padding: 0 }
+        }
+      });
+    }
+
+    // 3. Document Types
+    const ctxTypes = document.getElementById("miniTypesChart");
+    if (ctxTypes) {
+      new Chart(ctxTypes.getContext("2d"), {
+        type: "pie",
+        data: {
+          labels: ["Memo", "Budget", "Leave", "Contracts"],
+          datasets: [{
+            data: [45, 20, 15, 20],
+            backgroundColor: ["#5c4ae4", "#2563eb", "#059669", "#f59e0b"],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, title: { display: false } },
+          layout: { padding: 10 }
+        }
+      });
+    }
+  }
 });
