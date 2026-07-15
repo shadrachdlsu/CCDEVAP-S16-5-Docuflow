@@ -12,10 +12,7 @@ class Document
     }
 
     /**
-     * Get documents assigned to an office.
-     * @param int    $officeId
-     * @param string|null $displayStatus  'Pending', 'Signed', 'Finished', or null for all
-     * @return array
+     * Get documents assigned to an office, with optional display‑status filter.
      */
     public function getDocumentsForOffice(int $officeId, ?string $displayStatus = null): array
     {
@@ -28,14 +25,14 @@ class Document
                    dt.type_name,
                    u.full_name AS creator_name,
                    o.office_name AS current_office_name,
-                   GROUP_CONCAT(DISTINCT ur.full_name ORDER BY ur.full_name SEPARATOR ', ') AS assignee_names,
-                   GROUP_CONCAT(DISTINCT ur.email ORDER BY ur.email SEPARATOR ', ') AS assignee_emails
+                   GROUP_CONCAT(DISTINCT assignee.full_name ORDER BY assignee.full_name SEPARATOR ', ') AS assignee_names,
+                   GROUP_CONCAT(DISTINCT assignee.email ORDER BY assignee.email SEPARATOR ', ') AS assignee_emails
             FROM documents d
             JOIN document_types dt ON d.type_id = dt.type_id
             JOIN users u ON d.creator_id = u.user_id
             LEFT JOIN offices o ON d.current_office_id = o.office_id
-            LEFT JOIN document_routes dr ON d.document_id = dr.document_id AND dr.signatory_user_id IS NOT NULL
-            LEFT JOIN users ur ON dr.signatory_user_id = ur.user_id
+            LEFT JOIN document_assignments da ON d.document_id = da.document_id AND da.status IN ('Pending','Signed')
+            LEFT JOIN users assignee ON da.assigned_to_user_id = assignee.user_id
             WHERE d.current_office_id = :office_id
         ";
 
@@ -61,9 +58,7 @@ class Document
     }
 
     /**
-     * Get a single document by ID, with all details.
-     * @param int $docId
-     * @return array|null
+     * Get a single document by ID, with details.
      */
     public function getDocumentById(int $docId): ?array
     {
@@ -79,11 +74,7 @@ class Document
     }
 
     /**
-     * Assign one or more members to a document.
-     * @param int   $docId
-     * @param int   $assignedByUserId   (secretary user ID)
-     * @param array $assigneeUserIds
-     * @return void
+     * Assign one or more members to a document (uses document_assignments).
      */
     public function assignDocument(int $docId, int $assignedByUserId, array $assigneeUserIds): void
     {
@@ -94,27 +85,28 @@ class Document
 
             $officeId = $doc['current_office_id'];
 
-            $stepNo = $this->getNextStepNo($docId);
             foreach ($assigneeUserIds as $userId) {
                 $stmt = $this->pdo->prepare("
-                    INSERT INTO document_routes (document_id, step_no, office_id, recipient_scope, signatory_user_id, status)
-                    VALUES (:doc_id, :step_no, :office_id, 'Individual', :user_id, 'Waiting')
+                    INSERT INTO document_assignments
+                    (document_id, assigned_to_user_id, assigned_by_user_id, office_id, status, assigned_at)
+                    VALUES (:doc_id, :to_user, :by_user, :office_id, 'Pending', NOW())
                 ");
                 $stmt->execute([
-                    ':doc_id'    => $docId,
-                    ':step_no'   => $stepNo,
-                    ':office_id' => $officeId,
-                    ':user_id'   => $userId,
+                    ':doc_id'   => $docId,
+                    ':to_user'  => $userId,
+                    ':by_user'  => $assignedByUserId,
+                    ':office_id'=> $officeId,
                 ]);
-                $stepNo++;
             }
 
-            if ($doc['status'] !== 'Pending') {
+            // Update document status to Pending if not already
+            if (!in_array($doc['status'], ['Pending', 'For Signature', 'Received', 'Released'])) {
                 $this->updateDocumentStatus($docId, 'Pending');
             }
 
+            // Log trail
             $assigneeNames = $this->getUserNamesByIds($assigneeUserIds);
-            $this->addTrailEntry($docId, $assignedByUserId, 'Assigned', 'Assigned to ' . implode(', ', $assigneeNames));
+            $this->addTrailEntry($docId, $assignedByUserId, $officeId, null, 'Assigned', 'Assigned to ' . implode(', ', $assigneeNames));
 
             $this->pdo->commit();
         } catch (Exception $e) {
@@ -125,22 +117,20 @@ class Document
 
     /**
      * Forward a document to another office.
-     * @param int $docId
-     * @param int $userId       (secretary)
-     * @param int $targetOfficeId
-     * @return void
      */
     public function forwardDocument(int $docId, int $userId, int $targetOfficeId): void
     {
         $this->pdo->beginTransaction();
         try {
+            $doc = $this->getDocumentById($docId);
+            $fromOffice = $doc['current_office_id'];
+
             $stmt = $this->pdo->prepare("UPDATE documents SET current_office_id = :office_id WHERE document_id = :doc_id");
             $stmt->execute([':office_id' => $targetOfficeId, ':doc_id' => $docId]);
 
             $this->updateDocumentStatus($docId, 'Released');
 
-            $officeName = $this->getOfficeNameById($targetOfficeId);
-            $this->addTrailEntry($docId, $userId, 'Forwarded', "Forwarded to {$officeName}");
+            $this->addTrailEntry($docId, $userId, $fromOffice, $targetOfficeId, 'Forwarded', "Forwarded to " . $this->getOfficeNameById($targetOfficeId));
 
             $this->pdo->commit();
         } catch (Exception $e) {
@@ -151,39 +141,41 @@ class Document
 
     /**
      * Mark document as Finished (Completed).
-     * @param int $docId
-     * @param int $userId
-     * @return void
      */
     public function finishDocument(int $docId, int $userId): void
     {
+        $doc = $this->getDocumentById($docId);
         $this->updateDocumentStatus($docId, 'Completed');
-        $this->addTrailEntry($docId, $userId, 'Finished', 'Marked as Finished by Secretary');
+        $this->addTrailEntry($docId, $userId, $doc['current_office_id'], null, 'Finished', 'Marked as Finished by Secretary');
     }
 
     /**
      * Cancel a document.
-     * @param int $docId
-     * @param int $userId
-     * @return void
      */
     public function cancelDocument(int $docId, int $userId): void
     {
+        $doc = $this->getDocumentById($docId);
         $this->updateDocumentStatus($docId, 'Recalled');
-        $this->addTrailEntry($docId, $userId, 'Cancelled', 'Document cancelled by Secretary');
+        $this->addTrailEntry($docId, $userId, $doc['current_office_id'], null, 'Cancelled', 'Document cancelled by Secretary');
     }
 
     /**
      * Get paper trail for a document.
-     * @param int $docId
-     * @return array
      */
     public function getTrail(int $docId): array
     {
         $stmt = $this->pdo->prepare("
-            SELECT t.trail_id, t.action, t.remarks, t.created_at, u.full_name AS action_by_name
+            SELECT t.trail_id,
+                   t.action_taken AS action,
+                   t.remarks,
+                   t.created_at,
+                   u.full_name AS action_by_name,
+                   from_off.office_name AS from_office,
+                   to_off.office_name AS to_office
             FROM document_trails t
-            JOIN users u ON t.action_by_id = u.user_id
+            JOIN users u ON t.action_by_user_id = u.user_id
+            LEFT JOIN offices from_off ON t.from_office_id = from_off.office_id
+            LEFT JOIN offices to_off ON t.to_office_id = to_off.office_id
             WHERE t.document_id = :doc_id
             ORDER BY t.created_at ASC
         ");
@@ -191,7 +183,7 @@ class Document
         return $stmt->fetchAll();
     }
 
-    //  HELPER METHODS
+    //  PRIVATE / PUBLIC HELPERS
 
     private function updateDocumentStatus(int $docId, string $status): void
     {
@@ -199,27 +191,27 @@ class Document
         $stmt->execute([':status' => $status, ':doc_id' => $docId]);
     }
 
-    public function addTrailEntry(int $docId, int $userId, string $action, ?string $remarks = null): void
+    /**
+     * Insert a trail entry.
+     */
+    public function addTrailEntry(int $docId, int $userId, ?int $fromOfficeId, ?int $toOfficeId, string $action, ?string $remarks = null): void
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO document_trails (document_id, action_by_id, action, remarks)
-            VALUES (:doc_id, :user_id, :action, :remarks)
+            INSERT INTO document_trails
+            (document_id, action_by_user_id, from_office_id, to_office_id, action_taken, remarks, created_at)
+            VALUES (:doc_id, :user_id, :from_office, :to_office, :action, :remarks, NOW())
         ");
         $stmt->execute([
-            ':doc_id'  => $docId,
-            ':user_id' => $userId,
-            ':action'  => $action,
-            ':remarks' => $remarks,
+            ':doc_id'       => $docId,
+            ':user_id'      => $userId,
+            ':from_office'  => $fromOfficeId,
+            ':to_office'    => $toOfficeId,
+            ':action'       => $action,
+            ':remarks'      => $remarks,
         ]);
     }
 
-    private function getNextStepNo(int $docId): int
-    {
-        $stmt = $this->pdo->prepare("SELECT MAX(step_no) FROM document_routes WHERE document_id = :doc_id");
-        $stmt->execute([':doc_id' => $docId]);
-        $max = $stmt->fetchColumn();
-        return ($max === false) ? 1 : $max + 1;
-    }
+    private function getNextStepNo(int $docId): int { /* unused now, kept for compatibility */ return 1; }
 
     private function getUserNamesByIds(array $userIds): array
     {
