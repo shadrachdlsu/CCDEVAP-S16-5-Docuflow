@@ -8,10 +8,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirmPassword = $_POST['confirmPassword'];
     $office_id = $_POST['office_id'];
 
-    if (strpos($email, '@') === false || strpos($email, '.com') === false) {
-        header("Location: ../views/register.php?type=error&msg=invalid_email");
-        exit;
-    }
+    // COMMENTED OUT BECAUSE EMAILS IN THE DB USE .gov and .local
+    // if (strpos($email, '@') === false || strpos($email, '.com') === false) {
+    //     header("Location: ../views/register.php?type=error&msg=invalid_email");
+    //     exit;
+    // }
     
     if ($password !== $confirmPassword) {
         header("Location: ../views/register.php?type=error&msg=mismatch");
