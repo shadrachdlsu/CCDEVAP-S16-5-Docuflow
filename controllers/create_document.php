@@ -69,7 +69,7 @@ $stmt->execute([
 $docId = $pdo->lastInsertId();
 
 $document = new Document();
-$document->addTrailEntry($docId, $userId, 'Created', 'Document created');
+$document->addTrailEntry($docId, $userId, $officeId, null, 'Created', 'Document created');
 
 ob_clean();
 header('Content-Type: application/json');
