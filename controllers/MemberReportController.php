@@ -13,9 +13,35 @@ if(!isset($_SESSION["user_id"]))
     exit();
 }
 
+$userId = (int) $_SESSION["user_id"];
 
-$userId = $_SESSION["user_id"];
+$sql = "
+    SELECT
+        u.user_id,
+        u.full_name,
+        u.email,
+        u.office_id,
+        r.role_name,
+        o.office_name
+    FROM users u
+    INNER JOIN roles r
+        ON u.role_id = r.role_id
+    LEFT JOIN offices o
+        ON u.office_id = o.office_id
+    WHERE u.user_id = ?
+    LIMIT 1
+";
 
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$userId]);
+
+$user = $stmt->fetch();
+
+if (!$user) {
+    session_destroy();
+    header("Location: ../views/login.php");
+    exit;
+}
 
 /*
 ==========================================
