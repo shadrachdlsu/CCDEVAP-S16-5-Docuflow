@@ -16,10 +16,10 @@
       <main class="admin-main">
         <header class="admin-header">
           <div class="header-left">
-            <a href="admin-dashboard.html" class="logo-area">
+            <a href="admin-dashboard.php" class="logo-area">
               <span class="web-logo">Docuflow</span>
             </a>
-            <a href="admin-dashboard.html" class="back-btn">
+            <a href="admin-dashboard.php" class="back-btn">
               <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
           </div>

@@ -3,12 +3,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutButton = document.querySelector(".logout-btn");
 
   // Hardcoded documents array — statuses: Pending, Signed, Finished
-  const documents = [
-    { id: "DOC-2024-001", title: "Budget Proposal FY 2024", type: "Budget Proposal", office: "Finance", status: "Pending" },
-    { id: "DOC-2024-002", title: "Employee Leave Request", type: "Leave/Travel", office: "Human Resources", status: "Signed" },
-    { id: "DOC-2024-004", title: "Procurement Review", type: "Memorandum", office: "Administration", status: "Finished" },
-    { id: "DOC-2024-012", title: "Contract Review Packet", type: "Contracts", office: "Legal", status: "Pending" },
-  ];
+  // const documents = [
+  //   { id: "DOC-2024-001", title: "Budget Proposal FY 2024", type: "Budget Proposal", office: "Finance", status: "Pending" },
+  //   { id: "DOC-2024-002", title: "Employee Leave Request", type: "Leave/Travel", office: "Human Resources", status: "Signed" },
+  //   { id: "DOC-2024-004", title: "Procurement Review", type: "Memorandum", office: "Administration", status: "Finished" },
+  //   { id: "DOC-2024-012", title: "Contract Review Packet", type: "Contracts", office: "Legal", status: "Pending" },
+  // ];
 
   function getStatusBadge(status) {
     const s = status.toLowerCase();
@@ -18,19 +18,34 @@ document.addEventListener("DOMContentLoaded", () => {
     return status;
   }
 
-  function renderDocuments() {
-    const tbody = document.querySelector("#documentsTable tbody");
-    tbody.innerHTML = documents.map(d => `
-      <tr>
-        <td>${d.id}</td>
-        <td>${d.title}</td>
-        <td>${d.type}</td>
-        <td>${d.office}</td>
-        <td>${getStatusBadge(d.status)}</td>
-      </tr>
-    `).join("");
+  async function renderDocuments() {
+    try {
+      // Fetch the JavaScript array from the backend
+      const response = await fetch('../controllers/api_get_documents.php');
+      const documents = await response.json();
 
-    $('#documentsTable').DataTable();
+      if (documents.error) {
+        console.error("Authentication or Server Error:", documents.error);
+        return;
+      }
+
+      const tbody = document.querySelector("#documentsTable tbody");
+      tbody.innerHTML = documents.map(d => `
+        <tr>
+          <td>${d.id}</td>
+          <td>${d.title}</td>
+          <td>${d.type}</td>
+          <td>${d.office || 'N/A'}</td>
+          <td>${getStatusBadge(d.status)}</td>
+        </tr>
+      `).join("");
+
+      // Initialize DataTable AFTER the data is injected
+      $('#documentsTable').DataTable();
+
+    } catch (error) {
+      console.error("Failed to load documents:", error);
+    }
   }
 
   // Load saved theme
@@ -68,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (logoutButton) {
     logoutButton.addEventListener("click", () => {
       if (confirm("Are you sure you want to logout?")) {
-        window.location.href = "login.html";
+        window.location.href = "../views/login.php";
       }
     });
   }

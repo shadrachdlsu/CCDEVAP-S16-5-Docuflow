@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Docuflow - Document Types Distribution</title>
+    <title>Docuflow - Office Bottlenecks</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
@@ -15,10 +15,10 @@
       <main class="admin-main">
         <header class="admin-header">
           <div class="header-left">
-            <a href="admin-dashboard.html" class="logo-area">
+            <a href="admin-dashboard.php" class="logo-area">
               <span class="web-logo">Docuflow</span>
             </a>
-            <a href="admin-dashboard.html" class="back-btn">
+            <a href="admin-dashboard.php" class="back-btn">
               <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
           </div>
@@ -41,11 +41,11 @@
         <!-- Chart Content -->
         <section class="admin-preview-panel">
           <div class="preview-header">
-            <h2 class="section-title">Document Types Distribution</h2>
-            <p class="preview-description">Percentage breakdown of documents by type across the system.</p>
+            <h2 class="section-title">Office Bottlenecks</h2>
+            <p class="preview-description">Number of "Pending" documents per office. Helps identify which department is slowing down the workflow.</p>
           </div>
-          <div class="admin-preview-content" style="max-width: 500px; margin: 0 auto;">
-            <canvas id="typesChart"></canvas>
+          <div class="admin-preview-content">
+            <canvas id="bottlenecksChart"></canvas>
           </div>
         </section>
       </main>
@@ -92,42 +92,58 @@
         if (logoutButton) {
           logoutButton.addEventListener("click", () => {
             if (confirm("Are you sure you want to logout?")) {
-              window.location.href = "login.html";
+              window.location.href = "login.php";
             }
           });
         }
 
-        // --- Pie Chart: Document Types Distribution ---
-        const ctx = document.getElementById("typesChart").getContext("2d");
-        new Chart(ctx, {
-          type: "pie",
-          data: {
-            labels: ["Memorandum", "Budget Proposal", "Leave/Travel", "Contracts"],
-            datasets: [{
-              label: "Documents by Type",
-              data: [45, 20, 15, 20],
-              backgroundColor: [
-                "#5c4ae4",
-                "#2563eb",
-                "#059669",
-                "#f59e0b"
-              ],
-              borderWidth: 2,
-              borderColor: "#ffffff"
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: "bottom" },
-              title: {
-                display: true,
-                text: "Document Types Breakdown (%)",
-                font: { size: 16 }
+        // --- Bar Chart: Pending Documents per Office ---
+        const ctx = document.getElementById("bottlenecksChart").getContext("2d");
+        
+        fetch("../controllers/api_dashboard_stats.php?action=bottleneck_chart")
+          .then(res => res.json())
+          .then(data => {
+            new Chart(ctx, {
+              type: "bar",
+              data: {
+                labels: data.labels,
+                datasets: [{
+                  label: "Pending Documents",
+                  data: data.data,
+                  backgroundColor: [
+                    "#5c4ae4",
+                    "#2563eb",
+                    "#059669",
+                    "#f59e0b",
+                    "#dc2626",
+                    "#0f766e"
+                  ],
+                  borderRadius: 6
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  title: {
+                    display: true,
+                    text: "Pending Documents by Office",
+                    font: { size: 16 }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: { display: true, text: "Number of Documents" }
+                  },
+                  x: {
+                    title: { display: true, text: "Office / Department" }
+                  }
+                }
               }
-            }
-          }
-        });
+            });
+          })
+          .catch(err => console.error("Error loading bottleneck data:", err));
       });
     </script>
   </body>
