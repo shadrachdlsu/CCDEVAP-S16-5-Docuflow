@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let roles = [];
 
   function loadRoles() {
-    fetch("../controllers/api_users.php?action=get_roles")
+    fetch("../controllers/admin_api_users.php?action=get_roles")
       .then(res => res.json())
       .then(data => {
         roles = data;
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function loadOffices() {
-    fetch("../controllers/api_users.php?action=get_offices")
+    fetch("../controllers/admin_api_users.php?action=get_offices")
       .then(res => res.json())
       .then(data => {
         offices = data;
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function loadUsers() {
-    fetch("../controllers/api_users.php?action=list")
+    fetch("../controllers/admin_api_users.php?action=list")
       .then(res => res.json())
       .then(data => {
         users = data;
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.append("action", "delete");
       formData.append("id", id);
 
-      fetch("../controllers/api_users.php", {
+      fetch("../controllers/admin_api_users.php", {
         method: "POST",
         body: formData
       })
@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("office_id", officeId);
     formData.append("status", status);
 
-    fetch("../controllers/api_users.php", {
+    fetch("../controllers/admin_api_users.php", {
       method: "POST",
       body: formData
     })

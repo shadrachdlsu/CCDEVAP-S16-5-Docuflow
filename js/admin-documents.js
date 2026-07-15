@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function renderDocuments() {
     try {
       // Fetch the JavaScript array from the backend
-      const response = await fetch('../controllers/api_get_documents.php');
+      const response = await fetch('../controllers/admin_api_get_documents.php');
       const documents = await response.json();
 
       if (documents.error) {

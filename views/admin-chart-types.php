@@ -100,7 +100,7 @@
         // --- Pie Chart: Document Types Distribution ---
         const ctx = document.getElementById("typesChart").getContext("2d");
         
-        fetch("../controllers/api_dashboard_stats.php?action=types_chart")
+        fetch("../controllers/admin_api_dashboard_stats.php?action=types_chart")
           .then(res => res.json())
           .then(data => {
             new Chart(ctx, {

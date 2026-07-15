@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const docDistContent = document.getElementById("doc-dist-content");
   if (docDistContent) {
     // 1. Write a basic fetch() request to call the PHP file
-    fetch("../controllers/api_dashboard_charts.php")
+    fetch("../controllers/admin_api_dashboard_charts.php")
       .then(response => response.json()) // Parse the JSON response
       .then(data => {
         // Create a canvas element to hold the Chart.js pie chart
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const userDistContent = document.getElementById("user-dist-content");
   if (userDistContent) {
-    fetch("../controllers/api_dashboard_stats.php?action=user_distribution")
+    fetch("../controllers/admin_api_dashboard_stats.php?action=user_distribution")
       .then(res => res.json())
       .then(data => {
         userDistContent.innerHTML = renderPieView(data);
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const officesContent = document.getElementById("offices-content");
   if (officesContent) {
-    fetch("../controllers/api_dashboard_stats.php?action=office_directory")
+    fetch("../controllers/admin_api_dashboard_stats.php?action=office_directory")
       .then(res => res.json())
       .then(data => {
         officesContent.innerHTML = renderOfficeView(data);
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const pendingContent = document.getElementById("pending-content");
   if (pendingContent) {
-    fetch("../controllers/api_dashboard_stats.php?action=pending_documents")
+    fetch("../controllers/admin_api_dashboard_stats.php?action=pending_documents")
       .then(res => res.json())
       .then(data => {
         pendingContent.innerHTML = renderPendingView(data);
@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Office Bottlenecks
     const ctxBottleneck = document.getElementById("miniBottleneckChart");
     if (ctxBottleneck) {
-      fetch("../controllers/api_dashboard_stats.php?action=bottleneck_chart")
+      fetch("../controllers/admin_api_dashboard_stats.php?action=bottleneck_chart")
         .then(res => res.json())
         .then(data => {
           new Chart(ctxBottleneck.getContext("2d"), {
@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2. Volume Trends 
     const ctxTrends = document.getElementById("miniTrendsChart");
     if (ctxTrends) {
-      fetch("../controllers/api_dashboard_stats.php?action=volume_trends")
+      fetch("../controllers/admin_api_dashboard_stats.php?action=volume_trends")
         .then(res => res.json())
         .then(data => {
           new Chart(ctxTrends.getContext("2d"), {
@@ -229,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. Document Types
     const ctxTypes = document.getElementById("miniTypesChart");
     if (ctxTypes) {
-      fetch("../controllers/api_dashboard_stats.php?action=types_chart")
+      fetch("../controllers/admin_api_dashboard_stats.php?action=types_chart")
         .then(res => res.json())
         .then(data => {
           new Chart(ctxTypes.getContext("2d"), {
