@@ -43,8 +43,8 @@ CREATE TABLE `documents` (
   `current_office_id` int,
   `status` ENUM ('Pending', 'Signed', 'Finished') NOT NULL DEFAULT 'Pending',
   `file_path` varchar(255),
-  `created_at` timestamp,
-  `updated_at` timestamp
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
 );
 
 CREATE TABLE `document_assignments` (
@@ -56,8 +56,8 @@ CREATE TABLE `document_assignments` (
   `status` ENUM ('Pending', 'Signed', 'Rejected', 'Cancelled') NOT NULL DEFAULT 'Pending',
   `remarks` text,
   `signed_file_path` varchar(255),
-  `assigned_at` timestamp,
-  `acted_at` timestamp
+  `assigned_at` timestamp NULL DEFAULT NULL,
+  `acted_at` timestamp NULL DEFAULT NULL
 );
 
 CREATE TABLE `document_trails` (
@@ -80,8 +80,8 @@ CREATE TABLE `document_requests` (
   `title` varchar(255) NOT NULL,
   `description` text,
   `status` ENUM ('Pending', 'Approved', 'Rejected', 'Created') NOT NULL DEFAULT 'Pending',
-  `created_at` timestamp,
-  `processed_at` timestamp
+  `created_at` timestamp NULL DEFAULT NULL,
+  `processed_at` timestamp NULL DEFAULT NULL
 );
 
 ALTER TABLE `roles` COMMENT = 'Examples: Admin, Secretary, Member';
