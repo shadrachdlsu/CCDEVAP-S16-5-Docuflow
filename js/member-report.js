@@ -681,3 +681,62 @@ function formatDate(date)
     );
 
 }
+
+/* ==========================================
+   DARK MODE
+========================================== */
+
+document.addEventListener("DOMContentLoaded", function ()
+{
+    const themeToggle =
+        document.getElementById("themeToggle");
+
+    if (!themeToggle)
+    {
+        console.error("Theme toggle button not found.");
+        return;
+    }
+
+    const themeIcon =
+        themeToggle.querySelector("i");
+
+    const savedTheme =
+        localStorage.getItem("docuflow-theme");
+
+    if (savedTheme === "dark")
+    {
+        document.body.classList.add("dark-mode");
+        updateThemeIcon(true);
+    }
+    else
+    {
+        document.body.classList.remove("dark-mode");
+        updateThemeIcon(false);
+    }
+
+    themeToggle.addEventListener("click", function ()
+    {
+        document.body.classList.toggle("dark-mode");
+
+        const isDark =
+            document.body.classList.contains("dark-mode");
+
+        localStorage.setItem(
+            "docuflow-theme",
+            isDark ? "dark" : "light"
+        );
+
+        updateThemeIcon(isDark);
+    });
+
+    function updateThemeIcon(isDark)
+    {
+        if (!themeIcon)
+        {
+            return;
+        }
+
+        themeIcon.classList.toggle("fa-moon", !isDark);
+        themeIcon.classList.toggle("fa-sun", isDark);
+    }
+});
