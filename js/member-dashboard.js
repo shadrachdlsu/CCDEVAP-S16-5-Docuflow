@@ -24,7 +24,7 @@ const API =
         "../controllers/MemberDashboardController.php?action=paperTrail",
 
     request:
-        "../controllers/MemberRequestController.php"
+        "../controllers/MemberRequestController.php",
 
     sign:
         "../controllers/MemberSignController.php",
@@ -72,7 +72,6 @@ document.addEventListener(
 
 async function initializeDashboard()
 {
-    initializeTheme();
 
     // Your other initialization functions
     initializeTables();
@@ -1032,36 +1031,6 @@ async function uploadSignedDocument()
 }
 
 /* ==========================================
-   THEME
-========================================== */
-
-function initializeTheme()
-{
-    const toggle = document.getElementById("themeToggle");
-
-    if(!toggle)
-    {
-        return;
-    }
-
-    const icon = toggle.querySelector("i");
-
-    toggle.addEventListener("click", function()
-    {
-        document.body.classList.toggle("dark-mode");
-
-        const isDark =
-            document.body.classList.contains("dark-mode");
-
-        if(icon)
-        {
-            icon.classList.toggle("fa-moon", !isDark);
-            icon.classList.toggle("fa-sun", isDark);
-        }
-    });
-}
-
-/* ==========================================
    REPORT CHART
 ========================================== */
 
@@ -1140,26 +1109,60 @@ function loadChart()
 }
 
 /* ==========================================
-   BUTTONS
+   DARK MODE
 ========================================== */
 
-/*function initializeButtons()
+document.addEventListener("DOMContentLoaded", function ()
 {
-    const logoutButton =
-        document.querySelector(
-            ".logout-btn"
-        );
+    const themeToggle =
+        document.getElementById("themeToggle");
 
-    if(logoutButton)
+    if (!themeToggle)
     {
-        logoutButton.addEventListener(
-            "click",
-
-            function()
-            {
-                window.location.href =
-                    "../index.html";
-            }
-        );
+        console.error("Theme toggle button not found.");
+        return;
     }
-} */
+
+    const themeIcon =
+        themeToggle.querySelector("i");
+
+    const savedTheme =
+        localStorage.getItem("docuflow-theme");
+
+    if (savedTheme === "dark")
+    {
+        document.body.classList.add("dark-mode");
+        updateThemeIcon(true);
+    }
+    else
+    {
+        document.body.classList.remove("dark-mode");
+        updateThemeIcon(false);
+    }
+
+    themeToggle.addEventListener("click", function ()
+    {
+        document.body.classList.toggle("dark-mode");
+
+        const isDark =
+            document.body.classList.contains("dark-mode");
+
+        localStorage.setItem(
+            "docuflow-theme",
+            isDark ? "dark" : "light"
+        );
+
+        updateThemeIcon(isDark);
+    });
+
+    function updateThemeIcon(isDark)
+    {
+        if (!themeIcon)
+        {
+            return;
+        }
+
+        themeIcon.classList.toggle("fa-moon", !isDark);
+        themeIcon.classList.toggle("fa-sun", isDark);
+    }
+});

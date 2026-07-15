@@ -1271,6 +1271,25 @@ body.dark-mode .view-all:hover{
 
 }
 
+body.dark-mode .member-navbar{
+    background:#111827;
+    border-color:#374151;
+}
+
+body.dark-mode .nav-link{
+    color:#d1d5db;
+}
+
+body.dark-mode .nav-link:hover,
+body.dark-mode .nav-link.active{
+    background:var(--primary);
+    color:#fff;
+}
+
+body.dark-mode .member-main{
+    color:#f9fafb;
+}
+
 /* =======================================
    ANIMATIONS
 ======================================= */

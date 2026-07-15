@@ -90,7 +90,8 @@ require_once "../controllers/MemberDashboardController.php";
             <button
                 id="themeToggle"
                 class="icon-btn toggle-theme"
-                type="button">
+                type="button"
+                title="Toggle theme">
 
                 <i class="fas fa-moon"></i>
 
