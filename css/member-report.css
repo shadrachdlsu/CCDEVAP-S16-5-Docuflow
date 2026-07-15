@@ -241,13 +241,10 @@ body.member-body{
 ======================================= */
 
 .member-main{
-
-    max-width:1400px;
-
-    margin:30px auto;
-
-    padding:0 30px;
-
+    width:100%;
+    max-width:1800px;
+    margin:0 auto;
+    padding:36px 30px;
 }
 
 /* =======================================
@@ -961,42 +958,75 @@ body.dark-mode .member-main{
 
 }
 
-/* ===========================
-   DARK MODE NAVBAR
-=========================== */
+/* ==========================================
+   MEMBER TOP NAVBAR
+========================================== */
 
-body.dark-mode .member-header{
-    background:#1f2937;
-    color:#fff;
+.member-navbar{
+    width:100%;
+    background:#ffffff;
+    border-bottom:1px solid var(--border);
+    padding:18px 26px;
+    display:flex;
+    align-items:center;
 }
 
-body.dark-mode .member-header a{
-    color:#fff;
+.nav-left{
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    gap:28px;
+    flex-wrap:wrap;
 }
 
-body.dark-mode .member-header .web-logo{
-    color:#7c5cff;
+.member-navbar .nav-link{
+    width:auto;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 18px;
+    border-radius:10px;
+    text-decoration:none;
+    color:#374151;
+    font-weight:600;
+    background:transparent;
+    transition:.2s;
 }
 
-body.dark-mode .member-header .user-email,
-body.dark-mode .member-header .user-role{
-    color:#f3f4f6;
+.member-navbar .nav-link i{
+    font-size:17px;
 }
 
-body.dark-mode .member-navbar{
-    background:#111827;
-    border-top:1px solid #374151;
+.member-navbar .nav-link:hover{
+    background:rgba(92,74,228,.12);
+    color:var(--primary);
 }
 
-body.dark-mode .member-navbar a{
-    color:#e5e7eb;
-}
-
-body.dark-mode .member-navbar a:hover{
+.member-navbar .nav-link.active{
+    background:var(--primary);
     color:#ffffff;
 }
 
-body.dark-mode .member-navbar .active{
-    background:#5c4ae4;
-    color:#fff;
+/* ==========================================
+   DARK MODE REPORT NAVIGATION
+========================================== */
+
+body.dark-mode .member-navbar{
+    background:#111827;
+    border-bottom-color:#374151;
+}
+
+body.dark-mode .member-navbar .nav-link{
+    color:#d1d5db;
+    background:transparent;
+}
+
+body.dark-mode .member-navbar .nav-link:hover{
+    background:#374151;
+    color:#ffffff;
+}
+
+body.dark-mode .member-navbar .nav-link.active{
+    background:var(--primary);
+    color:#ffffff;
 }

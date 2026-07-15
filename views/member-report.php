@@ -128,31 +128,33 @@ require_once "../controllers/MemberReportController.php";
             class="nav-link">
 
             <i class="fas fa-chart-line"></i>
-
             Dashboard
 
         </a>
 
-        <a href="member-dashboard.php#documents-section"
-           class="nav-link">
+        <a
+            href="member-dashboard.php#documents-section"
+            class="nav-link">
 
             <i class="fas fa-file-signature"></i>
             Pending Documents
 
         </a>
 
-        <a href="member-dashboard.php#paperTrail-section"
-           class="nav-link">
+        <a
+            href="member-dashboard.php#paperTrail-section"
+            class="nav-link">
 
             <i class="fas fa-history"></i>
             Paper Trail
 
         </a>
 
-        <a href="member-report.php"
-           class="nav-link active">
+        <a
+            href="member-report.php"
+            class="nav-link active">
 
-            <i class="fas fa-file-chart-column"></i>
+            <i class="fas fa-chart-bar"></i>
             Reports
 
         </a>
