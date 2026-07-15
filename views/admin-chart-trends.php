@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Docuflow - Office Bottlenecks</title>
+    <title>Docuflow - Document Volume Trends</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
@@ -15,10 +15,10 @@
       <main class="admin-main">
         <header class="admin-header">
           <div class="header-left">
-            <a href="admin-dashboard.html" class="logo-area">
+            <a href="admin-dashboard.php" class="logo-area">
               <span class="web-logo">Docuflow</span>
             </a>
-            <a href="admin-dashboard.html" class="back-btn">
+            <a href="admin-dashboard.php" class="back-btn">
               <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
           </div>
@@ -41,11 +41,11 @@
         <!-- Chart Content -->
         <section class="admin-preview-panel">
           <div class="preview-header">
-            <h2 class="section-title">Office Bottlenecks</h2>
-            <p class="preview-description">Number of "Pending" documents per office. Helps identify which department is slowing down the workflow.</p>
+            <h2 class="section-title">Document Volume Trends</h2>
+            <p class="preview-description">Number of documents processed (Finished) over the last 6 months.</p>
           </div>
           <div class="admin-preview-content">
-            <canvas id="bottlenecksChart"></canvas>
+            <canvas id="trendsChart"></canvas>
           </div>
         </section>
       </main>
@@ -92,52 +92,55 @@
         if (logoutButton) {
           logoutButton.addEventListener("click", () => {
             if (confirm("Are you sure you want to logout?")) {
-              window.location.href = "login.html";
+              window.location.href = "login.php";
             }
           });
         }
 
-        // --- Bar Chart: Pending Documents per Office ---
-        const ctx = document.getElementById("bottlenecksChart").getContext("2d");
-        new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: ["Finance", "Human Resources", "Administration", "Legal", "Operations", "Records Office"],
-            datasets: [{
-              label: "Pending Documents",
-              data: [14, 8, 21, 5, 11, 18],
-              backgroundColor: [
-                "#5c4ae4",
-                "#2563eb",
-                "#059669",
-                "#f59e0b",
-                "#dc2626",
-                "#0f766e"
-              ],
-              borderRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { display: false },
-              title: {
-                display: true,
-                text: "Pending Documents by Office",
-                font: { size: 16 }
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: { display: true, text: "Number of Documents" }
+        // --- Line Chart: Documents Finished per Month (Last 6 Months) ---
+        const ctx = document.getElementById("trendsChart").getContext("2d");
+        
+        fetch("../controllers/api_dashboard_stats.php?action=volume_trends")
+          .then(res => res.json())
+          .then(data => {
+            new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: data.labels,
+                datasets: [{
+                  label: "Documents Finished",
+                  data: data.data,
+                  borderColor: "#5c4ae4",
+                  backgroundColor: "rgba(92, 74, 228, 0.1)",
+                  fill: true,
+                  tension: 0.3,
+                  pointBackgroundColor: "#5c4ae4",
+                  pointRadius: 5
+                }]
               },
-              x: {
-                title: { display: true, text: "Office / Department" }
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: { position: "top" },
+                  title: {
+                    display: true,
+                    text: "Finished Documents Over the Last 6 Months",
+                    font: { size: 16 }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: { display: true, text: "Number of Documents" }
+                  },
+                  x: {
+                    title: { display: true, text: "Month" }
+                  }
+                }
               }
-            }
-          }
-        });
+            });
+          })
+          .catch(err => console.error("Error loading volume trends data:", err));
       });
     </script>
   </body>

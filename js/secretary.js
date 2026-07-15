@@ -481,6 +481,7 @@ $(document).ready(function () {
 
   $(".logout-btn").click(() => {
     if (confirm("Are you sure you want to logout?")) {
+      alert("Logged out successfully.");
       window.location.href = "login.php";
     }
   });
