@@ -29,27 +29,91 @@ let reportData = [];
 
 let chart = null;
 
+let reportChart = null;
+
+/* ==========================================
+   INITIALIZE REPORT CHART
+========================================== */
+
+function initializeReportChart() {
+
+    const canvas = document.getElementById("reportChart");
+
+    if (!canvas) return;
+
+    reportChart = new Chart(canvas, {
+        type: "doughnut",
+        data: {
+            labels: ["Pending", "Signed", "Finished"],
+            datasets: [{
+                data: [
+                    reportChartData.pending,
+                    reportChartData.signed,
+                    reportChartData.finished
+                ],
+                backgroundColor: [
+                    "#f59e0b",
+                    "#22c55e",
+                    "#5c4ae4"
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        color: document.body.classList.contains("dark-mode")
+                            ? "#ffffff"
+                            : "#111827"
+                    }
+                }
+            }
+        }
+    });
+
+}
+
 /* ==========================================
    PAGE LOAD
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    if(localStorage.getItem("theme") === "dark")
+    if (localStorage.getItem("theme") === "dark") {
         document.body.classList.add("dark-mode");
+    }
+
+    // Create the chart
+    initializeReportChart();
 
     const toggle = document.getElementById("themeToggle");
 
-    if(toggle){
+    if (toggle) {
 
         toggle.addEventListener("click", () => {
 
             document.body.classList.toggle("dark-mode");
 
-            if(document.body.classList.contains("dark-mode"))
-                localStorage.setItem("theme","dark");
-            else
-                localStorage.setItem("theme","light");
+            if (document.body.classList.contains("dark-mode")) {
+                localStorage.setItem("theme", "dark");
+            } else {
+                localStorage.setItem("theme", "light");
+            }
+
+            // Update chart legend color
+            if (reportChart) {
+
+                reportChart.options.plugins.legend.labels.color =
+                    document.body.classList.contains("dark-mode")
+                        ? "#ffffff"
+                        : "#111827";
+
+                reportChart.update();
+            }
+
         });
 
     }

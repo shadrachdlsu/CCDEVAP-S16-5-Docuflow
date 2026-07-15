@@ -403,12 +403,16 @@ body.member-body{
    CHART
 ======================================= */
 
+.report-chart-container{
+    position:relative;
+    width:100%;
+    height:420px;
+    padding:30px;
+}
+
 #reportChart{
-
     width:100% !important;
-
-    height:350px !important;
-
+    height:100% !important;
 }
 
 /* =======================================

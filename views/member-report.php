@@ -689,6 +689,15 @@ Export CSV
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<script>
+    const reportChartData = {
+        total: <?= (int) $totalDocuments ?>,
+        pending: <?= (int) $pendingDocuments ?>,
+        signed: <?= (int) $signedDocuments ?>,
+        finished: <?= (int) $finishedDocuments ?>
+    };
+</script>
+
 <!-- Your JavaScript -->
 <script src="../js/member-report.js"></script>
 
