@@ -436,13 +436,11 @@ function findDocument(documentId)
 
 function previewDocument(documentId)
 {
-    currentDocument =
-        findDocument(documentId);
+    currentDocument = findDocument(documentId);
 
     if(currentDocument == null)
     {
         alert("Document not found.");
-
         return;
     }
 
@@ -452,15 +450,14 @@ function previewDocument(documentId)
     document.getElementById("downloadPreview").href =
         currentDocument.file_path;
 
-    const modal =
-        new bootstrap.Modal(
-            document.getElementById("previewModal")
-        );
+    const modal = new bootstrap.Modal(
+        document.getElementById("previewModal")
+    );
 
     modal.show();
 }
 
-/* ==========================================
+/*==========================================
    OPEN SIGN MODAL
 ========================================== */
 

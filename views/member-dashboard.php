@@ -935,42 +935,46 @@ require_once "../controllers/MemberDashboardController.php";
 
                 <tbody>
 
-                <?php foreach($requestsList as $request): ?>
+                <?php if (!empty($requestsList)): ?>
+
+                    <?php foreach ($requestsList as $request): ?>
+
+                        <tr>
+                            <td>
+                                <?= htmlspecialchars($request["title"]) ?>
+                            </td>
+
+                            <td>
+                                <?= htmlspecialchars($request["type_name"] ?? "Unknown") ?>
+                            </td>
+
+                            <td>
+                                <?= htmlspecialchars($request["status"]) ?>
+                            </td>
+
+                            <td>
+                                <button
+                                    class="btn btn-danger btn-sm deleteRequest"
+                                    data-id="<?= (int) $request["request_id"] ?>">
+
+                                    <i class="fas fa-trash"></i>
+                                    Delete
+
+                                </button>
+                            </td>
+                        </tr>
+
+                    <?php endforeach; ?>
+
+                <?php else: ?>
 
                     <tr>
-
-                        <td>
-                            <?= htmlspecialchars($request["title"]) ?>
+                        <td colspan="4" class="text-center">
+                            No requests found.
                         </td>
-
-
-                        <td>
-                            <?= htmlspecialchars($request["type_name"]) ?>
-                        </td>
-
-
-                        <td>
-                            <?= htmlspecialchars($request["status"]) ?>
-                        </td>
-
-
-                        <td>
-
-                            <button
-                            class="btn btn-danger btn-sm deleteRequest"
-                            data-id="<?= $request["request_id"] ?>">
-
-                                <i class="fas fa-trash"></i>
-
-                                Delete
-
-                            </button>
-
-                        </td>
-
                     </tr>
 
-                <?php endforeach; ?>
+                <?php endif; ?>
 
 
                 </tbody>

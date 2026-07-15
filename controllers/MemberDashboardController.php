@@ -336,4 +336,28 @@ if(isset($_GET["action"]))
 
 }
 
+/*
+|--------------------------------------------------------------------------
+| MEMBER REQUEST LIST
+|--------------------------------------------------------------------------
+*/
+
+$sql = "
+    SELECT
+        dr.request_id,
+        dr.title,
+        dr.status,
+        dt.type_name
+    FROM document_requests dr
+    LEFT JOIN document_types dt
+        ON dr.type_id = dt.type_id
+    WHERE dr.requested_by_id = ?
+    ORDER BY dr.created_at DESC
+";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$userId]);
+
+$requestsList = $stmt->fetchAll();
+
 ?>
