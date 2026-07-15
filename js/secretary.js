@@ -1,6 +1,6 @@
 $(document).ready(function () {
   // MOCK DATA 
-  const currentOffice = "Finance"; // Secretary's office
+  const currentOffice = "Finance";
   const offices = ["Finance", "HR", "Admin", "Legal", "Operations"];
   const members = [
     { email: "maria.santos@finance.gov", name: "Maria Santos", office: "Finance" },
@@ -10,10 +10,8 @@ $(document).ready(function () {
     { email: "member@office.gov", name: "Member", office: "Operations" },
   ];
 
-  // Custom document types for this office
   let myOfficeTypes = ["Memorandum", "Budget Proposal", "Leave/Travel", "Contracts"];
 
-  // Documents mock (statuses: Pending, Signed, Finished)
   let documents = [
     { id: "DOC-2024-001", title: "Budget Proposal FY 2024", type: "Budget Proposal", fromOffice: "HR", status: "Pending", assignees: ["maria.santos@finance.gov"], trail: ["Received from HR", "Assigned to Maria Santos"] },
     { id: "DOC-2024-002", title: "Employee Leave Request", type: "Leave/Travel", fromOffice: "Admin", status: "Signed", assignees: ["juan.delacruz@finance.gov"], trail: ["Received from Admin", "Assigned to Juan Dela Cruz", "Signed by Juan Dela Cruz"] },
@@ -21,18 +19,14 @@ $(document).ready(function () {
     { id: "DOC-2024-004", title: "Procurement Review", type: "Contracts", fromOffice: "Legal", status: "Pending", assignees: ["ana.reyes@hr.gov"], trail: ["Received from Legal", "Assigned to Ana Reyes"] },
   ];
 
-  // UTILS
+  // UTILS 
   function getStatusBadge(status) {
     const colors = { Pending: "#fef3c7", Signed: "#d1fae5", Finished: "#dbeafe" };
     return `<span style="background:${colors[status]}; padding:2px 8px; border-radius:12px; font-weight:600; font-size:0.8rem;">${status}</span>`;
   }
 
-  function openModal(id) {
-    $(`#${id}`).addClass("active");
-  }
-  function closeModal(id) {
-    $(`#${id}`).removeClass("active");
-  }
+  function openModal(id) { $(`#${id}`).addClass("active"); }
+  function closeModal(id) { $(`#${id}`).removeClass("active"); }
 
   // NAVIGATION 
   $(".nav-link").click(function (e) {
@@ -95,16 +89,19 @@ $(document).ready(function () {
     ];
   }
 
-  // Generates action buttons based on document status
   function getActionsForDoc(doc) {
     let html = '';
-    // Assign / reassign (always available except Finished)
+    // Assign
     html += `<button class="btn-primary btn-sm btn-assign" data-id="${doc.id}">Assign</button> `;
-    // Forward (available if not Finished)
+    // Forward
     html += `<button class="btn-primary btn-sm btn-forward" data-id="${doc.id}">Forward</button> `;
-    // Finish (only if status is Signed)
+    // Finish (only for Signed)
     if (doc.status === "Signed") {
       html += `<button class="btn-primary btn-sm btn-finish" data-id="${doc.id}">Finish</button> `;
+    }
+    // Cancel document (hide if already Finished)
+    if (doc.status !== "Finished") {
+      html += `<button class="btn-primary btn-sm btn-cancel-doc" data-id="${doc.id}">Cancel</button> `;
     }
     // Trail
     html += `<button class="btn-primary btn-sm btn-trail" data-id="${doc.id}">Trail</button>`;
@@ -138,12 +135,12 @@ $(document).ready(function () {
 
   function refreshAllTables() {
     initDocTable("table-all-documents", () => true);
-    initDocTable("table-receive", d => d.status !== "Finished"); // still active
+    initDocTable("table-receive", d => d.status !== "Finished");
     initDocTable("table-pending", d => d.status === "Pending");
-    initDocTable("table-release", d => true); // show all for forwarding
+    initDocTable("table-release", d => true);
   }
 
-  // ASSIGN MODAL 
+  // ASSIGN MODAL
   let selectedDocId = null;
   let selectedMembers = [];
 
@@ -171,7 +168,6 @@ $(document).ready(function () {
     renderSelectedMembers();
   });
 
-  // Add "Clear All" button inside the modal body 
   if ($("#clear-all-assignees").length === 0) {
     $("#assign-selected-list").after('<button id="clear-all-assignees" class="btn-primary btn-sm" style="margin-top:8px;">Clear All</button>');
   }
@@ -180,7 +176,6 @@ $(document).ready(function () {
     renderSelectedMembers();
   });
 
-  // Autocomplete
   const memberEmails = members.map(m => m.email);
   $("#assign-member-search").on("input", function () {
     const query = $(this).val().toLowerCase();
@@ -212,10 +207,8 @@ $(document).ready(function () {
     const doc = documents.find(d => d.id === selectedDocId);
     const oldAssignees = doc.assignees.slice();
     doc.assignees = [...selectedMembers];
-    // Update status if assignment changed and doc isn't finished
     if (doc.status !== "Finished") {
       if (doc.assignees.length === 0) {
-        // Cancel assignment: revert to Pending?
         doc.status = "Pending";
         doc.trail.push("All assignees removed (cancelled)");
       } else if (oldAssignees.length === 0 || JSON.stringify(oldAssignees) !== JSON.stringify(doc.assignees)) {
@@ -261,6 +254,22 @@ $(document).ready(function () {
     if (confirm(`Mark "${doc.title}" as Finished?`)) {
       doc.status = "Finished";
       doc.trail.push("Marked as Finished by Secretary");
+      refreshAllTables();
+      renderDashboard();
+    }
+  });
+
+  // CANCEL DOCUMENT 
+  $(document).on("click", ".btn-cancel-doc", function () {
+    const docId = $(this).data("id");
+    const doc = documents.find(d => d.id === docId);
+    if (doc.status === "Finished") {
+      alert("Finished documents cannot be cancelled.");
+      return;
+    }
+    if (confirm(`Cancel the entire document "${doc.title}"? This action cannot be undone.`)) {
+      doc.status = "Finished";
+      doc.trail.push("Document cancelled by secretary");
       refreshAllTables();
       renderDashboard();
     }
@@ -339,7 +348,7 @@ $(document).ready(function () {
     }
   });
 
-  // THEME & LOGOUT
+  // THEME & LOGOUT 
   $(".toggle-theme").click(() => {
     $("body").toggleClass("dark-mode");
     const icon = $(".toggle-theme i");
@@ -353,7 +362,7 @@ $(document).ready(function () {
     }
   });
 
-  // INIT
+  // INIT 
   renderDashboard();
   refreshAllTables();
   refreshTypesTable();
