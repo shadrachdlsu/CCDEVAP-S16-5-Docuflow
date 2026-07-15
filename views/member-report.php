@@ -4,7 +4,7 @@ session_start();
 
 if(!isset($_SESSION["user_id"]))
 {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit;
 }
 
@@ -122,10 +122,12 @@ require_once "../controllers/MemberReportController.php";
 
     <div class="nav-left">
 
-        <a href="member-dashboard.php"
-           class="nav-link">
+        <a
+            href="member-dashboard.php"
+            class="nav-link">
 
             <i class="fas fa-chart-line"></i>
+
             Dashboard
 
         </a>
