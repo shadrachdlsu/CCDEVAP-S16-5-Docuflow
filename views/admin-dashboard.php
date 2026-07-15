@@ -1,3 +1,4 @@
+<?php require_once '../controllers/admin_dashboard_process.php'; ?>
 <!doctype html>
 <html lang="en">
 
@@ -14,7 +15,7 @@
     <main class="admin-main">
       <header class="admin-header">
         <div class="header-left">
-          <a href="admin-dashboard.php" class="logo-area">
+          <a href="admin-dashboard.html" class="logo-area">
             <span class="web-logo">Docuflow</span>
           </a>
         </div>
@@ -38,22 +39,22 @@
       <section class="stats-grid">
         <div class="stat-card">
           <span class="stat-icon"><i class="fas fa-file-alt"></i></span>
-          <span class="stat-number">1,234</span>
+          <span class="stat-number"><?php echo $stats['total_docs']; ?></span>
           <span class="stat-label">Total Documents</span>
         </div>
         <div class="stat-card">
           <span class="stat-icon"><i class="fas fa-users"></i></span>
-          <span class="stat-number">248</span>
+          <span class="stat-number"><?php echo $stats['active_users']; ?></span>
           <span class="stat-label">Active Users</span>
         </div>
         <div class="stat-card">
           <span class="stat-icon"><i class="fas fa-building"></i></span>
-          <span class="stat-number">12</span>
+          <span class="stat-number"><?php echo $stats['total_offices']; ?></span>
           <span class="stat-label">Offices</span>
         </div>
         <div class="stat-card">
           <span class="stat-icon"><i class="fas fa-clock"></i></span>
-          <span class="stat-number">37</span>
+          <span class="stat-number"><?php echo $stats['pending_docs']; ?></span>
           <span class="stat-label">Pending Documents</span>
         </div>
       </section>
@@ -91,7 +92,7 @@
           </div>
           <div class="admin-preview-content" id="pending-content" style="max-height: 250px; overflow-y: auto;"></div>
         </div>
-        <a class="report-card" href="admin-chart-bottlenecks.php">
+        <a class="report-card" href="admin-chart-bottlenecks.html">
           <div class="report-card-header">
             <strong>Office Bottlenecks</strong>
             <span>14 Pending in Finance</span>
@@ -100,7 +101,7 @@
             <canvas id="miniBottleneckChart"></canvas>
           </div>
         </a>
-        <a class="report-card" href="admin-chart-trends.php">
+        <a class="report-card" href="admin-chart-trends.html">
           <div class="report-card-header">
             <strong>Volume Trends</strong>
             <span>+15% this month</span>
@@ -109,7 +110,7 @@
             <canvas id="miniTrendsChart"></canvas>
           </div>
         </a>
-        <a class="report-card" href="admin-chart-types.php">
+        <a class="report-card" href="admin-chart-types.html">
           <div class="report-card-header">
             <strong>Doc Types</strong>
             <span>45% Memorandums</span>
@@ -121,15 +122,15 @@
       </section>
 
       <section class="action-grid" style="margin-top: 24px;">
-        <a class="action-card" href="admin-document-types.php">
+        <a class="action-card" href="admin-document-types.html">
           <span class="action-icon"><i class="fas fa-search"></i></span>
           <span>Document Types</span>
         </a>
-        <a class="action-card" href="admin-users.php">
+        <a class="action-card" href="admin-users.html">
           <span class="action-icon"><i class="fas fa-user-cog"></i></span>
           <span>Manage Users</span>
         </a>
-        <a class="action-card" href="admin-offices.php">
+        <a class="action-card" href="admin-offices.html">
           <span class="action-icon"><i class="fas fa-briefcase"></i></span>
           <span>Manage Offices</span>
         </a>
