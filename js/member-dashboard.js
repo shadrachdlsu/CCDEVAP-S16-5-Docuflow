@@ -12,19 +12,31 @@
 const API =
 {
     documents:
-        "../php/getMemberDocuments.php",
-
-    paperTrail:
-        "../php/getPaperTrail.php",
-
-    requests:
-        "../php/getRequests.php",
+        "../controllers/MemberDashboardController.php?action=documents",
 
     statistics:
-        "../php/getMemberStatistics.php",
+        "../controllers/MemberDashboardController.php?action=statistics",
 
     profile:
-        "../php/getMemberProfile.php"
+        "../controllers/MemberDashboardController.php?action=profile",
+
+    paperTrail:
+        "../controllers/MemberDashboardController.php?action=paperTrail",
+
+    request:
+        "../controllers/MemberRequestController.php",
+
+    sign:
+        "../controllers/MemberSignController.php",
+
+    reject:
+        "../controllers/MemberRejectController.php",
+
+    upload:
+        "../controllers/MemberUploadController.php"
+,
+    deleteRequest:
+        "../controllers/MemberDeleteRequestController.php"
 };
 
 /* ==========================================
@@ -62,23 +74,17 @@ async function initializeDashboard()
 {
     initializeTheme();
 
+    // Your other initialization functions
     initializeTables();
-
-    initializeButtons();
-
     initializeEvents();
 
     await loadStatistics();
-
     await loadDocuments();
-
     await loadPaperTrail();
-
     await loadProfile();
 
     loadChart();
 }
-
 /* ==========================================
    INITIALIZE DATATABLES
 ========================================== */
@@ -661,66 +667,86 @@ async function loadProfile()
 
 async function submitRequest(event)
 {
-    let response = null;
-
-    let requestData = null;
-
     event.preventDefault();
 
-    requestData =
-    {
-        title:
-            document.getElementById("requestTitle").value,
+    let formData =
+        new FormData();
 
-        type_id:
-            document.getElementById("requestType").value,
 
-        description:
-            document.getElementById("requestDescription").value,
+    formData.append(
+        "title",
+        document.getElementById("requestTitle").value
+    );
 
-        secretary_email:
-            document.getElementById("secretaryEmail").value
-    };
+
+    formData.append(
+        "type_id",
+        document.getElementById("requestType").value
+    );
+
+
+    formData.append(
+        "description",
+        document.getElementById("requestDescription").value
+    );
+
+
+    formData.append(
+        "secretary_email",
+        document.getElementById("secretaryEmail").value
+    );
+
 
     try
     {
-        response =
-            await fetch(API.requests,
-            {
-                method: "POST",
-
-                headers:
+        let response =
+            await fetch(
+                API.requests,
                 {
-                    "Content-Type":
-                        "application/json"
-                },
+                    method:"POST",
 
-                body:
-                    JSON.stringify(requestData)
-            });
+                    body:formData
+                }
+            );
 
-        if(!response.ok)
+
+        let result =
+            await response.json();
+
+
+        if(result.success)
         {
-            throw new Error(
-                "Unable to submit request."
+            alert(
+                "Request submitted successfully."
+            );
+
+
+            bootstrap.Modal
+            .getInstance(
+                document.getElementById(
+                    "submitRequestModal"
+                )
+            )
+            .hide();
+
+
+            document
+            .getElementById(
+                "requestForm"
+            )
+            .reset();
+
+
+            await loadStatistics();
+        }
+
+        else
+        {
+            alert(
+                "Request failed."
             );
         }
 
-        alert("Request submitted successfully.");
-
-        bootstrap.Modal
-        .getInstance(
-            document.getElementById(
-                "submitRequestModal"
-            )
-        )
-        .hide();
-
-        document
-        .getElementById("requestForm")
-        .reset();
-
-        loadStatistics();
     }
 
     catch(error)
@@ -734,6 +760,78 @@ async function submitRequest(event)
 }
 
 /* ==========================================
+    DELETE REQUEST
+========================================== */
+async function deleteRequest(requestId)
+{
+
+    let confirmDelete =
+        confirm(
+            "Delete this request?"
+        );
+
+
+    if(!confirmDelete)
+    {
+        return;
+    }
+
+
+    try
+    {
+
+        let response =
+            await fetch(
+                API.deleteRequest,
+                {
+                    method:"POST",
+
+                    headers:
+                    {
+                        "Content-Type":
+                        "application/json"
+                    },
+
+                    body:
+                    JSON.stringify(
+                    {
+                        request_id:
+                            requestId
+                    })
+                }
+            );
+
+
+        let result =
+            await response.json();
+
+
+        alert(result.message);
+
+
+
+        if(result.success)
+        {
+            location.reload();
+        }
+
+
+    }
+
+    catch(error)
+    {
+
+        console.error(error);
+
+        alert(
+            "Delete failed."
+        );
+
+    }
+
+}
+
+/* ==========================================
    SIGN DOCUMENT
 ========================================== */
 
@@ -744,19 +842,60 @@ async function signDocument()
         return;
     }
 
-    alert(
-        "Backend: signDocument.php"
-    );
+    let remarks =
+        document.getElementById("signRemarks").value;
 
-    bootstrap.Modal
-    .getInstance(
-        document.getElementById("signModal")
-    )
-    .hide();
+    try
+    {
+        let response =
+            await fetch("../controllers/MemberSignController.php",
+            {
+                method: "POST",
 
-    await loadDocuments();
+                headers:
+                {
+                    "Content-Type":
+                        "application/json"
+                },
 
-    await loadStatistics();
+                body:
+                    JSON.stringify(
+                    {
+                        document_id:
+                            currentDocument.document_id,
+
+                        remarks:
+                            remarks
+                    })
+            });
+
+        let result =
+            await response.json();
+
+        alert(result.message);
+
+        if(result.success)
+        {
+            bootstrap.Modal
+            .getInstance(
+                document.getElementById("signModal")
+            )
+            .hide();
+
+            await loadDocuments();
+
+            await loadStatistics();
+
+            await loadPaperTrail();
+        }
+    }
+
+    catch(error)
+    {
+        console.error(error);
+
+        alert("Unable to sign document.");
+    }
 }
 
 /* ==========================================
@@ -770,19 +909,60 @@ async function rejectDocument()
         return;
     }
 
-    alert(
-        "Backend: rejectDocument.php"
-    );
+    let reason =
+        document.getElementById("rejectReason").value;
 
-    bootstrap.Modal
-    .getInstance(
-        document.getElementById("rejectModal")
-    )
-    .hide();
+    try
+    {
+        let response =
+            await fetch("../controllers/MemberRejectController.php",
+            {
+                method: "POST",
 
-    await loadDocuments();
+                headers:
+                {
+                    "Content-Type":
+                        "application/json"
+                },
 
-    await loadStatistics();
+                body:
+                    JSON.stringify(
+                    {
+                        document_id:
+                            currentDocument.document_id,
+
+                        reason:
+                            reason
+                    })
+            });
+
+        let result =
+            await response.json();
+
+        alert(result.message);
+
+        if(result.success)
+        {
+            bootstrap.Modal
+            .getInstance(
+                document.getElementById("rejectModal")
+            )
+            .hide();
+
+            await loadDocuments();
+
+            await loadStatistics();
+
+            await loadPaperTrail();
+        }
+    }
+
+    catch(error)
+    {
+        console.error(error);
+
+        alert("Unable to reject document.");
+    }
 }
 
 /* ==========================================
@@ -791,37 +971,72 @@ async function rejectDocument()
 
 async function uploadSignedDocument()
 {
-    let file = null;
+    if(currentDocument == null)
+    {
+        return;
+    }
 
-    file =
-        document.getElementById(
-            "signedFile"
-        ).files[0];
+    let file =
+        document.getElementById("signedFile").files[0];
 
     if(file == null)
     {
-        alert(
-            "Please select a PDF file."
-        );
+        alert("Please select a PDF.");
 
         return;
     }
 
-    alert(
-        "Backend: uploadSignedDocument.php"
+    let formData =
+        new FormData();
+
+    formData.append(
+        "document_id",
+        currentDocument.document_id
     );
 
-    bootstrap.Modal
-    .getInstance(
-        document.getElementById("uploadModal")
-    )
-    .hide();
+    formData.append(
+        "signedFile",
+        file
+    );
 
-    document
-    .getElementById("signedFile")
-    .value = "";
+    try
+    {
+        let response =
+            await fetch("../controllers/MemberUploadController.php",
+            {
+                method: "POST",
 
-    await loadDocuments();
+                body:
+                    formData
+            });
+
+        let result =
+            await response.json();
+
+        alert(result.message);
+
+        if(result.success)
+        {
+            bootstrap.Modal
+            .getInstance(
+                document.getElementById("uploadModal")
+            )
+            .hide();
+
+            await loadDocuments();
+
+            await loadStatistics();
+
+            await loadPaperTrail();
+        }
+    }
+
+    catch(error)
+    {
+        console.error(error);
+
+        alert("Upload failed.");
+    }
 }
 
 /* ==========================================
@@ -830,24 +1045,28 @@ async function uploadSignedDocument()
 
 function initializeTheme()
 {
-    const toggle =
-        document.getElementById(
-            "themeToggle"
-        );
+    const toggle = document.getElementById("themeToggle");
 
-    if(toggle)
+    if(!toggle)
     {
-        toggle.addEventListener(
-            "click",
-
-            function()
-            {
-                document.body.classList.toggle(
-                    "dark-mode"
-                );
-            }
-        );
+        return;
     }
+
+    const icon = toggle.querySelector("i");
+
+    toggle.addEventListener("click", function()
+    {
+        document.body.classList.toggle("dark-mode");
+
+        const isDark =
+            document.body.classList.contains("dark-mode");
+
+        if(icon)
+        {
+            icon.classList.toggle("fa-moon", !isDark);
+            icon.classList.toggle("fa-sun", isDark);
+        }
+    });
 }
 
 /* ==========================================
@@ -932,7 +1151,7 @@ function loadChart()
    BUTTONS
 ========================================== */
 
-function initializeButtons()
+/*function initializeButtons()
 {
     const logoutButton =
         document.querySelector(
@@ -951,4 +1170,4 @@ function initializeButtons()
             }
         );
     }
-}
+} */
