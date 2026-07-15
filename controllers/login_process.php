@@ -36,10 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Route to the correct dashboard based on role_id
                 switch ($user['role_id']) {
                     case 1:
-                        header("Location: admin-dashboard.php");
+                        header("Location: ../views/admin-dashboard.php");
                         break;
                     case 2:
-                        header("Location: secretary-dashboard.php");
+                        header("Location: ../views/secretary-dashboard.php");
                         break;
                     case 3:
                         header("Location: ../views/member-dashboard.php");
