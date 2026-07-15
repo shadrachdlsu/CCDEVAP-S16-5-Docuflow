@@ -1,413 +1,473 @@
 /* ==========================================
    MEMBER REPORT
+   CCDEVAP-MP1
 ========================================== */
 
-let documents = [];
-let paperTrail = [];
-let reportChart = null;
+"use strict";
 
 /* ==========================================
-   INITIALIZE
+   API ENDPOINTS
+========================================== */
+
+const API = {
+
+    reports: "../php/getMemberReports.php",
+
+    statistics: "../php/getMemberStatistics.php",
+
+    types: "../php/getDocumentTypes.php"
+
+};
+
+/* ==========================================
+   GLOBAL VARIABLES
+========================================== */
+
+let reportTable = null;
+
+let reportData = [];
+
+let chart = null;
+
+/* ==========================================
+   PAGE LOAD
 ========================================== */
 
 document.addEventListener(
 
     "DOMContentLoaded",
 
-    function(){
-
-        loadReport();
-
-        registerEvents();
-
-    }
+    initializePage
 
 );
 
 /* ==========================================
-   LOAD REPORT DATA
+   INITIALIZE
 ========================================== */
 
-async function loadReport(){
+async function initializePage()
+{
 
-    try{
+    initializeDataTable();
 
-        let responses = await Promise.all([
+    initializeTheme();
 
-            fetch("../data/documents.json"),
+    initializeEvents();
 
-            fetch("../data/paper-trail.json")
+    await loadStatistics();
+
+    await loadDocumentTypes();
+
+    await loadReports();
+
+}
+
+/* ==========================================
+   DATATABLE
+========================================== */
+
+function initializeDataTable()
+{
+
+    reportTable = $("#reportTable").DataTable({
+
+        responsive: true,
+
+        pageLength: 10,
+
+        ordering: true,
+
+        searching: true,
+
+        autoWidth: false,
+
+        lengthMenu: [
+
+            [5,10,25,50],
+
+            [5,10,25,50]
+
+        ],
+
+        language: {
+
+            search: "Search:",
+
+            lengthMenu: "Show _MENU_ entries",
+
+            info: "Showing _START_ to _END_ of _TOTAL_ documents"
+
+        }
+
+    });
+
+}
+
+/* ==========================================
+   LOAD STATISTICS
+========================================== */
+
+async function loadStatistics()
+{
+
+    try
+    {
+
+        const response =
+            await fetch(API.statistics);
+
+        const data =
+            await response.json();
+
+        document.getElementById("totalDocuments").textContent =
+            data.total;
+
+        document.getElementById("pendingDocuments").textContent =
+            data.pending;
+
+        document.getElementById("signedDocuments").textContent =
+            data.signed;
+
+        document.getElementById("finishedDocuments").textContent =
+            data.finished;
+
+        document.getElementById("summaryTotal").textContent =
+            data.total;
+
+        document.getElementById("summaryPending").textContent =
+            data.pending;
+
+        document.getElementById("summarySigned").textContent =
+            data.signed;
+
+        document.getElementById("summaryFinished").textContent =
+            data.finished;
+
+        loadChart(data);
+
+    }
+
+    catch(error)
+    {
+
+        console.error(error);
+
+    }
+
+}
+
+/* ==========================================
+   LOAD DOCUMENT TYPES
+========================================== */
+
+async function loadDocumentTypes()
+{
+
+    try
+    {
+
+        const response =
+            await fetch(API.types);
+
+        const types =
+            await response.json();
+
+        const select =
+            document.getElementById("typeFilter");
+
+        types.forEach(function(type)
+        {
+
+            select.innerHTML +=
+
+                `<option value="${type.type_name}">
+
+                    ${type.type_name}
+
+                </option>`;
+
+        });
+
+    }
+
+    catch(error)
+    {
+
+        console.error(error);
+
+    }
+
+}
+
+/* ==========================================
+   LOAD REPORTS
+========================================== */
+
+async function loadReports()
+{
+
+    try
+    {
+
+        const response =
+            await fetch(API.reports);
+
+        reportData =
+            await response.json();
+
+        renderReportTable(reportData);
+
+    }
+
+    catch(error)
+    {
+
+        console.error(error);
+
+    }
+
+}
+
+/* ==========================================
+   RENDER REPORT TABLE
+========================================== */
+
+function renderReportTable(data)
+{
+
+    reportTable.clear();
+
+    data.forEach(function(document)
+    {
+
+        reportTable.row.add([
+
+            document.tracking_code,
+
+            document.title,
+
+            document.type_name,
+
+            document.office_name,
+
+            formatDate(document.created_at),
+
+            createStatusBadge(document.status),
+
+            createActionButtons(document)
 
         ]);
 
-        documents =
-            await responses[0].json();
+    });
 
-        paperTrail =
-            await responses[1].json();
+    reportTable.draw(false);
 
-        populateReportTable();
+}
 
-        populateActivityTable();
+/* ==========================================
+   STATUS BADGES
+========================================== */
 
-        initializeDataTables();
+function createStatusBadge(status)
+{
 
-        updateStatistics();
+    if(status === "Pending")
+    {
 
-        initializeChart();
+        return '<span class="status-badge status-pending">Pending</span>';
 
     }
 
-    catch(error){
+    if(status === "Signed")
+    {
 
-        console.error(
-
-            "Unable to load report.",
-
-            error
-
-        );
+        return '<span class="status-badge status-signed">Signed</span>';
 
     }
 
-}
+    if(status === "Finished")
+    {
 
-/* ==========================================
-   DOCUMENT REPORT TABLE
-========================================== */
-
-function populateReportTable(){
-
-    let tableBody =
-
-        document.querySelector(
-
-            "#member-report-table tbody"
-
-        );
-
-    tableBody.innerHTML = "";
-
-    documents.forEach(function(documentItem){
-
-        tableBody.innerHTML += `
-
-        <tr>
-
-            <td>
-
-                ${documentItem.docNumber}
-
-            </td>
-
-            <td>
-
-                ${documentItem.title}
-
-            </td>
-
-            <td>
-
-                ${documentItem.category}
-
-            </td>
-
-            <td>
-
-                ${documentItem.department}
-
-            </td>
-
-            <td>
-
-                <span class="status-${documentItem.status.toLowerCase()}">
-
-                    ${documentItem.status}
-
-                </span>
-
-            </td>
-
-            <td>
-
-                ${new Date(
-
-                    documentItem.uploadedAt
-
-                ).toLocaleDateString()}
-
-            </td>
-
-        </tr>
-
-        `;
-
-    });
-
-}
-
-/* ==========================================
-   PAPER TRAIL TABLE
-========================================== */
-
-function populateActivityTable(){
-
-    let tableBody =
-
-        document.querySelector(
-
-            "#activity-table tbody"
-
-        );
-
-    tableBody.innerHTML = "";
-
-    paperTrail.forEach(function(activity){
-
-        tableBody.innerHTML += `
-
-        <tr>
-
-            <td>
-
-                ${activity.date}
-
-            </td>
-
-            <td>
-
-                ${activity.action}
-
-            </td>
-
-            <td>
-
-                ${activity.user}
-
-            </td>
-
-            <td>
-
-                <span class="status-${activity.status.toLowerCase()}">
-
-                    ${activity.status}
-
-                </span>
-
-            </td>
-
-        </tr>
-
-        `;
-
-    });
-
-}
-
-/* ==========================================
-   INITIALIZE DATATABLES
-========================================== */
-
-function initializeDataTables(){
-
-    if($.fn.DataTable.isDataTable("#member-report-table")){
-
-        $("#member-report-table")
-        .DataTable()
-        .destroy();
+        return '<span class="status-badge status-finished">Finished</span>';
 
     }
 
-    if($.fn.DataTable.isDataTable("#activity-table")){
-
-        $("#activity-table")
-        .DataTable()
-        .destroy();
-
-    }
-
-    $("#member-report-table").DataTable({
-
-        pageLength:5,
-
-        responsive:true,
-
-        ordering:true,
-
-        searching:true,
-
-        info:true,
-
-        lengthMenu:[
-            [5,10,25,50,-1],
-            [5,10,25,50,"All"]
-        ]
-
-    });
-
-    $("#activity-table").DataTable({
-
-        pageLength:5,
-
-        responsive:true,
-
-        ordering:true,
-
-        searching:true,
-
-        info:true
-
-    });
+    return '<span class="status-badge status-rejected">Rejected</span>';
 
 }
 
 /* ==========================================
-   UPDATE REPORT STATISTICS
+   ACTION BUTTONS
 ========================================== */
 
-function updateStatistics(){
+function createActionButtons(document)
+{
 
-    let pending = 0;
+    return `
 
-    let signed = 0;
+        <div class="action-buttons">
 
-    let finished = 0;
+            <button
+                class="btn btn-preview btn-sm"
+                onclick="previewDocument(${document.document_id})">
 
-    let returned = 0;
+                <i class="fas fa-eye"></i>
 
-    documents.forEach(function(documentItem){
+            </button>
 
-        if(documentItem.status === "Pending"){
+            <a
+                href="${document.file_path}"
+                download
+                class="btn btn-download btn-sm">
 
-            pending++;
+                <i class="fas fa-download"></i>
 
-        }
+            </a>
 
-        else if(documentItem.status === "Signed"){
+        </div>
 
-            signed++;
-
-        }
-
-        else if(documentItem.status === "Finished"){
-
-            finished++;
-
-        }
-
-    });
-
-    paperTrail.forEach(function(activity){
-
-        if(activity.action.includes("Rejected")){
-
-            returned++;
-
-        }
-
-    });
-
-    document.getElementById(
-
-        "pending-count"
-
-    ).textContent = pending;
-
-    document.getElementById(
-
-        "signed-count"
-
-    ).textContent = signed;
-
-    document.getElementById(
-
-        "finished-count"
-
-    ).textContent = finished;
-
-    document.getElementById(
-
-        "received-count"
-
-    ).textContent = documents.length;
-
-    document.getElementById(
-
-        "signed-report-count"
-
-    ).textContent = signed;
-
-    document.getElementById(
-
-        "returned-count"
-
-    ).textContent = returned;
-
-    document.getElementById(
-
-        "finished-report-count"
-
-    ).textContent = finished;
+    `;
 
 }
 
 /* ==========================================
-   CHART
+   FILTERS
 ========================================== */
 
-function initializeChart(){
+document
+.getElementById("statusFilter")
+.addEventListener("change", filterReports);
 
-    let canvas =
+document
+.getElementById("typeFilter")
+.addEventListener("change", filterReports);
 
-        document.getElementById(
+document
+.getElementById("dateFilter")
+.addEventListener("change", filterReports);
 
-            "member-report-chart"
+function filterReports()
+{
 
-        );
+    const status =
+        document.getElementById("statusFilter").value;
 
-    if(!canvas){
+    const type =
+        document.getElementById("typeFilter").value;
+
+    const date =
+        document.getElementById("dateFilter").value;
+
+    const filtered = reportData.filter(function(document)
+    {
+
+        let valid = true;
+
+        if(status !== "")
+        {
+
+            valid =
+                valid &&
+                document.status === status;
+
+        }
+
+        if(type !== "")
+        {
+
+            valid =
+                valid &&
+                document.type_name === type;
+
+        }
+
+        if(date !== "")
+        {
+
+            valid =
+                valid &&
+                document.created_at.startsWith(date);
+
+        }
+
+        return valid;
+
+    });
+
+    renderReportTable(filtered);
+
+}
+
+/* ==========================================
+   PREVIEW DOCUMENT
+========================================== */
+
+function previewDocument(documentId)
+{
+
+    const documentData = reportData.find(function(document)
+    {
+
+        return document.document_id == documentId;
+
+    });
+
+    if(documentData == null)
+    {
 
         return;
 
     }
 
-    let pending =
+    document.getElementById("previewFrame").src =
+        documentData.file_path;
 
-        documents.filter(function(documentItem){
+    document.getElementById("downloadDocument").href =
+        documentData.file_path;
 
-            return documentItem.status === "Pending";
+    const modal =
+        new bootstrap.Modal(
+            document.getElementById("previewModal")
+        );
 
-        }).length;
+    modal.show();
 
-    let signed =
+}
 
-        documents.filter(function(documentItem){
+/* ==========================================
+   REPORT CHART
+========================================== */
 
-            return documentItem.status === "Signed";
+function loadChart(data)
+{
 
-        }).length;
+    const canvas =
+        document.getElementById("reportChart");
 
-    let finished =
+    if(canvas == null)
+    {
 
-        documents.filter(function(documentItem){
-
-            return documentItem.status === "Finished";
-
-        }).length;
-
-    if(reportChart !== null){
-
-        reportChart.destroy();
+        return;
 
     }
 
-    reportChart = new Chart(canvas,{
+    if(chart != null)
+    {
 
-        type:"bar",
+        chart.destroy();
 
-        data:{
+    }
 
-            labels:[
+    chart = new Chart(canvas,
+    {
+
+        type: "doughnut",
+
+        data:
+        {
+
+            labels:
+            [
 
                 "Pending",
 
@@ -417,67 +477,45 @@ function initializeChart(){
 
             ],
 
-            datasets:[{
+            datasets:
+            [
 
-                label:"Documents",
+                {
 
-                data:[
+                    data:
+                    [
 
-                    pending,
+                        data.pending,
 
-                    signed,
+                        data.signed,
 
-                    finished
+                        data.finished
 
-                ],
+                    ],
 
-                backgroundColor:[
+                    backgroundColor:
+                    [
 
-                    "#f59e0b",
+                        "#ffc107",
 
-                    "#3b82f6",
+                        "#198754",
 
-                    "#22c55e"
+                        "#0d6efd"
 
-                ],
+                    ]
 
-                borderRadius:8
+                }
 
-            }]
+            ]
 
         },
 
-        options:{
+        options:
+        {
 
-            responsive:true,
+            responsive: true,
 
-            maintainAspectRatio:false,
-
-            plugins:{
-
-                legend:{
-
-                    display:false
-
-                }
-
-            },
-
-            scales:{
-
-                y:{
-
-                    beginAtZero:true,
-
-                    ticks:{
-
-                        precision:0
-
-                    }
-
-                }
-
-            }
+            maintainAspectRatio: false
 
         }
 
@@ -486,290 +524,160 @@ function initializeChart(){
 }
 
 /* ==========================================
-   REFRESH REPORT
+   EXPORT CSV
 ========================================== */
 
-function refreshReport(){
+document
+.getElementById("downloadCSV")
+.addEventListener("click", exportCSV);
 
-    populateReportTable();
+function exportCSV()
+{
 
-    populateActivityTable();
+    let csv =
+        "Tracking Code,Title,Type,Office,Date,Status\n";
 
-    initializeDataTables();
+    reportData.forEach(function(document)
+    {
 
-    updateStatistics();
+        csv +=
 
-    initializeChart();
+            `"${document.tracking_code}",` +
 
-}
+            `"${document.title}",` +
 
-/* ==========================================
-   REGISTER EVENTS
-========================================== */
+            `"${document.type_name}",` +
 
-function registerEvents(){
+            `"${document.office_name}",` +
 
-    let downloadButton =
+            `"${formatDate(document.created_at)}",` +
 
-        document.getElementById(
-
-            "download-report"
-
-        );
-
-    if(downloadButton){
-
-        downloadButton.addEventListener(
-
-            "click",
-
-            exportReport
-
-        );
-
-    }
-
-}
-
-/* ==========================================
-   EXPORT REPORT
-========================================== */
-
-function exportReport(){
-
-    let report =
-
-`========================================
-           DOCUFLOW MEMBER REPORT
-========================================
-
-Generated:
-${new Date().toLocaleString()}
-
-----------------------------------------
-SUMMARY
-----------------------------------------
-
-Total Documents : ${documents.length}
-
-Pending         : ${
-documents.filter(function(documentItem){
-
-    return documentItem.status === "Pending";
-
-}).length}
-
-Signed          : ${
-documents.filter(function(documentItem){
-
-    return documentItem.status === "Signed";
-
-}).length}
-
-Finished        : ${
-documents.filter(function(documentItem){
-
-    return documentItem.status === "Finished";
-
-}).length}
-
-========================================
-DOCUMENTS
-========================================
-
-`;
-
-    documents.forEach(function(documentItem){
-
-        report +=
-
-`Document No : ${documentItem.docNumber}
-Title       : ${documentItem.title}
-Type        : ${documentItem.category}
-Department  : ${documentItem.department}
-Status      : ${documentItem.status}
-Uploaded    : ${new Date(
-documentItem.uploadedAt
-).toLocaleDateString()}
-
-----------------------------------------
-
-`;
+            `"${document.status}"\n`;
 
     });
 
-    let blob =
+    const blob =
+        new Blob([csv],
+        {
 
-        new Blob(
-
-            [report],
-
-            {
-
-                type:"text/plain"
-
-            }
-
-        );
-
-    let url =
-
-        URL.createObjectURL(
-
-            blob
-
-        );
-
-    let link =
-
-        document.createElement(
-
-            "a"
-
-        );
-
-    link.href = url;
-
-    link.download =
-
-        "member-report.txt";
-
-    document.body.appendChild(
-
-        link
-
-    );
-
-    link.click();
-
-    document.body.removeChild(
-
-        link
-
-    );
-
-    URL.revokeObjectURL(
-
-        url
-
-    );
-
-}
-
-/* ==========================================
-   FILTER DOCUMENTS
-========================================== */
-
-function filterDocuments(status){
-
-    if(status === "All"){
-
-        refreshReport();
-
-        return;
-
-    }
-
-    let filteredDocuments =
-
-        documents.filter(function(documentItem){
-
-            return documentItem.status === status;
+            type:"text/csv"
 
         });
 
-    let tableBody =
+    const url =
+        window.URL.createObjectURL(blob);
 
-        document.querySelector(
+    const link =
+        document.createElement("a");
 
-            "#member-report-table tbody"
+    link.href = url;
 
-        );
+    link.download = "Member_Report.csv";
 
-    tableBody.innerHTML = "";
-
-    filteredDocuments.forEach(function(documentItem){
-
-        tableBody.innerHTML += `
-
-        <tr>
-
-            <td>${documentItem.docNumber}</td>
-
-            <td>${documentItem.title}</td>
-
-            <td>${documentItem.category}</td>
-
-            <td>${documentItem.department}</td>
-
-            <td>
-
-                <span class="status-${documentItem.status.toLowerCase()}">
-
-                    ${documentItem.status}
-
-                </span>
-
-            </td>
-
-            <td>
-
-                ${new Date(
-                    documentItem.uploadedAt
-                ).toLocaleDateString()}
-
-            </td>
-
-        </tr>
-
-        `;
-
-    });
-
-    initializeDataTables();
+    link.click();
 
 }
 
 /* ==========================================
-   HELPER FUNCTIONS
+   EXPORT PDF
 ========================================== */
 
-function countStatus(status){
+document
+.getElementById("downloadPDF")
+.addEventListener("click", function()
+{
 
-    return documents.filter(function(documentItem){
+    window.print();
 
-        return documentItem.status === status;
-
-    }).length;
-
-}
+});
 
 /* ==========================================
-   WINDOW RESIZE
+   REFRESH
 ========================================== */
 
-window.addEventListener(
+document
+.getElementById("refreshReport")
+.addEventListener("click", async function()
+{
 
-    "resize",
+    await loadStatistics();
 
-    function(){
+    await loadReports();
 
-        if(reportChart){
+});
 
-            reportChart.resize();
+/* ==========================================
+   THEME
+========================================== */
 
-        }
+function initializeTheme()
+{
+
+    const toggle =
+        document.getElementById("themeToggle");
+
+    if(toggle)
+    {
+
+        toggle.addEventListener("click", function()
+        {
+
+            document.body.classList.toggle("dark-mode");
+
+        });
 
     }
 
-);
+}
 
 /* ==========================================
-   REPORT READY
+   EVENTS
 ========================================== */
 
-console.log(
+function initializeEvents()
+{
 
-    "Member Report Loaded Successfully."
+    const logout =
+        document.querySelector(".logout-btn");
 
-);
+    if(logout)
+    {
+
+        logout.addEventListener("click", function()
+        {
+
+            window.location.href = "../index.html";
+
+        });
+
+    }
+
+}
+
+/* ==========================================
+   FORMAT DATE
+========================================== */
+
+function formatDate(date)
+{
+
+    const formatted =
+        new Date(date);
+
+    return formatted.toLocaleDateString(
+
+        "en-PH",
+
+        {
+
+            year: "numeric",
+
+            month: "short",
+
+            day: "numeric"
+
+        }
+
+    );
+
+}

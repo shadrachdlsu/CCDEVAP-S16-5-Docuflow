@@ -5,262 +5,203 @@
 
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <title>
-        DocuFlow | Member Dashboard
-    </title>
+    <title>DocuFlow - Member Dashboard</title>
 
-    <!-- Bootstrap -->
+    <!-- Bootstrap 5 -->
     <link
-        rel="stylesheet"
-        href="../libraries/bootstrap/css/bootstrap.min.css">
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
 
     <!-- DataTables -->
     <link
-        rel="stylesheet"
-        href="../libraries/datatables/datatables.min.css">
+        href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css"
+        rel="stylesheet">
 
     <!-- Font Awesome -->
     <link
-        rel="stylesheet"
-        href="../libraries/fontawesome/css/all.min.css">
-
-    <!-- Custom CSS -->
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        rel="stylesheet">
+    <!-- Your CSS -->
     <link
         rel="stylesheet"
-        href="../css/member-dashboard.css">
+        href="../css/member-report.css">
 
 </head>
 
-<body>
+<body class="member-body">
 
-<div class="dashboard-container">
+<header class="member-header">
 
-    <!-- ========================= -->
-    <!-- Sticky Sidebar -->
-    <!-- ========================= -->
+    <div class="header-left">
 
-    <aside class="sidebar">
+        <div class="logo-area">
 
-        <div class="sidebar-header">
-
-            <h2>
+            <span class="web-logo">
 
                 DocuFlow
 
-            </h2>
-
-            <p>
-
-                Member Office
-
-            </p>
+            </span>
 
         </div>
 
-        <ul class="sidebar-menu">
+    </div>
 
-            <li class="active-menu">
+    <div class="header-right">
 
-                <a href="#">
+        <div class="user-info">
 
-                    <i class="fas fa-chart-line"></i>
+            <span class="user-email">
 
-                    Dashboard
+                member@docuflow.com
 
-                </a>
+            </span>
 
-            </li>
+            <span class="user-role">
 
-            <li>
+                Office Member
 
-                <a href="#documents-table">
+            </span>
 
-                    <i class="fas fa-file-signature"></i>
+        </div>
 
-                    Pending Documents
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a href="#paper-trail-table">
-
-                    <i class="fas fa-history"></i>
-
-                    Paper Trail
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a
-                    href="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#submitRequestModal">
-
-                    <i class="fas fa-paper-plane"></i>
-
-                    Submit Request
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a
-                    href="#"
-                    data-bs-toggle="modal"
-                    data-bs-target="#profileModal">
-
-                    <i class="fas fa-user"></i>
-
-                    My Profile
-
-                </a>
-
-            </li>
-
-            <li>
-
-                <a href="login.html">
-
-                    <i class="fas fa-right-from-bracket"></i>
-
-                    Logout
-
-                </a>
-
-            </li>
-
-        </ul>
-
-    </aside>
-
-    <!-- ========================= -->
-    <!-- Main Content -->
-    <!-- ========================= -->
-
-    <main class="main-content">
-
-        <header class="dashboard-header">
-
-            <div>
-
-                <h1>
-
-                    Member Dashboard
-
-                </h1>
-
-                <p>
-
-                    Welcome back,
-                    <strong>
-                        Juan Dela Cruz
-                    </strong>
-
-                </p>
-
-            </div>
+        <div class="header-actions">
 
             <button
-                class="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#submitRequestModal">
+                id="themeToggle"
+                class="icon-btn toggle-theme"
+                type="button">
 
-                <i class="fas fa-plus-circle"></i>
-
-                Submit Request
+                <i class="fas fa-moon"></i>
 
             </button>
 
-        </header>
+            <button
+                class="icon-btn logout-btn"
+                type="button">
 
-        <!-- ========================= -->
-        <!-- Statistics -->
-        <!-- ========================= -->
+                <i class="fas fa-sign-out-alt"></i>
 
-        <section class="statistics-container">
+            </button>
 
-            <div class="statistics-card">
+        </div>
 
-                <h5>
+    </div>
 
-                    Pending
+</header>
 
-                </h5>
+<main class="member-main">
 
-                <h2 id="pending-count">
+    <!-- Dashboard Statistics -->
 
-                    0
+    <section class="stats-row">
 
-                </h2>
+        <button
+            class="stat-card"
+            type="button">
 
-            </div>
+            <span
+                class="stat-number"
+                id="pending-count">
 
-            <div class="statistics-card">
+                0
 
-                <h5>
+            </span>
 
-                    Signed
+            <span class="stat-label">
 
-                </h5>
+                Pending Documents
 
-                <h2 id="signed-count">
+            </span>
 
-                    0
+        </button>
 
-                </h2>
+        <button
+            class="stat-card"
+            type="button">
 
-            </div>
+            <span
+                class="stat-number"
+                id="signed-count">
 
-            <div class="statistics-card">
+                0
 
-                <h5>
+            </span>
 
-                    Finished
+            <span class="stat-label">
 
-                </h5>
+                Signed Documents
 
-                <h2 id="finished-count">
+            </span>
 
-                    0
+        </button>
 
-                </h2>
+        <button
+            class="stat-card"
+            type="button">
 
-            </div>
+            <span
+                class="stat-number"
+                id="finished-count">
 
-        </section>
+                0
 
-        <!-- ========================= -->
+            </span>
+
+            <span class="stat-label">
+
+                Finished Documents
+
+            </span>
+
+        </button>
+
+        <button
+            class="stat-card"
+            type="button">
+
+            <span
+                class="stat-number"
+                id="request-count">
+
+                0
+
+            </span>
+
+            <span class="stat-label">
+
+                My Requests
+
+            </span>
+
+        </button>
+
+    </section>
+
+    <!-- Dashboard Grid -->
+
+    <section class="dashboard-grid">
+
         <!-- Analytics -->
-        <!-- ========================= -->
 
-        <section class="dashboard-card">
+        <section class="panel-card member-chart-panel">
 
-            <div class="card-header">
+            <div class="panel-header">
 
-                <h4>
+                <h2 class="section-title">
 
                     Document Analytics
 
-                </h4>
+                </h2>
 
             </div>
 
-            <div class="card-body">
+            <div class="member-chart-content">
 
                 <canvas
-                    id="document-chart">
+                    id="documentChart">
 
                 </canvas>
 
@@ -268,152 +209,614 @@
 
         </section>
 
-                <!-- ================================= -->
-        <!-- Pending Documents -->
-        <!-- ================================= -->
-
-        <section class="dashboard-card mt-4">
-
-            <div class="card-header d-flex justify-content-between align-items-center">
-
-                <h4>
-
-                    Pending Documents
-
-                </h4>
-
-                <span class="badge bg-warning text-dark">
-
-                    Awaiting Your Signature
-
-                </span>
-
-            </div>
-
-            <div class="card-body">
-
-                <table
-                    id="documents-table"
-                    class="table table-hover table-striped">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>Title</th>
-
-                            <th>Type</th>
-
-                            <th>Status</th>
-
-                            <th>Preview</th>
-
-                            <th>Download</th>
-
-                            <th>Sign</th>
-
-                            <th>Reject</th>
-
-                            <th>Upload</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <!-- Loaded from documents.json -->
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-        <!-- ================================= -->
-        <!-- Paper Trail -->
-        <!-- ================================= -->
-
-        <section class="dashboard-card mt-4">
-
-            <div class="card-header d-flex justify-content-between align-items-center">
-
-                <h4>
-
-                    Paper Trail
-
-                </h4>
-
-                <span class="badge bg-primary">
-
-                    Activity Log
-
-                </span>
-
-            </div>
-
-            <div class="card-body">
-
-                <table
-                    id="paper-trail-table"
-                    class="table table-bordered table-striped">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>Date</th>
-
-                            <th>Action</th>
-
-                            <th>User</th>
-
-                            <th>Status</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <!-- Loaded from paper-trail.json -->
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-        <!-- ================================= -->
         <!-- Quick Actions -->
-        <!-- ================================= -->
 
-        <section class="dashboard-card mt-4">
+        <section class="panel-card">
 
-            <div class="card-header">
+            <div class="panel-header">
 
-                <h4>
+                <h2 class="section-title">
 
                     Quick Actions
 
-                </h4>
+                </h2>
 
             </div>
 
-            <div class="card-body">
+            <div class="quick-actions">
 
-                <div class="row g-3">
+                <button
+                    class="action-btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#submitRequestModal">
 
-                    <div class="col-lg-3 col-md-6">
+                    <i class="fas fa-paper-plane"></i>
+
+                    Submit Request
+
+                </button>
+
+                <button
+                    class="action-btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#uploadModal">
+
+                    <i class="fas fa-upload"></i>
+
+                    Upload Signed
+
+                </button>
+
+                <button
+                    class="action-btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#profileModal">
+
+                    <i class="fas fa-user"></i>
+
+                    My Profile
+
+                </button>
+
+            </div>
+
+        </section>
+
+    </section>
+
+    <!-- ====================================== -->
+    <!-- Pending Documents -->
+    <!-- ====================================== -->
+
+    <section class="panel-card documents-panel mt-4">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2 class="section-title">
+
+                    Pending Documents
+
+                </h2>
+
+                <small>
+
+                    Documents waiting for your signature
+
+                </small>
+
+            </div>
+
+            <button
+                class="view-all"
+                type="button">
+
+                View All
+
+            </button>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table
+                id="documents-table"
+                class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Tracking Code</th>
+
+                        <th>Title</th>
+
+                        <th>Type</th>
+
+                        <th>Office</th>
+
+                        <th>Status</th>
+
+                        <th width="280">
+
+                            Actions
+
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <!--
+                        Loaded from database.
+
+                        documents.tracking_code
+                        documents.title
+                        document_types.type_name
+                        offices.office_name
+                        documents.status
+                    -->
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!-- ====================================== -->
+    <!-- Document Preview -->
+    <!-- ====================================== -->
+
+    <div
+        class="modal fade"
+        id="previewModal"
+        tabindex="-1">
+
+        <div
+            class="modal-dialog modal-xl">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5>
+
+                        Preview Document
+
+                    </h5>
+
+                    <button
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <iframe
+
+                        id="previewFrame"
+
+                        width="100%"
+
+                        height="650"
+
+                        style="border:none;">
+
+                    </iframe>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <a
+
+                        id="downloadPreview"
+
+                        class="btn btn-primary"
+
+                        download>
+
+                        <i class="fas fa-download"></i>
+
+                        Download
+
+                    </a>
+
+                    <button
+
+                        class="btn btn-secondary"
+
+                        data-bs-dismiss="modal">
+
+                        Close
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ====================================== -->
+    <!-- Sign Modal -->
+    <!-- ====================================== -->
+
+    <div
+        class="modal fade"
+        id="signModal"
+        tabindex="-1">
+
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+
+                <div class="modal-header bg-success text-white">
+
+                    <h5>
+
+                        Sign Document
+
+                    </h5>
+
+                    <button
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <label>
+
+                        Remarks (Optional)
+
+                    </label>
+
+                    <textarea
+
+                        id="signRemarks"
+
+                        class="form-control"
+
+                        rows="5">
+
+                    </textarea>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+
+                        id="confirmSign"
+
+                        class="btn btn-success">
+
+                        <i class="fas fa-signature"></i>
+
+                        Sign Document
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ====================================== -->
+    <!-- Reject Modal -->
+    <!-- ====================================== -->
+
+    <div
+        class="modal fade"
+        id="rejectModal"
+        tabindex="-1">
+
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+
+                <div class="modal-header bg-danger text-white">
+
+                    <h5>
+
+                        Reject Document
+
+                    </h5>
+
+                    <button
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <label>
+
+                        Reason
+
+                    </label>
+
+                    <textarea
+
+                        id="rejectReason"
+
+                        class="form-control"
+
+                        rows="5"
+
+                        required>
+
+                    </textarea>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+
+                        id="confirmReject"
+
+                        class="btn btn-danger">
+
+                        Reject
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ====================================== -->
+    <!-- Upload Signed Document -->
+    <!-- ====================================== -->
+
+    <div
+        class="modal fade"
+        id="uploadModal"
+        tabindex="-1">
+
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+
+                <div class="modal-header bg-primary text-white">
+
+                    <h5>
+
+                        Upload Signed Document
+
+                    </h5>
+
+                    <button
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <input
+                        type="file"
+                        id="signedFile"
+                        class="form-control"
+                        accept=".pdf">
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+
+                        id="uploadSigned"
+
+                        class="btn btn-primary">
+
+                        Upload
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+        <!-- ====================================== -->
+    <!-- Paper Trail -->
+    <!-- ====================================== -->
+
+    <section class="panel-card mt-4">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2 class="section-title">
+
+                    Paper Trail
+
+                </h2>
+
+                <small>
+
+                    Document history and activity log
+
+                </small>
+
+            </div>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table
+                id="paperTrailTable"
+                class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Date</th>
+
+                        <th>Action</th>
+
+                        <th>Performed By</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <!--
+                        Loaded from document_trails
+
+                        created_at
+                        action_taken
+                        action_by_user
+                        status
+                    -->
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!-- ====================================== -->
+    <!-- Submit Request -->
+    <!-- ====================================== -->
+
+    <div
+        class="modal fade"
+        id="submitRequestModal"
+        tabindex="-1">
+
+        <div class="modal-dialog modal-lg">
+
+            <div class="modal-content">
+
+                <div class="modal-header bg-primary text-white">
+
+                    <h5>
+
+                        Submit Document Request
+
+                    </h5>
+
+                    <button
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+
+                    </button>
+
+                </div>
+
+                <form id="requestForm">
+
+                    <div class="modal-body">
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    Request Title
+
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="requestTitle"
+                                    class="form-control"
+                                    required>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label">
+
+                                    Document Type
+
+                                </label>
+
+                                <select
+                                    id="requestType"
+                                    class="form-select"
+                                    required>
+
+                                    <option value="">
+
+                                        Select Type
+
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Description
+
+                            </label>
+
+                            <textarea
+                                id="requestDescription"
+                                class="form-control"
+                                rows="5"></textarea>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Secretary Email
+
+                            </label>
+
+                            <input
+                                type="email"
+                                id="secretaryEmail"
+                                class="form-control"
+                                placeholder="secretary@docuflow.com"
+                                required>
+
+                            <small class="text-muted">
+
+                                Must contain @ and .com
+
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
 
                         <button
-                            class="btn btn-primary w-100"
-                            data-bs-toggle="modal"
-                            data-bs-target="#submitRequestModal">
+                            type="submit"
+                            class="btn btn-primary">
 
                             <i class="fas fa-paper-plane"></i>
 
@@ -423,126 +826,7 @@
 
                     </div>
 
-                    <div class="col-lg-3 col-md-6">
-
-                        <button
-                            class="btn btn-success w-100"
-                            data-bs-toggle="modal"
-                            data-bs-target="#uploadModal">
-
-                            <i class="fas fa-upload"></i>
-
-                            Upload Signed
-
-                        </button>
-
-                    </div>
-
-                    <div class="col-lg-3 col-md-6">
-
-                        <button
-                            class="btn btn-info text-white w-100"
-                            data-bs-toggle="modal"
-                            data-bs-target="#previewModal">
-
-                            <i class="fas fa-eye"></i>
-
-                            Preview PDF
-
-                        </button>
-
-                    </div>
-
-                    <div class="col-lg-3 col-md-6">
-
-                        <button
-                            class="btn btn-secondary w-100"
-                            data-bs-toggle="modal"
-                            data-bs-target="#profileModal">
-
-                            <i class="fas fa-user"></i>
-
-                            My Profile
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
-
-</div>
-
-<!-- ================================= -->
-<!-- Preview Document Modal -->
-<!-- ================================= -->
-
-<div
-    class="modal fade"
-    id="previewModal"
-    tabindex="-1"
-    aria-hidden="true">
-
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-
-                    <i class="fas fa-file-pdf text-danger"></i>
-
-                    Document Preview
-
-                </h5>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <iframe
-                    id="preview-frame"
-                    src="../assets/sample-document.pdf"
-                    width="100%"
-                    height="600"
-                    style="border:none;">
-
-                </iframe>
-
-            </div>
-
-            <div class="modal-footer">
-
-                <a
-                    href="../assets/sample-document.pdf"
-                    download
-                    class="btn btn-primary">
-
-                    <i class="fas fa-download"></i>
-
-                    Download PDF
-
-                </a>
-
-                <button
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-
-                    Close
-
-                </button>
+                </form>
 
             </div>
 
@@ -550,491 +834,112 @@
 
     </div>
 
-</div>
+    <!-- ====================================== -->
+    <!-- My Profile -->
+    <!-- ====================================== -->
 
-<!-- ================================= -->
-<!-- Sign Document Modal -->
-<!-- ================================= -->
+    <div
+        class="modal fade"
+        id="profileModal"
+        tabindex="-1">
 
-<div
-    class="modal fade"
-    id="signModal"
-    tabindex="-1"
-    aria-hidden="true">
+        <div class="modal-dialog">
 
-    <div class="modal-dialog">
+            <div class="modal-content">
 
-        <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
 
-            <div class="modal-header bg-success text-white">
+                    <h5>
 
-                <h5 class="modal-title">
+                        My Profile
 
-                    Sign Document
-
-                </h5>
-
-                <button
-                    class="btn-close btn-close-white"
-                    data-bs-dismiss="modal">
-
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-
-                        Remarks (Optional)
-
-                    </label>
-
-                    <textarea
-                        id="sign-remarks"
-                        class="form-control"
-                        rows="5"
-                        placeholder="Enter remarks here...">
-
-                    </textarea>
-
-                </div>
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button
-                    class="btn btn-success"
-                    id="confirm-sign">
-
-                    <i class="fas fa-signature"></i>
-
-                    Sign Document
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- ================================= -->
-<!-- Reject Modal -->
-<!-- ================================= -->
-
-<div
-    class="modal fade"
-    id="rejectModal"
-    tabindex="-1"
-    aria-hidden="true">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content">
-
-            <div class="modal-header bg-danger text-white">
-
-                <h5 class="modal-title">
-
-                    Reject Document
-
-                </h5>
-
-                <button
-                    class="btn-close btn-close-white"
-                    data-bs-dismiss="modal">
-
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-
-                        Reason for Rejection
-
-                    </label>
-
-                    <textarea
-                        id="reject-reason"
-                        class="form-control"
-                        rows="5"
-                        placeholder="Reason is required..."
-                        required>
-
-                    </textarea>
-
-                </div>
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button
-                    class="btn btn-danger"
-                    id="confirm-reject">
-
-                    <i class="fas fa-times-circle"></i>
-
-                    Reject
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- ================================= -->
-<!-- Upload Signed Document -->
-<!-- ================================= -->
-
-<div
-    class="modal fade"
-    id="uploadModal"
-    tabindex="-1"
-    aria-hidden="true">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content">
-
-            <div class="modal-header bg-primary text-white">
-
-                <h5 class="modal-title">
-
-                    Upload Signed Document
-
-                </h5>
-
-                <button
-                    class="btn-close btn-close-white"
-                    data-bs-dismiss="modal">
-
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <p class="text-muted">
-
-                    Upload the signed PDF document.
-
-                </p>
-
-                <input
-                    type="file"
-                    id="signed-file"
-                    class="form-control"
-                    accept=".pdf">
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button
-                    class="btn btn-primary"
-                    id="upload-document">
-
-                    <i class="fas fa-upload"></i>
-
-                    Upload
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- ================================= -->
-<!-- Profile Modal -->
-<!-- ================================= -->
-
-<div
-    class="modal fade"
-    id="profileModal"
-    tabindex="-1"
-    aria-hidden="true">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content">
-
-            <div class="modal-header bg-secondary text-white">
-
-                <h5 class="modal-title">
-
-                    My Profile
-
-                </h5>
-
-                <button
-                    class="btn-close btn-close-white"
-                    data-bs-dismiss="modal">
-
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="text-center mb-4">
-
-                    <i
-                        class="fas fa-user-circle"
-                        style="font-size:80px;color:#6c757d;">
-
-                    </i>
-
-                </div>
-
-                <table class="table">
-
-                    <tr>
-
-                        <th>Name</th>
-
-                        <td>Juan Dela Cruz</td>
-
-                    </tr>
-
-                    <tr>
-
-                        <th>Email</th>
-
-                        <td>member@docuflow.com</td>
-
-                    </tr>
-
-                    <tr>
-
-                        <th>Office</th>
-
-                        <td>Finance Office</td>
-
-                    </tr>
-
-                    <tr>
-
-                        <th>Role</th>
-
-                        <td>Member</td>
-
-                    </tr>
-
-                </table>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- ================================= -->
-<!-- Submit Request Modal -->
-<!-- ================================= -->
-
-<div
-    class="modal fade"
-    id="submitRequestModal"
-    tabindex="-1"
-    aria-hidden="true">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content">
-
-            <div class="modal-header bg-primary text-white">
-
-                <h5 class="modal-title">
-
-                    Submit Request
-
-                </h5>
-
-                <button
-                    class="btn-close btn-close-white"
-                    data-bs-dismiss="modal">
-
-                </button>
-
-            </div>
-
-            <form id="request-form">
-
-                <div class="modal-body">
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-
-                            Request Title
-
-                        </label>
-
-                        <input
-                            type="text"
-                            id="request-title"
-                            class="form-control"
-                            required>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-
-                            Document Type
-
-                        </label>
-
-                        <select
-                            id="request-type"
-                            class="form-select"
-                            required>
-
-                            <option value="">
-
-                                Select Type
-
-                            </option>
-
-                            <option>
-
-                                Memorandum
-
-                            </option>
-
-                            <option>
-
-                                Proposal
-
-                            </option>
-
-                            <option>
-
-                                Request Letter
-
-                            </option>
-
-                            <option>
-
-                                Clearance
-
-                            </option>
-
-                        </select>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-
-                            Description
-
-                        </label>
-
-                        <textarea
-                            id="request-description"
-                            class="form-control"
-                            rows="5">
-
-                        </textarea>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-
-                            Secretary Email
-
-                        </label>
-
-                        <input
-                            type="email"
-                            id="secretary-email"
-                            class="form-control"
-                            placeholder="secretary@docuflow.com"
-                            required>
-
-                        <small class="text-muted">
-
-                            Email must contain @ and .com
-
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
+                    </h5>
 
                     <button
-                        type="submit"
-                        class="btn btn-primary">
-
-                        <i class="fas fa-paper-plane"></i>
-
-                        Submit Request
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
 
                     </button>
 
                 </div>
 
-            </form>
+                <div class="modal-body">
+
+                    <table class="table">
+
+                        <tr>
+
+                            <th>Name</th>
+
+                            <td id="profileName">
+
+                                Juan Dela Cruz
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Email</th>
+
+                            <td id="profileEmail">
+
+                                member@docuflow.com
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Office</th>
+
+                            <td id="profileOffice">
+
+                                Finance Office
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Role</th>
+
+                            <td>
+
+                                Member
+
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
 
-</div>
+</main>
 
-<!-- ================================= -->
-<!-- JavaScript -->
-<!-- ================================= -->
+<!-- ====================================== -->
+<!-- JavaScript Libraries -->
+<!-- ====================================== -->
 
-<script
-    src="../libraries/jquery/jquery.min.js">
-</script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<script
-    src="../libraries/bootstrap/js/bootstrap.bundle.min.js">
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<script
-    src="../libraries/datatables/datatables.min.js">
-</script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 
-<!-- Chart.js (CDN allowed by project requirements) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script
-    src="https://cdn.jsdelivr.net/npm/chart.js">
-</script>
-
-<script
-    src="../js/member-dashboard.js">
-</script>
+<script src="../js/member-dashboard.js"></script>
 
 </body>
 

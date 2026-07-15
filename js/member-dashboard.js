@@ -1,840 +1,954 @@
 /* ==========================================
    MEMBER DASHBOARD
+   CCDEVAP-MP1
+========================================== */
+
+"use strict";
+
+/* ==========================================
+   API ENDPOINTS
+========================================== */
+
+const API =
+{
+    documents:
+        "../php/getMemberDocuments.php",
+
+    paperTrail:
+        "../php/getPaperTrail.php",
+
+    requests:
+        "../php/getRequests.php",
+
+    statistics:
+        "../php/getMemberStatistics.php",
+
+    profile:
+        "../php/getMemberProfile.php"
+};
+
+/* ==========================================
+   GLOBAL VARIABLES
 ========================================== */
 
 let documents = [];
+
 let paperTrail = [];
-let documentChart = null;
+
+let requests = [];
+
+let currentDocument = null;
+
+let documentTable = null;
+
+let paperTrailTable = null;
+
+let dashboardChart = null;
+
+/* ==========================================
+   PAGE LOAD
+========================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    initializeDashboard
+);
 
 /* ==========================================
    INITIALIZE DASHBOARD
 ========================================== */
 
-document.addEventListener(
+async function initializeDashboard()
+{
+    initializeTheme();
 
-    "DOMContentLoaded",
+    initializeTables();
 
-    function(){
+    initializeButtons();
 
-        loadDashboard();
+    initializeEvents();
 
-        registerEvents();
+    await loadStatistics();
 
-    }
+    await loadDocuments();
 
-);
+    await loadPaperTrail();
 
-/* ==========================================
-   LOAD DASHBOARD
-========================================== */
+    await loadProfile();
 
-async function loadDashboard(){
-
-    try{
-
-        let responses = await Promise.all([
-
-            fetch("../data/documents.json"),
-
-            fetch("../data/paper-trail.json")
-
-        ]);
-
-        documents =
-            await responses[0].json();
-
-        paperTrail =
-            await responses[1].json();
-
-        populateDocumentsTable();
-
-        populatePaperTrailTable();
-
-        initializeDataTables();
-
-        updateStatistics();
-
-        initializeChart();
-
-    }
-
-    catch(error){
-
-        console.error(
-
-            "Failed to load dashboard.",
-
-            error
-
-        );
-
-    }
-
-}
-
-/* ==========================================
-   DOCUMENT TABLE
-========================================== */
-
-function populateDocumentsTable(){
-
-    let tableBody =
-
-        document.querySelector(
-
-            "#documents-table tbody"
-
-        );
-
-    tableBody.innerHTML = "";
-
-    documents.forEach(function(documentItem){
-
-        tableBody.innerHTML += `
-
-        <tr>
-
-            <td>
-
-                ${documentItem.title}
-
-            </td>
-
-            <td>
-
-                ${documentItem.type}
-
-            </td>
-
-            <td>
-
-                <span class="status-${documentItem.status.toLowerCase()}">
-
-                    ${documentItem.status}
-
-                </span>
-
-            </td>
-
-            <td>
-
-                <button
-
-                    class="btn btn-primary btn-sm preview-button"
-
-                    data-id="${documentItem.id}">
-
-                    <i class="fas fa-eye"></i>
-
-                </button>
-
-            </td>
-
-            <td>
-
-                <a
-
-                    href="${documentItem.file}"
-
-                    download
-
-                    class="btn btn-info btn-sm">
-
-                    <i class="fas fa-download"></i>
-
-                </a>
-
-            </td>
-
-            <td>
-
-                <button
-
-                    class="btn btn-success btn-sm sign-button"
-
-                    data-id="${documentItem.id}">
-
-                    <i class="fas fa-signature"></i>
-
-                </button>
-
-            </td>
-
-            <td>
-
-                <button
-
-                    class="btn btn-danger btn-sm reject-button"
-
-                    data-id="${documentItem.id}">
-
-                    <i class="fas fa-times"></i>
-
-                </button>
-
-            </td>
-
-            <td>
-
-                <button
-
-                    class="btn btn-secondary btn-sm upload-button"
-
-                    data-id="${documentItem.id}">
-
-                    <i class="fas fa-upload"></i>
-
-                </button>
-
-            </td>
-
-        </tr>
-
-        `;
-
-    });
-
-}
-
-/* ==========================================
-   PAPER TRAIL TABLE
-========================================== */
-
-function populatePaperTrailTable(){
-
-    let tableBody =
-
-        document.querySelector(
-
-            "#paper-trail-table tbody"
-
-        );
-
-    tableBody.innerHTML = "";
-
-    paperTrail.forEach(function(item){
-
-        tableBody.innerHTML += `
-
-        <tr>
-
-            <td>${item.date}</td>
-
-            <td>${item.action}</td>
-
-            <td>${item.user}</td>
-
-            <td>
-
-                <span class="status-${item.status.toLowerCase()}">
-
-                    ${item.status}
-
-                </span>
-
-            </td>
-
-        </tr>
-
-        `;
-
-    });
-
+    loadChart();
 }
 
 /* ==========================================
    INITIALIZE DATATABLES
 ========================================== */
 
-function initializeDataTables(){
+function initializeTables()
+{
+    documentTable =
+        $("#documents-table").DataTable(
+        {
+            responsive: true,
 
-    if($.fn.DataTable.isDataTable("#documents-table")){
+            pageLength: 10,
 
-        $("#documents-table")
-        .DataTable()
-        .destroy();
+            ordering: true,
 
-    }
+            searching: true,
 
-    if($.fn.DataTable.isDataTable("#paper-trail-table")){
+            autoWidth: false,
 
-        $("#paper-trail-table")
-        .DataTable()
-        .destroy();
-
-    }
-
-    $("#documents-table").DataTable({
-
-        pageLength:5,
-
-        responsive:true,
-
-        ordering:true,
-
-        searching:true,
-
-        info:true,
-
-        lengthMenu:[
-            [5,10,25,50,-1],
-            [5,10,25,50,"All"]
-        ]
-
-    });
-
-    $("#paper-trail-table").DataTable({
-
-        pageLength:5,
-
-        responsive:true,
-
-        ordering:true,
-
-        searching:true,
-
-        info:true
-
-    });
-
-}
-
-/* ==========================================
-   UPDATE DASHBOARD STATISTICS
-========================================== */
-
-function updateStatistics(){
-
-    let pending = 0;
-    let signed = 0;
-    let finished = 0;
-
-    documents.forEach(function(documentItem){
-
-        if(documentItem.status === "Pending"){
-
-            pending++;
-
-        }
-
-        else if(documentItem.status === "Signed"){
-
-            signed++;
-
-        }
-
-        else if(documentItem.status === "Finished"){
-
-            finished++;
-
-        }
-
-    });
-
-    document.getElementById(
-        "pending-count"
-    ).textContent = pending;
-
-    document.getElementById(
-        "signed-count"
-    ).textContent = signed;
-
-    document.getElementById(
-        "finished-count"
-    ).textContent = finished;
-
-}
-
-/* ==========================================
-   CHART.JS
-========================================== */
-
-function initializeChart(){
-
-    let chartCanvas =
-        document.getElementById(
-            "document-chart"
-        );
-
-    if(!chartCanvas){
-
-        return;
-
-    }
-
-    let pending =
-        documents.filter(function(documentItem){
-
-            return documentItem.status === "Pending";
-
-        }).length;
-
-    let signed =
-        documents.filter(function(documentItem){
-
-            return documentItem.status === "Signed";
-
-        }).length;
-
-    let finished =
-        documents.filter(function(documentItem){
-
-            return documentItem.status === "Finished";
-
-        }).length;
-
-    if(documentChart !== null){
-
-        documentChart.destroy();
-
-    }
-
-    documentChart = new Chart(chartCanvas,{
-
-        type:"doughnut",
-
-        data:{
-
-            labels:[
-
-                "Pending",
-
-                "Signed",
-
-                "Finished"
-
+            lengthMenu:
+            [
+                [5,10,25,50],
+                [5,10,25,50]
             ],
 
-            datasets:[{
+            language:
+            {
+                search: "Search:",
 
-                data:[
+                lengthMenu:
+                    "Show _MENU_ documents",
 
-                    pending,
-
-                    signed,
-
-                    finished
-
-                ],
-
-                backgroundColor:[
-
-                    "#f59e0b",
-
-                    "#3b82f6",
-
-                    "#22c55e"
-
-                ],
-
-                borderWidth:0
-
-            }]
-
-        },
-
-        options:{
-
-            responsive:true,
-
-            maintainAspectRatio:false,
-
-            plugins:{
-
-                legend:{
-
-                    position:"bottom"
-
-                }
-
+                info:
+                    "Showing _START_ to _END_ of _TOTAL_ documents"
             }
+        });
 
+    paperTrailTable =
+        $("#paperTrailTable").DataTable(
+        {
+            responsive: true,
+
+            pageLength: 5,
+
+            ordering: true,
+
+            searching: true,
+
+            info: false,
+
+            autoWidth: false
+        });
+}
+
+/* ==========================================
+   INITIALIZE EVENTS
+========================================== */
+
+function initializeEvents()
+{
+    const requestForm =
+        document.getElementById("requestForm");
+
+    const confirmSign =
+        document.getElementById("confirmSign");
+
+    const confirmReject =
+        document.getElementById("confirmReject");
+
+    const uploadSigned =
+        document.getElementById("uploadSigned");
+
+    if(requestForm)
+    {
+        requestForm.addEventListener(
+            "submit",
+            submitRequest
+        );
+    }
+
+    if(confirmSign)
+    {
+        confirmSign.addEventListener(
+            "click",
+            signDocument
+        );
+    }
+
+    if(confirmReject)
+    {
+        confirmReject.addEventListener(
+            "click",
+            rejectDocument
+        );
+    }
+
+    if(uploadSigned)
+    {
+        uploadSigned.addEventListener(
+            "click",
+            uploadSignedDocument
+        );
+    }
+}
+
+/* ==========================================
+   LOAD DASHBOARD STATISTICS
+========================================== */
+
+async function loadStatistics()
+{
+    let response = null;
+
+    let data = null;
+
+    try
+    {
+        response =
+            await fetch(API.statistics);
+
+        if(!response.ok)
+        {
+            throw new Error(
+                "Unable to load dashboard statistics."
+            );
         }
 
+        data =
+            await response.json();
+
+        document.getElementById("pending-count").textContent =
+            data.pending;
+
+        document.getElementById("signed-count").textContent =
+            data.signed;
+
+        document.getElementById("finished-count").textContent =
+            data.finished;
+
+        document.getElementById("request-count").textContent =
+            data.requests;
+    }
+
+    catch(error)
+    {
+        console.error(error);
+
+        alert(
+            "Unable to load dashboard statistics."
+        );
+    }
+}
+
+/* ==========================================
+   LOAD MEMBER DOCUMENTS
+========================================== */
+
+async function loadDocuments()
+{
+    let response = null;
+
+    try
+    {
+        response =
+            await fetch(API.documents);
+
+        if(!response.ok)
+        {
+            throw new Error(
+                "Unable to load documents."
+            );
+        }
+
+        documents =
+            await response.json();
+
+        documentTable.clear();
+
+        documents.forEach(function(document)
+        {
+            documentTable.row.add(
+            [
+                document.tracking_code,
+
+                document.title,
+
+                document.type_name,
+
+                document.office_name,
+
+                createStatusBadge(
+                    document.status
+                ),
+
+                createActionButtons(
+                    document
+                )
+            ]);
+        });
+
+        documentTable.draw(false);
+    }
+
+    catch(error)
+    {
+        console.error(error);
+
+        alert(
+            "Unable to load documents."
+        );
+    }
+}
+
+/* ==========================================
+   STATUS BADGE
+========================================== */
+
+function createStatusBadge(status)
+{
+    let badge = "";
+
+    switch(status)
+    {
+        case "Pending":
+
+            badge =
+                '<span class="badge bg-warning text-dark">Pending</span>';
+
+            break;
+
+        case "Signed":
+
+            badge =
+                '<span class="badge bg-success">Signed</span>';
+
+            break;
+
+        case "Finished":
+
+            badge =
+                '<span class="badge bg-primary">Finished</span>';
+
+            break;
+
+        case "Rejected":
+
+            badge =
+                '<span class="badge bg-danger">Rejected</span>';
+
+            break;
+
+        default:
+
+            badge =
+                '<span class="badge bg-secondary">Unknown</span>';
+    }
+
+    return badge;
+}
+
+/* ==========================================
+   ACTION BUTTONS
+========================================== */
+
+function createActionButtons(document)
+{
+    let buttons = "";
+
+    buttons +=
+    `
+    <div class="action-buttons">
+
+        <button
+            class="btn btn-outline-primary btn-sm"
+            onclick="previewDocument(${document.document_id})"
+            title="Preview">
+
+            <i class="fas fa-eye"></i>
+
+        </button>
+
+        <a
+            href="${document.file_path}"
+            class="btn btn-outline-secondary btn-sm"
+            download
+            title="Download">
+
+            <i class="fas fa-download"></i>
+
+        </a>
+    `;
+
+    if(document.status === "Pending")
+    {
+        buttons +=
+        `
+        <button
+            class="btn btn-success btn-sm"
+            onclick="openSignModal(${document.document_id})"
+            title="Sign">
+
+            <i class="fas fa-signature"></i>
+
+        </button>
+
+        <button
+            class="btn btn-danger btn-sm"
+            onclick="openRejectModal(${document.document_id})"
+            title="Reject">
+
+            <i class="fas fa-times"></i>
+
+        </button>
+
+        <button
+            class="btn btn-warning btn-sm"
+            onclick="openUploadModal(${document.document_id})"
+            title="Upload Signed">
+
+            <i class="fas fa-upload"></i>
+
+        </button>
+        `;
+    }
+
+    buttons +=
+    `
+    </div>
+    `;
+
+    return buttons;
+}
+
+/* ==========================================
+   FIND DOCUMENT
+========================================== */
+
+function findDocument(documentId)
+{
+    return documents.find(function(document)
+    {
+        return document.document_id == documentId;
     });
-
-}
-
-/* ==========================================
-   REFRESH DASHBOARD
-========================================== */
-
-function refreshDashboard(){
-
-    populateDocumentsTable();
-
-    populatePaperTrailTable();
-
-    initializeDataTables();
-
-    updateStatistics();
-
-    initializeChart();
-
-}
-
-/* ==========================================
-   REGISTER EVENTS
-========================================== */
-
-function registerEvents(){
-
-    document.addEventListener(
-
-        "click",
-
-        handleDocumentActions
-
-    );
-
-    document
-
-    .getElementById(
-
-        "request-form"
-
-    )
-
-    .addEventListener(
-
-        "submit",
-
-        submitRequest
-
-    );
-
-}
-
-/* ==========================================
-   DOCUMENT ACTIONS
-========================================== */
-
-function handleDocumentActions(event){
-
-    let button = event.target.closest("button");
-
-    if(!button){
-
-        return;
-
-    }
-
-    let documentId = button.dataset.id;
-
-    if(button.classList.contains("preview-button")){
-
-        previewDocument(documentId);
-
-    }
-
-    else if(button.classList.contains("sign-button")){
-
-        signDocument(documentId);
-
-    }
-
-    else if(button.classList.contains("reject-button")){
-
-        rejectDocument(documentId);
-
-    }
-
-    else if(button.classList.contains("upload-button")){
-
-        uploadSignedDocument(documentId);
-
-    }
-
 }
 
 /* ==========================================
    PREVIEW DOCUMENT
 ========================================== */
 
-function previewDocument(documentId){
+function previewDocument(documentId)
+{
+    currentDocument =
+        findDocument(documentId);
 
-    let documentItem = documents.find(function(item){
-
-        return item.id === documentId;
-
-    });
-
-    if(!documentItem){
-
-        return;
-
-    }
-
-    document.getElementById(
-
-        "preview-frame"
-
-    ).src = documentItem.file;
-
-    let modal = new bootstrap.Modal(
-
-        document.getElementById(
-
-            "previewModal"
-
-        )
-
-    );
-
-    modal.show();
-
-}
-
-/* ==========================================
-   SIGN DOCUMENT
-========================================== */
-
-function signDocument(documentId){
-
-    let remarks = prompt(
-
-        "Optional remarks before signing:"
-
-    );
-
-    documents.forEach(function(item){
-
-        if(item.id === documentId){
-
-            item.status = "Signed";
-
-            item.remarks = remarks;
-
-        }
-
-    });
-
-    paperTrail.unshift({
-
-        date:new Date().toLocaleDateString(),
-
-        action:"Document Signed",
-
-        user:"Current Member",
-
-        status:"Signed"
-
-    });
-
-    refreshDashboard();
-
-    alert("Document signed successfully.");
-
-}
-
-/* ==========================================
-   REJECT DOCUMENT
-========================================== */
-
-function rejectDocument(documentId){
-
-    let reason = prompt(
-
-        "Enter rejection reason:"
-
-    );
-
-    if(reason === null){
+    if(currentDocument == null)
+    {
+        alert("Document not found.");
 
         return;
-
     }
 
-    if(reason.trim() === ""){
+    document.getElementById("previewFrame").src =
+        currentDocument.file_path;
 
-        alert(
+    document.getElementById("downloadPreview").href =
+        currentDocument.file_path;
 
-            "Rejection reason is required."
-
+    const modal =
+        new bootstrap.Modal(
+            document.getElementById("previewModal")
         );
 
-        return;
-
-    }
-
-    documents.forEach(function(item){
-
-        if(item.id === documentId){
-
-            item.status = "Pending";
-
-            item.rejectionReason = reason;
-
-        }
-
-    });
-
-    paperTrail.unshift({
-
-        date:new Date().toLocaleDateString(),
-
-        action:"Document Rejected",
-
-        user:"Current Member",
-
-        status:"Pending"
-
-    });
-
-    refreshDashboard();
-
-    alert(
-
-        "Document returned to the secretary."
-
-    );
-
+    modal.show();
 }
 
 /* ==========================================
-   UPLOAD SIGNED DOCUMENT
+   OPEN SIGN MODAL
 ========================================== */
 
-function uploadSignedDocument(documentId){
+function openSignModal(documentId)
+{
+    currentDocument =
+        findDocument(documentId);
 
-    let fileInput = document.createElement("input");
+    if(currentDocument == null)
+    {
+        alert("Document not found.");
 
-    fileInput.type = "file";
+        return;
+    }
 
-    fileInput.accept = ".pdf";
+    document.getElementById("signRemarks").value = "";
 
-    fileInput.onchange = function(){
+    const modal =
+        new bootstrap.Modal(
+            document.getElementById("signModal")
+        );
 
-        if(fileInput.files.length > 0){
+    modal.show();
+}
 
-            alert(
+/* ==========================================
+   OPEN REJECT MODAL
+========================================== */
 
-                "Signed document uploaded."
+function openRejectModal(documentId)
+{
+    currentDocument =
+        findDocument(documentId);
 
+    if(currentDocument == null)
+    {
+        alert("Document not found.");
+
+        return;
+    }
+
+    document.getElementById("rejectReason").value = "";
+
+    const modal =
+        new bootstrap.Modal(
+            document.getElementById("rejectModal")
+        );
+
+    modal.show();
+}
+
+/* ==========================================
+   OPEN UPLOAD MODAL
+========================================== */
+
+function openUploadModal(documentId)
+{
+    currentDocument =
+        findDocument(documentId);
+
+    if(currentDocument == null)
+    {
+        alert("Document not found.");
+
+        return;
+    }
+
+    document.getElementById("signedFile").value = "";
+
+    const modal =
+        new bootstrap.Modal(
+            document.getElementById("uploadModal")
+        );
+
+    modal.show();
+}
+
+/* ==========================================
+   LOAD PAPER TRAIL
+========================================== */
+
+async function loadPaperTrail()
+{
+    let response = null;
+
+    try
+    {
+        response =
+            await fetch(API.paperTrail);
+
+        if(!response.ok)
+        {
+            throw new Error(
+                "Unable to load paper trail."
             );
-
-            paperTrail.unshift({
-
-                date:new Date().toLocaleDateString(),
-
-                action:"Signed PDF Uploaded",
-
-                user:"Current Member",
-
-                status:"Signed"
-
-            });
-
-            refreshDashboard();
-
         }
 
-    };
+        paperTrail =
+            await response.json();
 
-    fileInput.click();
+        paperTrailTable.clear();
 
+        paperTrail.forEach(function(log)
+        {
+            paperTrailTable.row.add(
+            [
+                formatDate(log.created_at),
+
+                log.action_taken,
+
+                log.action_by,
+
+                createStatusBadge(log.status)
+            ]);
+        });
+
+        paperTrailTable.draw(false);
+    }
+
+    catch(error)
+    {
+        console.error(error);
+
+        alert("Unable to load paper trail.");
+    }
+}
+
+/* ==========================================
+   FORMAT DATE
+========================================== */
+
+function formatDate(date)
+{
+    let formattedDate =
+        new Date(date);
+
+    return formattedDate.toLocaleDateString(
+        "en-PH",
+        {
+            year: "numeric",
+
+            month: "short",
+
+            day: "numeric"
+        }
+    );
+}
+
+/* ==========================================
+   LOAD MEMBER PROFILE
+========================================== */
+
+async function loadProfile()
+{
+    let response = null;
+
+    let profile = null;
+
+    try
+    {
+        response =
+            await fetch(API.profile);
+
+        if(!response.ok)
+        {
+            throw new Error(
+                "Unable to load profile."
+            );
+        }
+
+        profile =
+            await response.json();
+
+        document.getElementById("profileName").textContent =
+            profile.full_name;
+
+        document.getElementById("profileEmail").textContent =
+            profile.email;
+
+        document.getElementById("profileOffice").textContent =
+            profile.office_name;
+
+        const memberEmail =
+            document.getElementById("memberEmail");
+
+        if(memberEmail)
+        {
+            memberEmail.textContent =
+                profile.email;
+        }
+    }
+
+    catch(error)
+    {
+        console.error(error);
+
+        alert("Unable to load profile.");
+    }
 }
 
 /* ==========================================
    SUBMIT REQUEST
 ========================================== */
 
-function submitRequest(event){
+async function submitRequest(event)
+{
+    let response = null;
+
+    let requestData = null;
 
     event.preventDefault();
 
-    let title =
+    requestData =
+    {
+        title:
+            document.getElementById("requestTitle").value,
 
-        document.getElementById(
+        type_id:
+            document.getElementById("requestType").value,
 
-            "request-title"
+        description:
+            document.getElementById("requestDescription").value,
 
-        ).value.trim();
+        secretary_email:
+            document.getElementById("secretaryEmail").value
+    };
 
-    let type =
+    try
+    {
+        response =
+            await fetch(API.requests,
+            {
+                method: "POST",
 
-        document.getElementById(
+                headers:
+                {
+                    "Content-Type":
+                        "application/json"
+                },
 
-            "request-type"
+                body:
+                    JSON.stringify(requestData)
+            });
 
-        ).value;
+        if(!response.ok)
+        {
+            throw new Error(
+                "Unable to submit request."
+            );
+        }
 
-    let email =
+        alert("Request submitted successfully.");
 
-        document.getElementById(
+        bootstrap.Modal
+        .getInstance(
+            document.getElementById(
+                "submitRequestModal"
+            )
+        )
+        .hide();
 
-            "secretary-email"
+        document
+        .getElementById("requestForm")
+        .reset();
 
-        ).value.trim();
-
-    if(
-
-        title === "" ||
-
-        type === "" ||
-
-        email === ""
-
-    ){
-
-        alert(
-
-            "Please complete all required fields."
-
-        );
-
-        return;
-
+        loadStatistics();
     }
 
-    if(
-
-        !email.includes("@") ||
-
-        !email.includes(".com")
-
-    ){
+    catch(error)
+    {
+        console.error(error);
 
         alert(
-
-            "Email must contain @ and .com"
-
+            "Unable to submit request."
         );
-
-        return;
-
     }
-
-    alert(
-
-        "Request submitted successfully."
-
-    );
-
-    event.target.reset();
-
 }
 
 /* ==========================================
-   LOGOUT
+   SIGN DOCUMENT
 ========================================== */
 
-function logout(){
-
-    if(
-
-        confirm(
-
-            "Are you sure you want to logout?"
-
-        )
-
-    ){
-
-        window.location.href =
-
-        "login.html";
-
+async function signDocument()
+{
+    if(currentDocument == null)
+    {
+        return;
     }
 
+    alert(
+        "Backend: signDocument.php"
+    );
+
+    bootstrap.Modal
+    .getInstance(
+        document.getElementById("signModal")
+    )
+    .hide();
+
+    await loadDocuments();
+
+    await loadStatistics();
+}
+
+/* ==========================================
+   REJECT DOCUMENT
+========================================== */
+
+async function rejectDocument()
+{
+    if(currentDocument == null)
+    {
+        return;
+    }
+
+    alert(
+        "Backend: rejectDocument.php"
+    );
+
+    bootstrap.Modal
+    .getInstance(
+        document.getElementById("rejectModal")
+    )
+    .hide();
+
+    await loadDocuments();
+
+    await loadStatistics();
+}
+
+/* ==========================================
+   UPLOAD SIGNED DOCUMENT
+========================================== */
+
+async function uploadSignedDocument()
+{
+    let file = null;
+
+    file =
+        document.getElementById(
+            "signedFile"
+        ).files[0];
+
+    if(file == null)
+    {
+        alert(
+            "Please select a PDF file."
+        );
+
+        return;
+    }
+
+    alert(
+        "Backend: uploadSignedDocument.php"
+    );
+
+    bootstrap.Modal
+    .getInstance(
+        document.getElementById("uploadModal")
+    )
+    .hide();
+
+    document
+    .getElementById("signedFile")
+    .value = "";
+
+    await loadDocuments();
+}
+
+/* ==========================================
+   THEME
+========================================== */
+
+function initializeTheme()
+{
+    const toggle =
+        document.getElementById(
+            "themeToggle"
+        );
+
+    if(toggle)
+    {
+        toggle.addEventListener(
+            "click",
+
+            function()
+            {
+                document.body.classList.toggle(
+                    "dark-mode"
+                );
+            }
+        );
+    }
+}
+
+/* ==========================================
+   REPORT CHART
+========================================== */
+
+function loadChart()
+{
+    const canvas =
+        document.getElementById(
+            "documentChart"
+        );
+
+    if(canvas == null)
+    {
+        return;
+    }
+
+    if(dashboardChart != null)
+    {
+        dashboardChart.destroy();
+    }
+
+    dashboardChart =
+        new Chart(canvas,
+        {
+            type: "doughnut",
+
+            data:
+            {
+                labels:
+                [
+                    "Pending",
+                    "Signed",
+                    "Finished"
+                ],
+
+                datasets:
+                [
+                    {
+                        data:
+                        [
+                            parseInt(
+                                document.getElementById(
+                                    "pending-count"
+                                ).textContent
+                            ),
+
+                            parseInt(
+                                document.getElementById(
+                                    "signed-count"
+                                ).textContent
+                            ),
+
+                            parseInt(
+                                document.getElementById(
+                                    "finished-count"
+                                ).textContent
+                            )
+                        ],
+
+                        backgroundColor:
+                        [
+                            "#ffc107",
+                            "#198754",
+                            "#0d6efd"
+                        ]
+                    }
+                ]
+            },
+
+            options:
+            {
+                responsive: true,
+
+                maintainAspectRatio: false
+            }
+        });
+}
+
+/* ==========================================
+   BUTTONS
+========================================== */
+
+function initializeButtons()
+{
+    const logoutButton =
+        document.querySelector(
+            ".logout-btn"
+        );
+
+    if(logoutButton)
+    {
+        logoutButton.addEventListener(
+            "click",
+
+            function()
+            {
+                window.location.href =
+                    "../index.html";
+            }
+        );
+    }
 }
