@@ -34,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $insertStmt = $pdo->prepare("
             INSERT INTO users (role_id, office_id, full_name, email, password_hash, is_active, registration_status) 
-            VALUES (:role_id, :office_id, :full_name, :email, :password_hash, 1, 'Pending')
-        "); // REGISTERING SETS THE REGISTRATION_STATUS TO PENDING. CHANGE TO "Approved" IF YOU WANT TO QUICK TEST
+            VALUES (:role_id, :office_id, :full_name, :email, :password_hash, 0, 'Pending')
+        "); // REGISTERING SETS THE registration_status TO PENDING and is_active to 0. CHANGE TO "1" AND "Approved" IF YOU WANT TO QUICK TEST
         
         $insertStmt->execute([
             'role_id' => $role_id,
