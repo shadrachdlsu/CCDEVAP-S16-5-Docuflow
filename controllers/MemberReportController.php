@@ -4,23 +4,26 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once "../config/connections.php";
+require_once __DIR__ . "/../config/connections.php";
 
-
-if(!isset($_SESSION["user_id"]))
-{
-    header("Location: ../login.php");
-    exit();
+if (!isset($_SESSION["user_id"])) {
+    header("Location: ../views/login.php");
+    exit;
 }
 
 $userId = (int) $_SESSION["user_id"];
 
-$sql = "
+/*
+|--------------------------------------------------------------------------
+| MEMBER INFORMATION
+|--------------------------------------------------------------------------
+*/
+
+$stmt = $pdo->prepare("
     SELECT
         u.user_id,
         u.full_name,
         u.email,
-        u.office_id,
         r.role_name,
         o.office_name
     FROM users u
@@ -30,9 +33,8 @@ $sql = "
         ON u.office_id = o.office_id
     WHERE u.user_id = ?
     LIMIT 1
-";
+");
 
-$stmt = $pdo->prepare($sql);
 $stmt->execute([$userId]);
 
 $user = $stmt->fetch();
@@ -44,65 +46,74 @@ if (!$user) {
 }
 
 /*
-==========================================
-DOCUMENT SUMMARY
-==========================================
+|--------------------------------------------------------------------------
+| REPORT DOCUMENTS
+|--------------------------------------------------------------------------
 */
 
-$sql = "
-
-SELECT
-
-    status,
-
-    COUNT(*) total
-
-FROM documents
-
-WHERE creator_id = ?
-
-GROUP BY status
-
-";
-
-
-$stmt = $pdo->prepare($sql);
+$stmt = $pdo->prepare("
+    SELECT DISTINCT
+        d.document_id,
+        d.tracking_code,
+        d.title,
+        dt.type_name,
+        COALESCE(o.office_name, 'No Office') AS office_name,
+        d.created_at,
+        d.file_path,
+        dr.status AS route_status,
+        d.status AS document_status
+    FROM document_routes dr
+    INNER JOIN documents d
+        ON dr.document_id = d.document_id
+    INNER JOIN document_types dt
+        ON d.type_id = dt.type_id
+    LEFT JOIN offices o
+        ON dr.office_id = o.office_id
+    WHERE dr.signatory_user_id = ?
+    ORDER BY d.created_at DESC
+");
 
 $stmt->execute([$userId]);
 
-
-$documentSummary = $stmt->fetchAll();
-
-
+$reportDocuments = $stmt->fetchAll();
 
 /*
-==========================================
-REQUEST SUMMARY
-==========================================
+|--------------------------------------------------------------------------
+| STATISTICS
+|--------------------------------------------------------------------------
 */
 
-$sql = "
+$totalDocuments = count($reportDocuments);
+$pendingDocuments = 0;
+$signedDocuments = 0;
+$finishedDocuments = 0;
 
-SELECT
+foreach ($reportDocuments as $document) {
+    $routeStatus = $document["route_status"];
+    $documentStatus = $document["document_status"];
 
-    dr.status,
+    if (
+        $routeStatus === "Waiting" ||
+        $routeStatus === "Received" ||
+        $routeStatus === "For Signature"
+    ) {
+        $pendingDocuments++;
+    }
 
-    COUNT(*) total
+    if ($routeStatus === "Signed") {
+        $signedDocuments++;
+    }
 
-FROM document_requests dr
+    if (
+        $routeStatus === "Completed" ||
+        $documentStatus === "Completed"
+    ) {
+        $finishedDocuments++;
+    }
+}
 
-WHERE requested_by_id = ?
-
-GROUP BY dr.status
-
-";
-
-
-$stmt = $pdo->prepare($sql);
-
-$stmt->execute([$userId]);
-
-
-$requestSummary = $stmt->fetchAll();
-
-?>
+$chartData = [
+    $pendingDocuments,
+    $signedDocuments,
+    $finishedDocuments
+];

@@ -43,9 +43,8 @@ require_once "../controllers/MemberReportController.php";
 
     <!-- Font Awesome -->
     <link
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-        rel="stylesheet">
-
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <!-- Your CSS -->
     <link
         rel="stylesheet"
@@ -172,7 +171,7 @@ require_once "../controllers/MemberReportController.php";
             id="totalDocuments"
             class="stat-number">
 
-            0
+            <?= $totalDocuments ?>
 
         </span>
 
@@ -190,7 +189,7 @@ require_once "../controllers/MemberReportController.php";
             id="pendingDocuments"
             class="stat-number">
 
-            0
+            <?= $pendingDocuments ?>
 
         </span>
 
@@ -208,7 +207,7 @@ require_once "../controllers/MemberReportController.php";
             id="signedDocuments"
             class="stat-number">
 
-            0
+            <?= $signedDocuments ?>
 
         </span>
 
@@ -226,7 +225,7 @@ require_once "../controllers/MemberReportController.php";
             id="finishedDocuments"
             class="stat-number">
 
-            0
+            <?= $finishedDocuments ?>
 
         </span>
 

@@ -961,40 +961,42 @@ body.dark-mode .member-main{
 
 }
 
-/* ==========================================
-   MEMBER NAVBAR
-========================================== */
+/* ===========================
+   DARK MODE NAVBAR
+=========================== */
 
-.member-navbar{
-    width:100%;
-    background:#fff;
-    padding:15px 30px;
-    display:flex;
-    align-items:center;
-    box-shadow:0 2px 10px rgba(0,0,0,.08);
+body.dark-mode .member-header{
+    background:#1f2937;
+    color:#fff;
 }
 
-.nav-left{
-    display:flex;
-    align-items:center;
-    gap:25px;
+body.dark-mode .member-header a{
+    color:#fff;
 }
 
-.nav-link{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    text-decoration:none;
-    color:#555;
-    font-weight:600;
-    padding:10px 15px;
-    border-radius:8px;
-    white-space:nowrap;
-    transition:.25s;
+body.dark-mode .member-header .web-logo{
+    color:#7c5cff;
 }
 
-.nav-link:hover,
-.nav-link.active{
+body.dark-mode .member-header .user-email,
+body.dark-mode .member-header .user-role{
+    color:#f3f4f6;
+}
+
+body.dark-mode .member-navbar{
+    background:#111827;
+    border-top:1px solid #374151;
+}
+
+body.dark-mode .member-navbar a{
+    color:#e5e7eb;
+}
+
+body.dark-mode .member-navbar a:hover{
+    color:#ffffff;
+}
+
+body.dark-mode .member-navbar .active{
     background:#5c4ae4;
     color:#fff;
 }

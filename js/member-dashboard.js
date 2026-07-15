@@ -303,45 +303,26 @@ async function loadDocuments()
 
 function createStatusBadge(status)
 {
-    let badge = "";
-
     switch(status)
     {
+        case "Waiting":
         case "Pending":
-
-            badge =
-                '<span class="badge bg-warning text-dark">Pending</span>';
-
-            break;
+        case "For Signature":
+            return '<span class="status-badge status-pending">Pending</span>';
 
         case "Signed":
+            return '<span class="status-badge status-signed">Signed</span>';
 
-            badge =
-                '<span class="badge bg-success">Signed</span>';
-
-            break;
-
+        case "Completed":
         case "Finished":
-
-            badge =
-                '<span class="badge bg-primary">Finished</span>';
-
-            break;
+            return '<span class="status-badge status-finished">Finished</span>';
 
         case "Rejected":
-
-            badge =
-                '<span class="badge bg-danger">Rejected</span>';
-
-            break;
+            return '<span class="status-badge status-rejected">Rejected</span>';
 
         default:
-
-            badge =
-                '<span class="badge bg-secondary">Unknown</span>';
+            return `<span class="badge bg-secondary">${status ?? "Unknown"}</span>`;
     }
-
-    return badge;
 }
 
 /* ==========================================
@@ -350,69 +331,55 @@ function createStatusBadge(status)
 
 function createActionButtons(document)
 {
-    let buttons = "";
+    let buttons = `
+        <div class="d-flex gap-2 justify-content-center">
 
-    buttons +=
-    `
-    <div class="action-buttons">
+            <button
+                class="btn btn-primary btn-sm"
+                onclick="previewDocument(${document.document_id})"
+                title="Preview">
+                <i class="fas fa-eye"></i>
+            </button>
 
-        <button
-            class="btn btn-outline-primary btn-sm"
-            onclick="previewDocument(${document.document_id})"
-            title="Preview">
-
-            <i class="fas fa-eye"></i>
-
-        </button>
-
-        <a
-            href="${document.file_path}"
-            class="btn btn-outline-secondary btn-sm"
-            download
-            title="Download">
-
-            <i class="fas fa-download"></i>
-
-        </a>
+            <a
+                href="${document.file_path}"
+                class="btn btn-secondary btn-sm"
+                download
+                title="Download">
+                <i class="fas fa-download"></i>
+            </a>
     `;
 
-    if(document.status === "Pending")
-    {
-        buttons +=
-        `
-        <button
-            class="btn btn-success btn-sm"
-            onclick="openSignModal(${document.document_id})"
-            title="Sign">
+    if (
+        document.status === "Pending" ||
+        document.status === "Waiting"
+    ) {
 
-            <i class="fas fa-signature"></i>
+        buttons += `
+            <button
+                class="btn btn-success btn-sm"
+                onclick="openSignModal(${document.document_id})"
+                title="Sign">
+                <i class="fas fa-signature"></i>
+            </button>
 
-        </button>
+            <button
+                class="btn btn-danger btn-sm"
+                onclick="openRejectModal(${document.document_id})"
+                title="Reject">
+                <i class="fas fa-times"></i>
+            </button>
 
-        <button
-            class="btn btn-danger btn-sm"
-            onclick="openRejectModal(${document.document_id})"
-            title="Reject">
-
-            <i class="fas fa-times"></i>
-
-        </button>
-
-        <button
-            class="btn btn-warning btn-sm"
-            onclick="openUploadModal(${document.document_id})"
-            title="Upload Signed">
-
-            <i class="fas fa-upload"></i>
-
-        </button>
+            <button
+                class="btn btn-warning btn-sm"
+                onclick="openUploadModal(${document.document_id})"
+                title="Upload Signed">
+                <i class="fas fa-upload"></i>
+            </button>
         `;
     }
 
-    buttons +=
-    `
-    </div>
-    `;
+    buttons += `</div>`;
 
     return buttons;
 }
