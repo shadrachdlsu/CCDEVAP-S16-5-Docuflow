@@ -4,6 +4,9 @@
 -- ------------------------------------------------------
 -- Server version	9.7.0
 
+CREATE DATABASE IF NOT EXISTS `docuflow_db`;
+USE `docuflow_db`;
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -21,7 +24,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ 'e14aae42-62f2-11f1-8443-10ffe080e4e0:1-165';
+-- SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ 'e14aae42-62f2-11f1-8443-10ffe080e4e0:1-165';
 
 --
 -- Table structure for table `document_assignments`
@@ -50,7 +53,7 @@ CREATE TABLE `document_assignments` (
   CONSTRAINT `document_assignments_ibfk_2` FOREIGN KEY (`assigned_to_user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `document_assignments_ibfk_3` FOREIGN KEY (`assigned_by_user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `document_assignments_ibfk_4` FOREIGN KEY (`office_id`) REFERENCES `offices` (`office_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Stores who needs to sign, approve, reject, or act on the document.';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores who needs to sign, approve, reject, or act on the document.';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -162,7 +165,7 @@ CREATE TABLE `document_trails` (
   CONSTRAINT `document_trails_ibfk_2` FOREIGN KEY (`action_by_user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `document_trails_ibfk_3` FOREIGN KEY (`from_office_id`) REFERENCES `offices` (`office_id`),
   CONSTRAINT `document_trails_ibfk_4` FOREIGN KEY (`to_office_id`) REFERENCES `offices` (`office_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Paper trail/history of every document action.';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Paper trail/history of every document action.';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -188,7 +191,7 @@ CREATE TABLE `document_type_offices` (
   KEY `office_id` (`office_id`),
   CONSTRAINT `document_type_offices_ibfk_1` FOREIGN KEY (`type_id`) REFERENCES `document_types` (`type_id`),
   CONSTRAINT `document_type_offices_ibfk_2` FOREIGN KEY (`office_id`) REFERENCES `offices` (`office_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Allows one document type to be available to one or more offices.';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Allows one document type to be available to one or more offices.';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
