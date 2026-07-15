@@ -8,15 +8,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($email) || empty($password)) {
         $_SESSION['error'] = "Please fill in all fields.";
-        header("Location: ../views/login.php");
+        header("Location: ../views/login.php?error=blank");
         exit;
     }
 
-    if (strpos($email, '@') === false || strpos($email, '.com') === false) { //From Ms.'s feedback, email should have @ and .com
-        $_SESSION['error'] = "Email must contain '@' and '.com'.";
-        header("Location: ../views/login.php");
-        exit;
-    }
+    // COMMENTED OUT BECAUSE EMAILS IN THE DB USE .gov and .local
+    // if (strpos($email, '@') === false || strpos($email, '.com') === false) { //From Ms.'s feedback, email should have @ and .com
+    //     $_SESSION['error'] = "Invalid email or password.";
+    //     header("Location: ../views/login.php?=invalid");
+    //     exit;
+    // }
 
     try {
         $stmt = $pdo->prepare("SELECT user_id, role_id, full_name, password_hash, is_active, registration_status FROM users WHERE email = :email LIMIT 1");
