@@ -1,28 +1,25 @@
 $(document).ready(function () {
-  // MOCK DATA 
-  const currentOffice = "Finance";
-  const offices = ["Finance", "HR", "Admin", "Legal", "Operations"];
-  const members = [
-    { email: "maria.santos@finance.gov", name: "Maria Santos", office: "Finance" },
-    { email: "juan.delacruz@finance.gov", name: "Juan Dela Cruz", office: "Finance" },
-    { email: "ana.reyes@hr.gov", name: "Ana Reyes", office: "HR" },
-    { email: "carlos.mendoza@admin.gov", name: "Carlos Mendoza", office: "Admin" },
-    { email: "member@office.gov", name: "Member", office: "Operations" },
-  ];
+  // GLOBAL STATE 
+  const CONFIG = window.DOCUFLOW;
+  let allDocs = [];       // full list of documents
+  let members = [];       // office members (autocomplete)
+  let officeTypes = [];   // office document types
 
-  let myOfficeTypes = ["Memorandum", "Budget Proposal", "Leave/Travel", "Contracts"];
+  // HELPERS 
+  function getDisplayStatus(doc) {
+    if (['Created','Pending','Received','Released','For Signature','Rejected'].includes(doc.status)) return 'Pending';
+    if (doc.status === 'Signed') return 'Signed';
+    if (['Completed','Recalled'].includes(doc.status)) return 'Finished';
+    return doc.status;
+  }
 
-  let documents = [
-    { id: "DOC-2024-001", title: "Budget Proposal FY 2024", type: "Budget Proposal", fromOffice: "HR", status: "Pending", assignees: ["maria.santos@finance.gov"], trail: ["Received from HR", "Assigned to Maria Santos"] },
-    { id: "DOC-2024-002", title: "Employee Leave Request", type: "Leave/Travel", fromOffice: "Admin", status: "Signed", assignees: ["juan.delacruz@finance.gov"], trail: ["Received from Admin", "Assigned to Juan Dela Cruz", "Signed by Juan Dela Cruz"] },
-    { id: "DOC-2024-003", title: "Supply Requisition Form", type: "Memorandum", fromOffice: "Operations", status: "Finished", assignees: ["maria.santos@finance.gov", "juan.delacruz@finance.gov"], trail: ["Received from Operations", "Assigned to Maria Santos, Juan Dela Cruz", "Signed by Maria Santos", "Signed by Juan Dela Cruz", "Marked as Finished"] },
-    { id: "DOC-2024-004", title: "Procurement Review", type: "Contracts", fromOffice: "Legal", status: "Pending", assignees: ["ana.reyes@hr.gov"], trail: ["Received from Legal", "Assigned to Ana Reyes"] },
-  ];
-
-  // UTILS 
-  function getStatusBadge(status) {
-    const colors = { Pending: "#fef3c7", Signed: "#d1fae5", Finished: "#dbeafe" };
-    return `<span style="background:${colors[status]}; padding:2px 8px; border-radius:12px; font-weight:600; font-size:0.8rem;">${status}</span>`;
+  function getStatusBadge(displayStatus) {
+    const colors = {
+      Pending: "#fef3c7",
+      Signed: "#d1fae5",
+      Finished: "#dbeafe"
+    };
+    return `<span style="background:${colors[displayStatus]}; padding:2px 8px; border-radius:12px; font-weight:600; font-size:0.8rem;">${displayStatus}</span>`;
   }
 
   function openModal(id) { $(`#${id}`).addClass("active"); }
@@ -37,38 +34,37 @@ $(document).ready(function () {
     $(".page").removeClass("active");
     $(`#page-${page}`).addClass("active");
     if (page === "dashboard") renderDashboard();
+    if (page === "create") loadCreateFormTypes();
   });
 
-  // DASHBOARD 
+  // DASHBOARD (reactive) 
   function renderDashboard() {
-    const receivedCount = documents.length;
-    const pending = documents.filter(d => d.status === "Pending").length;
-    const signed = documents.filter(d => d.status === "Signed").length;
-    const finished = documents.filter(d => d.status === "Finished").length;
+    const total = allDocs.length;
+    const pending = allDocs.filter(d => getDisplayStatus(d) === 'Pending').length;
+    const signed = allDocs.filter(d => getDisplayStatus(d) === 'Signed').length;
+    const finished = allDocs.filter(d => getDisplayStatus(d) === 'Finished').length;
 
     $("#dashboard-stats").html(`
-      <div class="stat-card"><div class="stat-number">${receivedCount}</div><div class="stat-label">Total Documents</div></div>
+      <div class="stat-card"><div class="stat-number">${total}</div><div class="stat-label">Total Documents</div></div>
       <div class="stat-card"><div class="stat-number">${pending}</div><div class="stat-label">Pending</div></div>
       <div class="stat-card"><div class="stat-number">${signed}</div><div class="stat-label">Signed</div></div>
       <div class="stat-card"><div class="stat-number">${finished}</div><div class="stat-label">Finished</div></div>
     `);
 
-    const total = pending + signed + finished || 1;
+    const pieTotal = pending + signed + finished || 1;
     const pieData = [
       { label: "Pending", value: pending, color: "#f59e0b" },
       { label: "Signed", value: signed, color: "#059669" },
       { label: "Finished", value: finished, color: "#2563eb" },
     ];
     const gradient = pieData.map((d, i, arr) => {
-      const startPercent = i === 0 ? 0 : arr.slice(0, i).reduce((sum, e) => sum + (e.value / total) * 100, 0);
-      const endPercent = startPercent + (d.value / total) * 100;
+      const startPercent = i === 0 ? 0 : arr.slice(0, i).reduce((sum, e) => sum + (e.value / pieTotal) * 100, 0);
+      const endPercent = startPercent + (d.value / pieTotal) * 100;
       return `${d.color} ${startPercent}% ${endPercent}%`;
     }).join(", ");
     $("#dashboard-charts").html(`
       <div class="pie-preview-card">
-        <div class="pie-chart" style="background: conic-gradient(${gradient})">
-          <span>${total}</span>
-        </div>
+        <div class="pie-chart" style="background: conic-gradient(${gradient})"><span>${pieTotal}</span></div>
         <div class="pie-details">
           ${pieData.map(d => `<div class="pie-row"><span class="pie-swatch" style="background:${d.color}"></span><span>${d.label}</span><strong>${d.value}</strong></div>`).join("")}
         </div>
@@ -76,41 +72,72 @@ $(document).ready(function () {
     `);
   }
 
-  // DATA TABLES 
+  // DATA LOADING 
+  function loadDocuments() {
+    return $.getJSON(CONFIG.documentsEndPoint)
+      .done(function (data) {
+        allDocs = data;
+        refreshAllTables();
+        renderDashboard();
+      })
+      .fail(function () {
+        alert("Failed to load documents.");
+      });
+  }
+
+  function loadMembers() {
+    $.getJSON(CONFIG.membersEndPoint)
+      .done(function (data) { members = data; });
+  }
+
+  function loadOfficeTypes() {
+    $.getJSON(CONFIG.typesEndPoint)
+      .done(function (data) {
+        officeTypes = data;
+        refreshTypesTable();
+        loadCreateFormTypes();
+      });
+  }
+
+  function loadCreateFormTypes() {
+    const select = $("#create-type");
+    select.empty();
+    select.append('<option value="">-- Select Type --</option>');
+    officeTypes.forEach(t => {
+      select.append(`<option value="${t.type_id}">${t.type_name}</option>`);
+    });
+  }
+
+  // DATATABLES 
   function buildDocRow(doc, actionsHtml) {
     return [
-      doc.id,
+      doc.tracking_code,
       doc.title,
-      doc.type,
-      doc.fromOffice,
-      getStatusBadge(doc.status),
-      doc.assignees.join(", ") || "None",
+      doc.type_name,
+      doc.creator_name,
+      getStatusBadge(getDisplayStatus(doc)),
+      doc.assignee_names || "None",
       actionsHtml
     ];
   }
 
   function getActionsForDoc(doc) {
     let html = '';
-    // Assign
-    html += `<button class="btn-primary btn-sm btn-assign" data-id="${doc.id}">Assign</button> `;
-    // Forward
-    html += `<button class="btn-primary btn-sm btn-forward" data-id="${doc.id}">Forward</button> `;
-    // Finish (only for Signed)
-    if (doc.status === "Signed") {
-      html += `<button class="btn-primary btn-sm btn-finish" data-id="${doc.id}">Finish</button> `;
+    html += `<button class="btn-primary btn-sm btn-assign" data-id="${doc.document_id}">Assign</button> `;
+    html += `<button class="btn-primary btn-sm btn-forward" data-id="${doc.document_id}">Forward</button> `;
+    if (getDisplayStatus(doc) === 'Signed') {
+      html += `<button class="btn-primary btn-sm btn-finish" data-id="${doc.document_id}">Finish</button> `;
     }
-    // Cancel document (hide if already Finished)
-    if (doc.status !== "Finished") {
-      html += `<button class="btn-primary btn-sm btn-cancel-doc" data-id="${doc.id}">Cancel</button> `;
+    if (getDisplayStatus(doc) !== 'Finished') {
+      html += `<button class="btn-primary btn-sm btn-cancel-doc" data-id="${doc.document_id}">Cancel</button> `;
     }
-    // Trail
-    html += `<button class="btn-primary btn-sm btn-trail" data-id="${doc.id}">Trail</button>`;
+    html += `<button class="btn-primary btn-sm btn-trail" data-id="${doc.document_id}">Trail</button>`;
     return html;
   }
 
   function initDocTable(tableId, filterFn) {
-    const filteredDocs = documents.filter(filterFn);
-    const data = filteredDocs.map(doc => buildDocRow(doc, getActionsForDoc(doc)));
+    const filtered = allDocs.filter(filterFn);
+    const data = filtered.map(doc => buildDocRow(doc, getActionsForDoc(doc)));
     if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
       $(`#${tableId}`).DataTable().clear().rows.add(data).draw();
     } else {
@@ -120,7 +147,7 @@ $(document).ready(function () {
           { title: "ID" },
           { title: "Title" },
           { title: "Type" },
-          { title: "From Office" },
+          { title: "Creator" },
           { title: "Status" },
           { title: "Assignees" },
           { title: "Actions", orderable: false }
@@ -135,56 +162,50 @@ $(document).ready(function () {
 
   function refreshAllTables() {
     initDocTable("table-all-documents", () => true);
-    initDocTable("table-receive", d => d.status !== "Finished");
-    initDocTable("table-pending", d => d.status === "Pending");
+    initDocTable("table-receive", d => !['Completed','Recalled'].includes(d.status));
+    initDocTable("table-pending", d => getDisplayStatus(d) === 'Pending');
     initDocTable("table-release", d => true);
   }
 
-  // ASSIGN MODAL
+  // ASSIGN MODAL 
   let selectedDocId = null;
-  let selectedMembers = [];
+  let selectedMemberIds = [];
 
   function renderSelectedMembers() {
     const list = $("#assign-selected-list");
     list.empty();
-    selectedMembers.forEach(email => {
-      list.append(`<li>${email} <button class="remove-member" data-email="${email}"><i class="fas fa-times"></i></button></li>`);
+    selectedMemberIds.forEach(id => {
+      const member = members.find(m => m.user_id == id);
+      const email = member ? member.email : `User #${id}`;
+      list.append(`<li>${email} <button class="remove-member" data-id="${id}"><i class="fas fa-times"></i></button></li>`);
     });
   }
 
   $(document).on("click", ".btn-assign", function () {
     selectedDocId = $(this).data("id");
-    const doc = documents.find(d => d.id === selectedDocId);
-    $("#assign-doc-title").text(doc.title);
+    const doc = allDocs.find(d => d.document_id == selectedDocId);
+    $("#assign-doc-title").text(doc ? doc.title : '');
     $("#assign-member-search").val("");
-    selectedMembers = [...doc.assignees];
+    selectedMemberIds = [];
     renderSelectedMembers();
     openModal("modal-assign");
   });
 
   $(document).on("click", ".remove-member", function () {
-    const email = $(this).data("email");
-    selectedMembers = selectedMembers.filter(e => e !== email);
+    const id = $(this).data("id");
+    selectedMemberIds = selectedMemberIds.filter(i => i != id);
     renderSelectedMembers();
   });
 
-  if ($("#clear-all-assignees").length === 0) {
-    $("#assign-selected-list").after('<button id="clear-all-assignees" class="btn-primary btn-sm" style="margin-top:8px;">Clear All</button>');
-  }
-  $(document).on("click", "#clear-all-assignees", function () {
-    selectedMembers = [];
-    renderSelectedMembers();
-  });
-
-  const memberEmails = members.map(m => m.email);
   $("#assign-member-search").on("input", function () {
     const query = $(this).val().toLowerCase();
-    const filtered = memberEmails.filter(e => e.includes(query) && !selectedMembers.includes(e));
     const dropdown = $("#assign-member-dropdown");
     dropdown.empty();
-    if (filtered.length && query) {
-      filtered.forEach(email => {
-        dropdown.append(`<div class="autocomplete-option">${email}</div>`);
+    if (!query) { dropdown.removeClass("active"); return; }
+    const filtered = members.filter(m => m.email.toLowerCase().includes(query) && !selectedMemberIds.includes(m.user_id));
+    if (filtered.length) {
+      filtered.forEach(m => {
+        dropdown.append(`<div class="autocomplete-option" data-id="${m.user_id}">${m.email} (${m.full_name})</div>`);
       });
       dropdown.addClass("active");
     } else {
@@ -193,9 +214,9 @@ $(document).ready(function () {
   });
 
   $(document).on("click", ".autocomplete-option", function () {
-    const email = $(this).text();
-    if (!selectedMembers.includes(email)) {
-      selectedMembers.push(email);
+    const id = parseInt($(this).data("id"));
+    if (!selectedMemberIds.includes(id)) {
+      selectedMemberIds.push(id);
       renderSelectedMembers();
     }
     $("#assign-member-search").val("");
@@ -204,91 +225,121 @@ $(document).ready(function () {
 
   $("#btn-confirm-assign").click(function () {
     if (!selectedDocId) return;
-    const doc = documents.find(d => d.id === selectedDocId);
-    const oldAssignees = doc.assignees.slice();
-    doc.assignees = [...selectedMembers];
-    if (doc.status !== "Finished") {
-      if (doc.assignees.length === 0) {
-        doc.status = "Pending";
-        doc.trail.push("All assignees removed (cancelled)");
-      } else if (oldAssignees.length === 0 || JSON.stringify(oldAssignees) !== JSON.stringify(doc.assignees)) {
-        doc.trail.push(`Assignees updated to ${doc.assignees.join(", ")}`);
-      }
+    if (selectedMemberIds.length === 0) {
+      alert("Select at least one member.");
+      return;
     }
-    closeModal("modal-assign");
-    refreshAllTables();
-    renderDashboard();
+    $.ajax({
+      type: "POST",
+      url: CONFIG.actionsEndPoint,
+      contentType: "application/json",
+      data: JSON.stringify({
+        action: "assign",
+        document_id: selectedDocId,
+        member_ids: selectedMemberIds
+      }),
+      success: function (res) {
+        if (res.success) {
+          closeModal("modal-assign");
+          loadDocuments();
+        } else {
+          alert(res.message);
+        }
+      },
+      error: function () { alert("Action failed."); }
+    });
   });
 
-  // FORWARD MODAL 
+  // FORWARD MODAL
   $(document).on("click", ".btn-forward", function () {
     selectedDocId = $(this).data("id");
-    const doc = documents.find(d => d.id === selectedDocId);
-    $("#forward-doc-title").text(doc.title);
-    const container = $("#forward-offices-list");
-    container.empty();
-    offices.forEach(off => {
-      container.append(`<label><input type="checkbox" value="${off}"> ${off}</label>`);
-    });
+    const doc = allDocs.find(d => d.document_id == selectedDocId);
+    $("#forward-doc-title").text(doc ? doc.title : '');
     openModal("modal-forward");
   });
 
   $("#btn-confirm-forward").click(function () {
-    const selectedOffices = $("#forward-offices-list input:checked").map((i, el) => el.value).get();
-    if (selectedOffices.length === 0) return alert("Select at least one office.");
-    const doc = documents.find(d => d.id === selectedDocId);
-    doc.trail.push(`Forwarded to ${selectedOffices.join(", ")}`);
-    alert(`Document forwarded to ${selectedOffices.join(", ")}`);
-    closeModal("modal-forward");
-    refreshAllTables();
-  });
-
-  // FINISH DOCUMENT 
-  $(document).on("click", ".btn-finish", function () {
-    const docId = $(this).data("id");
-    const doc = documents.find(d => d.id === docId);
-    if (doc.status !== "Signed") {
-      alert("Only signed documents can be marked finished.");
-      return;
-    }
-    if (confirm(`Mark "${doc.title}" as Finished?`)) {
-      doc.status = "Finished";
-      doc.trail.push("Marked as Finished by Secretary");
-      refreshAllTables();
-      renderDashboard();
-    }
-  });
-
-  // CANCEL DOCUMENT 
-  $(document).on("click", ".btn-cancel-doc", function () {
-    const docId = $(this).data("id");
-    const doc = documents.find(d => d.id === docId);
-    if (doc.status === "Finished") {
-      alert("Finished documents cannot be cancelled.");
-      return;
-    }
-    if (confirm(`Cancel the entire document "${doc.title}"? This action cannot be undone.`)) {
-      doc.status = "Finished";
-      doc.trail.push("Document cancelled by secretary");
-      refreshAllTables();
-      renderDashboard();
-    }
-  });
-
-  // PAPER TRAIL MODAL 
-  $(document).on("click", ".btn-trail", function () {
-    const doc = documents.find(d => d.id === $(this).data("id"));
-    const list = $("#trail-list");
-    list.empty();
-    doc.trail.forEach(entry => {
-      list.append(`<li>${entry}</li>`);
+    const checked = $("#forward-offices-list input:checked").val();
+    if (!checked) { alert("Select an office."); return; }
+    $.ajax({
+      type: "POST",
+      url: CONFIG.actionsEndPoint,
+      contentType: "application/json",
+      data: JSON.stringify({
+        action: "forward",
+        document_id: selectedDocId,
+        office_id: parseInt(checked)
+      }),
+      success: function (res) {
+        if (res.success) {
+          closeModal("modal-forward");
+          loadDocuments();
+        } else {
+          alert(res.message);
+        }
+      },
+      error: function () { alert("Forward failed."); }
     });
-    openModal("modal-trail");
   });
 
-  // DOCUMENT TYPES 
+  // FINISH & CANCEL 
+  $(document).on("click", ".btn-finish", function () {
+    if (!confirm("Mark as Finished?")) return;
+    const docId = $(this).data("id");
+    $.ajax({
+      type: "POST",
+      url: CONFIG.actionsEndPoint,
+      contentType: "application/json",
+      data: JSON.stringify({ action: "finish", document_id: docId }),
+      success: function (res) {
+        if (res.success) loadDocuments();
+        else alert(res.message);
+      },
+      error: function () { alert("Finish failed."); }
+    });
+  });
+
+  $(document).on("click", ".btn-cancel-doc", function () {
+    if (!confirm("Cancel this document?")) return;
+    const docId = $(this).data("id");
+    $.ajax({
+      type: "POST",
+      url: CONFIG.actionsEndPoint,
+      contentType: "application/json",
+      data: JSON.stringify({ action: "cancel", document_id: docId }),
+      success: function (res) {
+        if (res.success) loadDocuments();
+        else alert(res.message);
+      },
+      error: function () { alert("Cancel failed."); }
+    });
+  });
+
+  // TRAIL MODAL 
+  $(document).on("click", ".btn-trail", function () {
+    const docId = $(this).data("id");
+    $.getJSON(`${CONFIG.trailEndPoint}?document_id=${docId}`)
+      .done(function (trail) {
+        const list = $("#trail-list");
+        list.empty();
+        if (!trail.length) {
+          list.append("<li>No actions recorded yet.</li>");
+        } else {
+          trail.forEach(t => {
+            list.append(`<li><strong>${t.action}</strong> by ${t.action_by_name} – ${t.remarks || ''} <br><small>${t.created_at}</small></li>`);
+          });
+        }
+        openModal("modal-trail");
+      });
+  });
+
+  // DOCUMENT TYPES CRUD 
   function refreshTypesTable() {
-    const data = myOfficeTypes.map((type, idx) => [type, `<button class="btn-primary btn-sm btn-edit-type" data-idx="${idx}">Edit</button> <button class="btn-primary btn-sm btn-delete-type" data-idx="${idx}">Delete</button>`]);
+    const data = officeTypes.map(t => [
+      t.type_name,
+      `<button class="btn-primary btn-sm btn-edit-type" data-id="${t.type_id}" data-name="${t.type_name}">Edit</button>
+       <button class="btn-primary btn-sm btn-delete-type" data-id="${t.type_id}">Delete</button>`
+    ]);
     if ($.fn.DataTable.isDataTable("#table-types")) {
       $("#table-types").DataTable().clear().rows.add(data).draw();
     } else {
@@ -312,35 +363,109 @@ $(document).ready(function () {
   });
 
   $(document).on("click", ".btn-edit-type", function () {
-    const idx = $(this).data("idx");
+    const id = $(this).data("id");
+    const name = $(this).data("name");
     $("#type-modal-title").text("Edit Document Type");
-    $("#type-name").val(myOfficeTypes[idx]);
-    $("#modal-type").data("editing", idx);
+    $("#type-name").val(name);
+    $("#modal-type").data("editing", id);
     openModal("modal-type");
   });
 
   $(document).on("click", ".btn-delete-type", function () {
-    const idx = $(this).data("idx");
-    if (confirm(`Delete type "${myOfficeTypes[idx]}"?`)) {
-      myOfficeTypes.splice(idx, 1);
-      refreshTypesTable();
-    }
+    if (!confirm("Delete this type?")) return;
+    const id = $(this).data("id");
+    $.ajax({
+      type: "POST",
+      url: CONFIG.typesCrudEndPoint,
+      contentType: "application/json",
+      data: JSON.stringify({ action: "delete", type_id: id }),
+      success: function (res) {
+        if (res.success) loadOfficeTypes();
+        else alert(res.message);
+      },
+      error: function () { alert("Delete failed."); }
+    });
   });
 
   $("#btn-save-type").click(() => {
     const name = $("#type-name").val().trim();
-    if (!name) return alert("Type name is required.");
+    if (!name) { alert("Type name is required."); return; }
     const editing = $("#modal-type").data("editing");
-    if (editing !== null && editing !== undefined) {
-      myOfficeTypes[editing] = name;
-    } else {
-      myOfficeTypes.push(name);
-    }
-    closeModal("modal-type");
-    refreshTypesTable();
+    const payload = {
+      action: editing ? "edit" : "add",
+      type_name: name,
+      type_id: editing || undefined
+    };
+    $.ajax({
+      type: "POST",
+      url: CONFIG.typesCrudEndPoint,
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+      success: function (res) {
+        if (res.success) {
+          closeModal("modal-type");
+          loadOfficeTypes();
+        } else {
+          alert(res.message);
+        }
+      },
+      error: function () { alert("Save failed."); }
+    });
   });
 
-  // GLOBAL MODAL CLOSE 
+  // CREATE DOCUMENT
+  // Upload area click triggers hidden file input
+  $("#upload-area").click(function () {
+    $("#document-file").click();
+  });
+  $("#document-file").change(function () {
+    const fileName = this.files[0] ? this.files[0].name : '';
+    if (fileName) {
+      $("#upload-area p").text(fileName);
+    } else {
+      $("#upload-area p").text("Click to upload or drag and drop");
+    }
+  });
+
+  // Create & Route button
+  $(".btn-route-document").click(function (e) {
+    e.preventDefault();
+    const title = $("#create-title").val().trim();
+    const typeId = $("#create-type").val();
+    if (!title) { alert("Please enter a document title."); return; }
+    if (!typeId) { alert("Please select a document type."); return; }
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('type_id', typeId);
+    const fileInput = $("#document-file")[0];
+    if (fileInput.files.length > 0) {
+      formData.append('document_file', fileInput.files[0]);
+    }
+
+    $.ajax({
+      type: 'POST',
+      url: CONFIG.createEndPoint,
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function (res) {
+        if (res && res.success) {
+          alert("Document created successfully!");
+          $("#create-title").val('');
+          $("#create-type").val('');
+          $("#document-file").val('');
+          $("#upload-area p").text("Click to upload or drag and drop");
+          loadDocuments();
+        } else {
+          alert(res ? res.message : "Creation failed. Please try again.");
+        }
+      },
+      error: function () { alert("Creation failed. Server error."); }
+    });
+  });
+
+  // GLOBAL MODAL CLOSE
   $(document).on("click", ".modal-close, .modal-overlay", function (e) {
     if (e.target === this) {
       const modalId = $(this).data("close") || $(this).attr("id");
@@ -351,8 +476,7 @@ $(document).ready(function () {
   // THEME & LOGOUT 
   $(".toggle-theme").click(() => {
     $("body").toggleClass("dark-mode");
-    const icon = $(".toggle-theme i");
-    icon.toggleClass("fa-moon fa-sun");
+    $(".toggle-theme i").toggleClass("fa-moon fa-sun");
   });
 
   $(".logout-btn").click(() => {
@@ -363,9 +487,9 @@ $(document).ready(function () {
   });
 
   // INIT 
-  renderDashboard();
-  refreshAllTables();
-  refreshTypesTable();
+  loadDocuments();
+  loadMembers();
+  loadOfficeTypes();
   $(".nav-link[data-page='dashboard']").addClass("active");
   $("#page-dashboard").addClass("active");
 });

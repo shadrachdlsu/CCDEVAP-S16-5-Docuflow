@@ -1,3 +1,17 @@
+<?php
+
+session_start();
+
+if(!isset($_SESSION["user_id"]))
+{
+    header("Location: ../login.php");
+    exit;
+}
+
+require_once "../controllers/MemberReportController.php";
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 

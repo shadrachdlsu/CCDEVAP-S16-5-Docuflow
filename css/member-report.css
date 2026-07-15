@@ -5,32 +5,38 @@
 
 :root{
 
-    --primary:#0d6efd;
+    /* Primary Theme */
+    --primary:#5c4ae4;
+    --primary-dark:#4b3bd1;
+    --primary-light:rgba(92,74,228,.08);
+    --primary-tint:rgba(92,74,228,.12);
 
-    --primary-dark:#0b5ed7;
+    /* Status Colors */
+    --success:#22c55e;
+    --warning:#f59e0b;
+    --danger:#ef4444;
 
-    --success:#198754;
-
-    --warning:#ffc107;
-
-    --danger:#dc3545;
-
+    /* Neutral Colors */
     --white:#ffffff;
-
-    --background:#f5f7fb;
-
+    --background:#f9fafb;
     --card:#ffffff;
 
     --border:#e5e7eb;
 
-    --text:#212529;
+    --text:#111827;
+    --text-light:#6b7280;
 
-    --text-light:#6c757d;
+    --gray-50:#f9fafb;
+    --gray-100:#f3f4f6;
+    --gray-200:#e5e7eb;
+    --gray-300:#d1d5db;
+    --gray-400:#9ca3af;
+    --gray-500:#6b7280;
+    --gray-700:#374151;
+    --gray-900:#111827;
 
-    --radius:14px;
-
-    --shadow:
-        0 6px 16px rgba(0,0,0,.08);
+    --radius:16px;
+    --shadow:0 1px 2px rgba(0,0,0,.05);
 
 }
 
@@ -72,11 +78,11 @@ body.member-body{
 
     padding:18px 40px;
 
-    background:#ffffff;
+    background:var(--white);
 
-    border-bottom:1px solid #e9ecef;
+    border-bottom:1px solid var(--gray-200);
 
-    box-shadow:0 4px 20px rgba(0,0,0,.05);
+    box-shadow:var(--shadow);
 
     position:sticky;
 
@@ -162,7 +168,7 @@ body.member-body{
 
     cursor:pointer;
 
-    background:#eef3ff;
+    background:var(--primary-light);
 
     color:var(--primary);
 
@@ -262,15 +268,15 @@ body.member-body{
 
 .stat-card{
 
-    background:#ffffff;
+    background:var(--white);
 
-    border:none;
+    border:1px solid var(--gray-200);
 
     border-radius:18px;
 
     padding:28px;
 
-    box-shadow:0 10px 30px rgba(0,0,0,.08);
+    box-shadow:var(--shadow);
 
     transition:all .3s ease;
 
@@ -288,7 +294,7 @@ body.member-body{
 
     transform:translateY(-8px);
 
-    box-shadow:0 20px 40px rgba(13,110,253,.15);
+    box-shadow:0 8px 20px rgba(92,74,228,.18);
 
 }
 
@@ -306,15 +312,7 @@ body.member-body{
 
     height:5px;
 
-    background:linear-gradient(
-
-        90deg,
-
-        #0d6efd,
-
-        #4f8cff
-
-    );
+    background:var(--primary);
 
 }
 
@@ -326,7 +324,7 @@ body.member-body{
 
     font-weight:700;
 
-    color:#0d6efd;
+    color:var(--primary);
 
     margin-bottom:10px;
 
@@ -362,7 +360,9 @@ body.member-body{
 
 .panel-card{
 
-    background:#fff;
+    background:var(--white);
+
+    border:1px solid var(--gray-200);
 
     border-radius:var(--radius);
 
@@ -544,7 +544,7 @@ body.member-body{
 
 .table thead{
 
-    background:#f8f9fc;
+    background:var(--gray-50);
 
 }
 
@@ -558,7 +558,7 @@ body.member-body{
 
     font-weight:700;
 
-    color:#495057;
+    color:var(--gray-700);
 
     white-space:nowrap;
 
@@ -570,7 +570,7 @@ body.member-body{
 
     vertical-align:middle;
 
-    border-top:1px solid #ececec;
+    border-top:1px solid var(--gray-200);
 
 }
 
@@ -582,7 +582,7 @@ body.member-body{
 
 .table tbody tr:hover{
 
-    background:#eef5ff;
+    background:var(--primary-light);
 
     transform:scale(1.005);
 
@@ -610,7 +610,7 @@ body.member-body{
 
     padding:12px;
 
-    border:1px solid #d9dee8;
+    border:1px solid var(--gray-200);
 
 }
 
@@ -618,9 +618,9 @@ body.member-body{
 
 .form-select:focus{
 
-    border-color:#0d6efd;
+    border-color:var(--primary);
 
-    box-shadow:0 0 0 .2rem rgba(13,110,253,.15);
+    box-shadow:0 0 0 3px rgba(92,74,228,.12);
 
 }
 
@@ -643,35 +643,24 @@ body.member-body{
 }
 
 .status-pending{
-
-    background:#fff3cd;
-
-    color:#856404;
-
+    background:#fef3c7;
+    color:#92400e;
 }
 
 .status-signed{
-
-    background:#d1e7dd;
-
-    color:#0f5132;
-
+    background:#d1fae5;
+    color:#065f46;
 }
 
 .status-finished{
-
-    background:#cfe2ff;
-
-    color:#084298;
-
+    background:var(--primary-light);
+    color:var(--primary);
 }
 
+
 .status-rejected{
-
-    background:#f8d7da;
-
-    color:#842029;
-
+    background:#fee2e2;
+    color:#991b1b;
 }
 
 /* =======================================
@@ -688,7 +677,7 @@ body.member-body{
 
     border-radius:12px;
 
-    background:#0d6efd;
+    background:var(--primary);
 
     color:white;
 
@@ -731,59 +720,42 @@ body.member-body{
 }
 
 .btn-preview{
-
-    background:#0dcaf0;
-
-    color:#fff;
-
+    background:var(--primary-light);
+    color:var(--primary);
 }
 
 .btn-download{
 
-    background:#0d6efd;
+    background:var(--primary);
 
     color:#fff;
 
 }
 
 .btn-pdf{
-
-    background:#dc3545;
-
-    color:#fff;
-
+    background:#ef4444;
 }
 
 .btn-csv{
-
-    background:#198754;
-
-    color:#fff;
-
+    background:#22c55e;
 }
 
 .btn-preview:hover{
-
-    background:#31d2f2;
-
+    background:var(--primary-tint);
 }
 
 .btn-download:hover{
 
-    background:#0b5ed7;
+    background:var(--primary-dark);
 
 }
 
 .btn-pdf:hover{
-
-    background:#bb2d3b;
-
+    background:#991b1b;
 }
 
 .btn-csv:hover{
-
-    background:#157347;
-
+    background:#15803d;
 }
 
 /* =======================================
@@ -827,6 +799,10 @@ body.member-body{
     color:#fff !important;
 
     border:none !important;
+
+    border-radius:8px;
+
+    box-shadow:0 0 0 3px rgba(92,74,228,.12);
 
 }
 
@@ -880,7 +856,7 @@ body.member-body{
 
 body.dark-mode{
 
-    background:#111827;
+    background:#1f2937;
 
     color:#f8f9fa;
 
@@ -892,7 +868,7 @@ body.dark-mode .panel-card,
 
 body.dark-mode .stat-card{
 
-    background:#1f2937;
+    background:#374151;
 
     color:#ffffff;
 
@@ -906,19 +882,19 @@ body.dark-mode .table{
 
 body.dark-mode .table thead{
 
-    background:#273449;
+    background:#4b5563;
 
 }
 
 body.dark-mode .table tbody tr:hover{
 
-    background:#324257;
+    background:rgba(92,74,228,.12);
 
 }
 
 body.dark-mode .modal-content{
 
-    background:#1f1f1f;
+    background:#374151;
 
     color:#fff;
 
@@ -928,11 +904,11 @@ body.dark-mode .form-control,
 
 body.dark-mode .form-select{
 
-    background:#2b2b2b;
+    background:#374151;
 
     color:#fff;
 
-    border-color:#444;
+    border-color:#6b7280;
 
 }
 
@@ -964,4 +940,42 @@ body.dark-mode .form-select{
 
     }
 
+}
+
+/* ==========================================
+   MEMBER NAVBAR
+========================================== */
+
+.member-navbar{
+    width:100%;
+    background:#fff;
+    padding:15px 30px;
+    display:flex;
+    align-items:center;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.nav-left{
+    display:flex;
+    align-items:center;
+    gap:25px;
+}
+
+.nav-link{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    text-decoration:none;
+    color:#555;
+    font-weight:600;
+    padding:10px 15px;
+    border-radius:8px;
+    white-space:nowrap;
+    transition:.25s;
+}
+
+.nav-link:hover,
+.nav-link.active{
+    background:#5c4ae4;
+    color:#fff;
 }
