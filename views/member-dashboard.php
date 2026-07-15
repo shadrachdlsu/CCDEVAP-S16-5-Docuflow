@@ -143,14 +143,6 @@ require_once "../controllers/MemberDashboardController.php";
 
         </a>
 
-        <a href="member-dashboard.php#submitRequestModal"
-           class="nav-link">
-
-            <i class="fas fa-plus-circle"></i>
-            Submit Request
-
-        </a>
-
         <a
             href="member-report.php"
             class="nav-link active">
