@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let offices = [];
 
   function loadOffices() {
-    fetch("../controllers/api_offices.php?action=list")
+    fetch("../controllers/admin_api_offices.php?action=list")
       .then(res => res.json())
       .then(data => {
         offices = data;
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.append("action", "delete");
       formData.append("id", id);
 
-      fetch("../controllers/api_offices.php", {
+      fetch("../controllers/admin_api_offices.php", {
         method: "POST",
         body: formData
       })
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (id) formData.append("id", id);
     formData.append("name", name);
 
-    fetch("../controllers/api_offices.php", {
+    fetch("../controllers/admin_api_offices.php", {
       method: "POST",
       body: formData
     })

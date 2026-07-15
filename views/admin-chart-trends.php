@@ -100,7 +100,7 @@
         // --- Line Chart: Documents Finished per Month (Last 6 Months) ---
         const ctx = document.getElementById("trendsChart").getContext("2d");
         
-        fetch("../controllers/api_dashboard_stats.php?action=volume_trends")
+        fetch("../controllers/admin_api_dashboard_stats.php?action=volume_trends")
           .then(res => res.json())
           .then(data => {
             new Chart(ctx, {

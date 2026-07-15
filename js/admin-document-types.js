@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let documentTypes = [];
 
   function loadOffices() {
-    fetch("../controllers/api_document_types.php?action=get_offices")
+    fetch("../controllers/admin_api_document_types.php?action=get_offices")
       .then(res => res.json())
       .then(data => {
         offices = data;
@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function loadDocumentTypes() {
-    fetch("../controllers/api_document_types.php?action=list")
+    fetch("../controllers/admin_api_document_types.php?action=list")
       .then(res => res.json())
       .then(data => {
         documentTypes = data;
@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.append("action", "delete");
       formData.append("id", id);
       
-      fetch("../controllers/api_document_types.php", {
+      fetch("../controllers/admin_api_document_types.php", {
         method: "POST",
         body: formData
       })
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("name", name);
     formData.append("offices", JSON.stringify(selectedOffices));
 
-    fetch("../controllers/api_document_types.php", {
+    fetch("../controllers/admin_api_document_types.php", {
       method: "POST",
       body: formData
     })

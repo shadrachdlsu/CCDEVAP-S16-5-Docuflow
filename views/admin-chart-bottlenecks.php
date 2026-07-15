@@ -100,7 +100,7 @@
         // --- Bar Chart: Pending Documents per Office ---
         const ctx = document.getElementById("bottlenecksChart").getContext("2d");
         
-        fetch("../controllers/api_dashboard_stats.php?action=bottleneck_chart")
+        fetch("../controllers/admin_api_dashboard_stats.php?action=bottleneck_chart")
           .then(res => res.json())
           .then(data => {
             new Chart(ctx, {
