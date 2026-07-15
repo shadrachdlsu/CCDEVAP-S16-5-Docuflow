@@ -1,3 +1,42 @@
+<?php
+session_start();
+
+// ACCESS CONTROL 
+if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
+    header('Location: login.php');
+    exit;
+}
+
+// LOAD MODELS 
+require_once __DIR__ . '/models/document.php';
+require_once __DIR__ . '/models/documentType.php';
+require_once __DIR__ . '/models/office.php';
+
+$documentModel = new Document();
+$officeModel   = new Office();
+
+$officeId      = $_SESSION['office_id'];
+$officeName    = $_SESSION['office_name'] ?? 'My Office';
+$userEmail     = $_SESSION['email'] ?? 'secretary@docuflow.local';
+$userFullName  = $_SESSION['full_name'] ?? 'Secretary';
+
+// DASHBOARD STATS 
+$allDocs    = $documentModel->getDocumentsForOffice($officeId);
+$pending    = count(array_filter($allDocs, fn($d) => in_array($d['status'], ['Created','Pending','Received','Released','For Signature','Rejected'])));
+$signed     = count(array_filter($allDocs, fn($d) => $d['status'] === 'Signed'));
+$finished   = count(array_filter($allDocs, fn($d) => in_array($d['status'], ['Completed','Recalled'])));
+
+$initialStats = [
+    'total'    => count($allDocs),
+    'pending'  => $pending,
+    'signed'   => $signed,
+    'finished' => $finished,
+];
+
+// Office list for forward modal 
+$offices = $officeModel->getAllOffices();
+$forwardableOffices = array_filter($offices, fn($o) => $o['office_id'] != $officeId);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,10 +44,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Docuflow – Secretary Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <!-- DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" />
-  <!-- Custom CSS -->
   <link rel="stylesheet" href="css/secretary.css" />
 </head>
 <body class="secretary-body">
@@ -19,7 +56,7 @@
     </div>
     <div class="header-right">
       <div class="user-info">
-        <span class="user-email" id="current-user-email">secretary@finance.gov</span>
+        <span class="user-email" id="current-user-email"><?= htmlspecialchars($userEmail) ?></span>
         <span class="user-role">Secretary</span>
       </div>
       <div class="header-actions">
@@ -39,6 +76,7 @@
     <nav class="sidebar-nav" id="sidebar-nav">
       <ul>
         <li><a href="#" class="nav-link active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+        <li><a href="#" class="nav-link" data-page="create"><i class="fas fa-plus-circle"></i> Create Document</a></li>
         <li><a href="#" class="nav-link" data-page="documents"><i class="fas fa-file-alt"></i> All Documents</a></li>
         <li><a href="#" class="nav-link" data-page="receive"><i class="fas fa-inbox"></i> Receive</a></li>
         <li><a href="#" class="nav-link" data-page="pending"><i class="fas fa-clock"></i> Pending</a></li>
@@ -49,14 +87,38 @@
 
     <!-- MAIN CONTENT AREA -->
     <main class="main-content" id="main-content">
-      <!-- Dashboard Page (default) -->
+      <!-- Dashboard Page -->
       <div class="page active" id="page-dashboard">
-        <h2 class="page-title">Office Dashboard</h2>
-        <div class="stats-row" id="dashboard-stats">
-          <!-- dynamically filled by JS -->
-        </div>
-        <div class="dashboard-charts" id="dashboard-charts">
-          <!-- pie chart will be rendered here -->
+        <h2 class="page-title"><?= htmlspecialchars($officeName) ?> Dashboard</h2>
+        <div class="stats-row" id="dashboard-stats"></div>
+        <div class="dashboard-charts" id="dashboard-charts"></div>
+      </div>
+
+      <!-- Create Document Page -->
+      <div class="page" id="page-create">
+        <h2 class="page-title">Create New Document</h2>
+        <div class="create-panel">
+          <div class="form-field">
+            <label class="field-label">Document Title <span class="required">*</span></label>
+            <input type="text" id="create-title" class="field-input" placeholder="Enter document title" />
+          </div>
+          <div class="form-field">
+            <label class="field-label">Document Type <span class="required">*</span></label>
+            <select id="create-type" class="field-select">
+              <option value="">-- Select Type --</option>
+              <!-- populated by JS from office types -->
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Upload Document (PDF)</label>
+            <div class="upload-area" id="upload-area">
+              <i class="fas fa-cloud-upload-alt upload-icon"></i>
+              <p>Click to upload or drag and drop</p>
+              <span class="upload-hint">PDF files only</span>
+            </div>
+            <input type="file" id="document-file" accept=".pdf" style="display:none;">
+          </div>
+          <button class="btn-primary btn-route-document">Create & Route Document</button>
         </div>
       </div>
 
@@ -94,7 +156,7 @@
   </div>
 
   <!-- MODALS -->
-  <!-- Assign Modal (multi-member + email autocomplete) -->
+  <!-- Assign Modal -->
   <div class="modal-overlay" id="modal-assign">
     <div class="modal">
       <div class="modal-header">
@@ -119,7 +181,7 @@
     </div>
   </div>
 
-  <!-- Forward Modal (select offices) -->
+  <!-- Forward Modal -->
   <div class="modal-overlay" id="modal-forward">
     <div class="modal">
       <div class="modal-header">
@@ -133,7 +195,11 @@
         </div>
         <div class="form-field">
           <label>Select Offices</label>
-          <div class="checkbox-group" id="forward-offices-list"></div>
+          <div class="checkbox-group" id="forward-offices-list">
+            <?php foreach ($forwardableOffices as $office): ?>
+              <label><input type="checkbox" value="<?= $office['office_id'] ?>"> <?= htmlspecialchars($office['office_name']) ?></label>
+            <?php endforeach; ?>
+          </div>
         </div>
         <button class="btn-primary" id="btn-confirm-forward">Forward</button>
       </div>
@@ -153,7 +219,7 @@
     </div>
   </div>
 
-  <!-- Add/Edit Document Type Modal -->
+  <!-- Document Type Modal -->
   <div class="modal-overlay" id="modal-type">
     <div class="modal">
       <div class="modal-header">
@@ -170,12 +236,27 @@
     </div>
   </div>
 
-  <!-- jQuery, DataTables, Buttons -->
+  <!-- JS Libraries -->
   <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+
+  <!-- Pass backend data to JS -->
+  <script>
+    window.DOCUFLOW = {
+      officeId: <?= (int)$officeId ?>,
+      initialStats: <?= json_encode($initialStats) ?>,
+      documentsEndPoint: 'controllers/get_documents.php',
+      membersEndPoint: 'controllers/get_members.php',
+      actionsEndPoint: 'controllers/secretary_actions.php',
+      typesEndPoint: 'controllers/get_document_types.php',
+      typesCrudEndPoint: 'controllers/document_type_crud.php',
+      trailEndPoint: 'controllers/get_trail.php',
+      createEndPoint: 'controllers/create_document.php'
+    };
+  </script>
   <script src="js/secretary.js"></script>
 </body>
 </html>
