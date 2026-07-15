@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (logoutButton) {
     logoutButton.addEventListener("click", () => {
       if (confirm("Are you sure you want to logout?")) {
-        window.location.href = "login.html";
+        window.location.href = "login.php";
       }
     });
   }

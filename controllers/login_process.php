@@ -39,10 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         header("Location: ../views/admin-dashboard.php");
                         break;
                     case 2:
-                        header("Location: ../views/secretary-dashboard.php");
+                        header("Location: ../views/secretary-dashboard.html");
                         break;
                     case 3:
-                        header("Location: ../views/member-dashboard.php");
+                        header("Location: ../views/member-dashboard.html");
                         break;
                     default:
                         header("Location: ../views/login.php");

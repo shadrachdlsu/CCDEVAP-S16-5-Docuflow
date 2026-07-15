@@ -3,19 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutButton = document.querySelector(".logout-btn");
 
   const dashboardViews = {
-    documents: {
-      title: "Document Distribution",
-      description: "Breakdown of documents by current status.",
-      total: "1,234",
-      gradient:
-        "#4c1d95 0 46%, #2563eb 46% 68%, #059669 68% 84%, #f59e0b 84% 100%",
-      rows: [
-        { label: "Completed", value: "568", color: "#4c1d95" },
-        { label: "In Transit", value: "271", color: "#2563eb" },
-        { label: "Pending", value: "198", color: "#059669" },
-        { label: "Archived", value: "197", color: "#f59e0b" },
-      ],
-    },
     users: {
       title: "User Distribution",
       description: "Percentage of users by role.",
@@ -117,9 +104,48 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  // Render all views into their respective containers
+  // Task 2: Fetch data from the PHP API and render a Chart.js pie chart
   const docDistContent = document.getElementById("doc-dist-content");
-  if (docDistContent) docDistContent.innerHTML = renderPieView(dashboardViews.documents);
+  if (docDistContent) {
+    // 1. Write a basic fetch() request to call the PHP file
+    fetch("../controllers/api_dashboard_charts.php")
+      .then(response => response.json()) // Parse the JSON response
+      .then(data => {
+        // Create a canvas element to hold the Chart.js pie chart
+        docDistContent.innerHTML = '<canvas id="dynamicPieChart" style="max-height: 250px;"></canvas>';
+        const ctx = document.getElementById("dynamicPieChart").getContext("2d");
+
+        // 2. Take the JSON response and plug it into a standard Chart.js pie chart
+        new Chart(ctx, {
+          // Keep the Chart.js configuration very basic (type, data, labels, background colors).
+          type: "pie",
+          data: {
+            labels: data.labels, // Data from our PHP API
+            datasets: [{
+              data: data.data,     // Numbers from our PHP API
+              backgroundColor: [
+                "#059669", // Green for Pending
+                "#2563eb", // Blue for Signed
+                "#4c1d95"  // Purple for Finished
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right'
+              }
+            }
+          }
+        });
+      })
+      .catch(error => {
+        console.error("Error fetching chart data:", error);
+        docDistContent.innerHTML = "<p>Error loading chart data.</p>";
+      });
+  }
 
   const userDistContent = document.getElementById("user-dist-content");
   if (userDistContent) userDistContent.innerHTML = renderPieView(dashboardViews.users);
@@ -164,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (logoutButton) {
     logoutButton.addEventListener("click", () => {
       if (confirm("Are you sure you want to logout?")) {
-        window.location.href = "login.html";
+        window.location.href = "login.php";
       }
     });
   }

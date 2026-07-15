@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (email === "secretary@office.gov") {
           window.location.replace("./secretary-dashboard.html");
         } else if (email === "admin@office.gov") {
-          window.location.replace("./admin-dashboard.html");
+          window.location.replace("./admin-dashboard.php");
         }
       } else {
         alert("Invalid email or password. Please try again.");
