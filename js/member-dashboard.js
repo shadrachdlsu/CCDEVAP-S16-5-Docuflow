@@ -24,7 +24,7 @@ const API =
         "../controllers/MemberDashboardController.php?action=paperTrail",
 
     request:
-        "../controllers/MemberRequestController.php",
+        "../controllers/MemberRequestController.php"
 
     sign:
         "../controllers/MemberSignController.php",
@@ -666,93 +666,88 @@ async function submitRequest(event)
 {
     event.preventDefault();
 
-    let formData =
-        new FormData();
+    const title =
+        document.getElementById("requestTitle").value.trim();
 
+    const typeId =
+        document.getElementById("requestType").value;
 
-    formData.append(
-        "title",
-        document.getElementById("requestTitle").value
-    );
+    const description =
+        document.getElementById("requestDescription").value.trim();
 
+    const secretaryEmail =
+        document.getElementById("secretaryEmail").value.trim();
 
-    formData.append(
-        "type_id",
-        document.getElementById("requestType").value
-    );
+    if(!title || !typeId || !secretaryEmail)
+    {
+        alert("Please complete all required fields.");
+        return;
+    }
 
+    const formData = new FormData();
 
-    formData.append(
-        "description",
-        document.getElementById("requestDescription").value
-    );
-
-
-    formData.append(
-        "secretary_email",
-        document.getElementById("secretaryEmail").value
-    );
-
+    formData.append("title", title);
+    formData.append("type_id", typeId);
+    formData.append("description", description);
+    formData.append("secretary_email", secretaryEmail);
 
     try
     {
-        let response =
-            await fetch(
-                API.requests,
-                {
-                    method:"POST",
+        const response = await fetch(
+            API.requests,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
 
-                    body:formData
-                }
-            );
+        const responseText = await response.text();
 
+        console.log("Server response:", responseText);
 
-        let result =
-            await response.json();
+        let result;
 
-
-        if(result.success)
+        try
         {
-            alert(
-                "Request submitted successfully."
-            );
-
-
-            bootstrap.Modal
-            .getInstance(
-                document.getElementById(
-                    "submitRequestModal"
-                )
-            )
-            .hide();
-
-
-            document
-            .getElementById(
-                "requestForm"
-            )
-            .reset();
-
-
-            await loadStatistics();
+            result = JSON.parse(responseText);
         }
-
-        else
+        catch(error)
         {
-            alert(
-                "Request failed."
+            throw new Error(
+                "The server returned invalid JSON: " +
+                responseText
             );
         }
 
+        if(!response.ok || !result.success)
+        {
+            throw new Error(
+                result.message || "Unable to submit request."
+            );
+        }
+
+        alert(result.message);
+
+        const modalElement =
+            document.getElementById("submitRequestModal");
+
+        const modal =
+            bootstrap.Modal.getInstance(modalElement);
+
+        if(modal)
+        {
+            modal.hide();
+        }
+
+        document.getElementById("requestForm").reset();
+
+        location.reload();
     }
-
     catch(error)
     {
-        console.error(error);
+        console.error("Submit request error:", error);
 
-        alert(
-            "Unable to submit request."
-        );
+        alert(error.message);
     }
 }
 

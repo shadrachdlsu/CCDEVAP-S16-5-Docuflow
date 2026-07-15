@@ -530,94 +530,69 @@ body.member-body{
 ======================================= */
 
 .action-buttons{
-
     display:flex;
-
     justify-content:center;
-
     align-items:center;
-
-    flex-wrap:wrap;
-
     gap:8px;
-
 }
 
+/* Applies to ALL action buttons */
 .action-buttons .btn{
-
-    min-width:40px;
-
-    min-height:40px;
-
+    width:40px;
+    height:40px;
+    border:none;
     border-radius:10px;
-
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:#fff !important;
     transition:.25s;
-
-}
-
-.action-buttons .btn:hover{
-
-    transform:translateY(-2px);
-
 }
 
 .action-buttons .btn i{
+    margin:0;
+    font-size:15px;
+}
 
-    margin-right:0;
-
+.action-buttons .btn:hover{
+    transform:translateY(-2px);
+    color:#fff !important;
 }
 
 /* Preview */
-
 .btn-preview{
-    background:var(--primary-light);
-    color:var(--primary);
+    background:#0dcaf0 !important;
 }
 
 .btn-preview:hover{
-    background:var(--primary-tint);
+    background:#0aa2c0 !important;
 }
 
 /* Download */
-
 .btn-download{
-    background:var(--primary);
+    background:#0d6efd !important;
 }
 
 .btn-download:hover{
-    background:var(--primary-dark);
+    background:#0b5ed7 !important;
 }
 
 /* Sign */
-
 .btn-sign{
-
-    background:#198754;
-
-    color:#fff;
-
+    background:#198754 !important;
 }
 
 .btn-sign:hover{
-
-    background:#157347;
-
+    background:#157347 !important;
 }
 
 /* Reject */
-
 .btn-reject{
-
-    background:#dc3545;
-
-    color:#fff;
-
+    background:#dc3545 !important;
 }
 
 .btn-reject:hover{
-
-    background:#bb2d3b;
-
+    background:#bb2d3b !important;
 }
 
 /* Upload */
