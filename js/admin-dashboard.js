@@ -2,59 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
   const logoutButton = document.querySelector(".logout-btn");
 
-  const dashboardViews = {
-    users: {
-      title: "User Distribution",
-      description: "Percentage of users by role.",
-      total: "248",
-      gradient:
-        "#4c1d95 0 52%, #0f766e 52% 78%, #dc2626 78% 90%, #64748b 90% 100%",
-      rows: [
-        { label: "Members - 52%", value: "129", color: "#4c1d95" },
-        { label: "Secretaries - 26%", value: "64", color: "#0f766e" },
-        { label: "Admins - 12%", value: "30", color: "#dc2626" },
-        { label: "Inactive - 10%", value: "25", color: "#64748b" },
-      ],
-    },
-    offices: {
-      title: "Office Directory",
-      description: "Registered offices and assigned document load.",
-      offices: [
-        { name: "Finance", detail: "312 documents assigned" },
-        { name: "Human Resources", detail: "184 documents assigned" },
-        { name: "Administration", detail: "221 documents assigned" },
-        { name: "Legal", detail: "97 documents assigned" },
-        { name: "Operations", detail: "143 documents assigned" },
-        { name: "Records Office", detail: "277 documents assigned" },
-      ],
-    },
-    pending: {
-      title: "Pending Documents",
-      description: "Documents waiting for action across offices.",
-      documents: [
-        {
-          title: "Budget Proposal FY 2024",
-          id: "DOC-2024-001",
-          office: "Finance",
-        },
-        {
-          title: "Employee Leave Request",
-          id: "DOC-2024-002",
-          office: "HR",
-        },
-        {
-          title: "Procurement Review",
-          id: "DOC-2024-004",
-          office: "Administration",
-        },
-        {
-          title: "Contract Review Packet",
-          id: "DOC-2024-012",
-          office: "Legal",
-        },
-      ],
-    },
-  };
+  // Removed hardcoded dashboardViews array
 
   function renderPieView(view) {
     return `
@@ -148,13 +96,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const userDistContent = document.getElementById("user-dist-content");
-  if (userDistContent) userDistContent.innerHTML = renderPieView(dashboardViews.users);
+  if (userDistContent) {
+    fetch("../controllers/api_dashboard_stats.php?action=user_distribution")
+      .then(res => res.json())
+      .then(data => {
+        userDistContent.innerHTML = renderPieView(data);
+      });
+  }
 
   const officesContent = document.getElementById("offices-content");
-  if (officesContent) officesContent.innerHTML = renderOfficeView(dashboardViews.offices);
+  if (officesContent) {
+    fetch("../controllers/api_dashboard_stats.php?action=office_directory")
+      .then(res => res.json())
+      .then(data => {
+        officesContent.innerHTML = renderOfficeView(data);
+      });
+  }
 
   const pendingContent = document.getElementById("pending-content");
-  if (pendingContent) pendingContent.innerHTML = renderPendingView(dashboardViews.pending);
+  if (pendingContent) {
+    fetch("../controllers/api_dashboard_stats.php?action=pending_documents")
+      .then(res => res.json())
+      .then(data => {
+        pendingContent.innerHTML = renderPendingView(data);
+      });
+  }
 
   // Load saved theme
   if (localStorage.getItem("docuflow-theme") === "dark") {
@@ -200,78 +166,90 @@ document.addEventListener("DOMContentLoaded", () => {
     // Office Bottlenecks
     const ctxBottleneck = document.getElementById("miniBottleneckChart");
     if (ctxBottleneck) {
-      new Chart(ctxBottleneck.getContext("2d"), {
-        type: "bar",
-        data: {
-          labels: ["Fin", "HR", "Admin", "Legal", "Ops", "Rec"],
-          datasets: [{
-            data: [14, 8, 21, 5, 11, 18],
-            backgroundColor: ["#5c4ae4", "#2563eb", "#059669", "#f59e0b", "#dc2626", "#0f766e"],
-            borderRadius: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false }, title: { display: false } },
-          scales: {
-            y: { display: false },
-            x: { display: false }
-          },
-          layout: { padding: 0 }
-        }
-      });
+      fetch("../controllers/api_dashboard_stats.php?action=bottleneck_chart")
+        .then(res => res.json())
+        .then(data => {
+          new Chart(ctxBottleneck.getContext("2d"), {
+            type: "bar",
+            data: {
+              labels: data.labels,
+              datasets: [{
+                data: data.data,
+                backgroundColor: ["#5c4ae4", "#2563eb", "#059669", "#f59e0b", "#dc2626", "#0f766e"],
+                borderRadius: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false }, title: { display: false } },
+              scales: {
+                y: { display: false },
+                x: { display: false }
+              },
+              layout: { padding: 0 }
+            }
+          });
+        });
     }
 
     // 2. Volume Trends 
     const ctxTrends = document.getElementById("miniTrendsChart");
     if (ctxTrends) {
-      new Chart(ctxTrends.getContext("2d"), {
-        type: "line",
-        data: {
-          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-          datasets: [{
-            data: [42, 58, 35, 74, 63, 91],
-            borderColor: "#5c4ae4",
-            backgroundColor: "rgba(92, 74, 228, 0.1)",
-            fill: true,
-            tension: 0.3,
-            pointRadius: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false }, title: { display: false } },
-          scales: {
-            y: { display: false },
-            x: { display: false }
-          },
-          layout: { padding: 0 }
-        }
-      });
+      fetch("../controllers/api_dashboard_stats.php?action=volume_trends")
+        .then(res => res.json())
+        .then(data => {
+          new Chart(ctxTrends.getContext("2d"), {
+            type: "line",
+            data: {
+              labels: data.labels,
+              datasets: [{
+                data: data.data,
+                borderColor: "#5c4ae4",
+                backgroundColor: "rgba(92, 74, 228, 0.1)",
+                fill: true,
+                tension: 0.3,
+                pointRadius: 0
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false }, title: { display: false } },
+              scales: {
+                y: { display: false },
+                x: { display: false }
+              },
+              layout: { padding: 0 }
+            }
+          });
+        });
     }
 
     // 3. Document Types
     const ctxTypes = document.getElementById("miniTypesChart");
     if (ctxTypes) {
-      new Chart(ctxTypes.getContext("2d"), {
-        type: "pie",
-        data: {
-          labels: ["Memo", "Budget", "Leave", "Contracts"],
-          datasets: [{
-            data: [45, 20, 15, 20],
-            backgroundColor: ["#5c4ae4", "#2563eb", "#059669", "#f59e0b"],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false }, title: { display: false } },
-          layout: { padding: 10 }
-        }
-      });
+      fetch("../controllers/api_dashboard_stats.php?action=types_chart")
+        .then(res => res.json())
+        .then(data => {
+          new Chart(ctxTypes.getContext("2d"), {
+            type: "pie",
+            data: {
+              labels: data.labels,
+              datasets: [{
+                data: data.data,
+                backgroundColor: ["#5c4ae4", "#2563eb", "#059669", "#f59e0b", "#dc2626", "#0f766e"],
+                borderWidth: 0
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false }, title: { display: false } },
+              layout: { padding: 10 }
+            }
+          });
+        });
     }
   }
 });

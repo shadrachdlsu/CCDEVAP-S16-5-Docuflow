@@ -99,35 +99,41 @@
 
         // --- Pie Chart: Document Types Distribution ---
         const ctx = document.getElementById("typesChart").getContext("2d");
-        new Chart(ctx, {
-          type: "pie",
-          data: {
-            labels: ["Memorandum", "Budget Proposal", "Leave/Travel", "Contracts"],
-            datasets: [{
-              label: "Documents by Type",
-              data: [45, 20, 15, 20],
-              backgroundColor: [
-                "#5c4ae4",
-                "#2563eb",
-                "#059669",
-                "#f59e0b"
-              ],
-              borderWidth: 2,
-              borderColor: "#ffffff"
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: "bottom" },
-              title: {
-                display: true,
-                text: "Document Types Breakdown (%)",
-                font: { size: 16 }
+        
+        fetch("../controllers/api_dashboard_stats.php?action=types_chart")
+          .then(res => res.json())
+          .then(data => {
+            new Chart(ctx, {
+              type: "pie",
+              data: {
+                labels: data.labels,
+                datasets: [{
+                  label: "Documents by Type",
+                  data: data.data,
+                  backgroundColor: [
+                    "#5c4ae4",
+                    "#2563eb",
+                    "#059669",
+                    "#f59e0b"
+                  ],
+                  borderWidth: 2,
+                  borderColor: "#ffffff"
+                }]
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: { position: "bottom" },
+                  title: {
+                    display: true,
+                    text: "Document Types Breakdown (%)",
+                    font: { size: 16 }
+                  }
+                }
               }
-            }
-          }
-        });
+            });
+          })
+          .catch(err => console.error("Error loading document types data:", err));
       });
     </script>
   </body>

@@ -2,27 +2,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
   const logoutButton = document.querySelector(".logout-btn");
 
-  // Hardcoded data arrays
-  let offices = [
-    { id: 1, name: "Finance" },
-    { id: 2, name: "Human Resources" },
-    { id: 3, name: "Administration" },
-    { id: 4, name: "Legal" }
-  ];
+  let offices = [];
+  let documentTypes = [];
 
-  let documentTypes = [
-    { id: 1, name: "Memorandum", offices: ["Human Resources"] },
-    { id: 2, name: "Budget Proposal", offices: ["Finance"] },
-    { id: 3, name: "Leave/Travel", offices: ["Administration"] },
-    { id: 4, name: "Contracts", offices: ["Legal"] },
-  ];
+  function loadOffices() {
+    fetch("../controllers/api_document_types.php?action=get_offices")
+      .then(res => res.json())
+      .then(data => {
+        offices = data;
+        populateOfficeDropdown();
+      })
+      .catch(err => console.error("Error loading offices:", err));
+  }
+
+  function loadDocumentTypes() {
+    fetch("../controllers/api_document_types.php?action=list")
+      .then(res => res.json())
+      .then(data => {
+        documentTypes = data;
+        renderDocumentTypes();
+      })
+      .catch(err => console.error("Error loading doc types:", err));
+  }
 
   const docTypeModal = document.getElementById("docTypeModal");
   const docTypeForm = document.getElementById("docTypeForm");
 
   function populateOfficeDropdown(selectedValues) {
     const select = document.getElementById("docTypeOffices");
-    select.innerHTML = offices.map(o => `<option value="${o.name}">${o.name}</option>`).join("");
+    select.innerHTML = offices.map(o => `<option value="${o.office_name}">${o.office_name}</option>`).join("");
     if (selectedValues && Array.isArray(selectedValues)) {
       Array.from(select.options).forEach(opt => {
         if (selectedValues.includes(opt.value)) opt.selected = true;
@@ -73,8 +81,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.deleteDocType = function(id) {
     if (confirm("Are you sure you want to delete this document type?")) {
-      documentTypes = documentTypes.filter(d => d.id !== id);
-      renderDocumentTypes();
+      const formData = new FormData();
+      formData.append("action", "delete");
+      formData.append("id", id);
+      
+      fetch("../controllers/api_document_types.php", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) loadDocumentTypes();
+        else alert("Error: " + (data.error || "Failed to delete"));
+      })
+      .catch(err => console.error("Error deleting:", err));
     }
   };
 
@@ -85,18 +105,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const select = document.getElementById("docTypeOffices");
     const selectedOffices = Array.from(select.selectedOptions).map(opt => opt.value);
 
-    if (id) {
-      const index = documentTypes.findIndex(d => d.id == id);
-      if (index !== -1) {
-        documentTypes[index].name = name;
-        documentTypes[index].offices = selectedOffices;
+    const formData = new FormData();
+    formData.append("action", id ? "update" : "create");
+    if (id) formData.append("id", id);
+    formData.append("name", name);
+    formData.append("offices", JSON.stringify(selectedOffices));
+
+    fetch("../controllers/api_document_types.php", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        closeModal('docTypeModal');
+        loadDocumentTypes();
+      } else {
+        alert("Error: " + (data.error || "Failed to save"));
       }
-    } else {
-      const newId = documentTypes.length ? Math.max(...documentTypes.map(d => d.id)) + 1 : 1;
-      documentTypes.push({ id: newId, name, offices: selectedOffices });
-    }
-    closeModal('docTypeModal');
-    renderDocumentTypes();
+    })
+    .catch(err => console.error("Error saving:", err));
   });
 
   // Load saved theme
@@ -139,5 +167,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  renderDocumentTypes();
+  loadOffices();
+  loadDocumentTypes();
 });

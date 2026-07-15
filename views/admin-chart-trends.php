@@ -99,42 +99,48 @@
 
         // --- Line Chart: Documents Finished per Month (Last 6 Months) ---
         const ctx = document.getElementById("trendsChart").getContext("2d");
-        new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: ["January", "February", "March", "April", "May", "June"],
-            datasets: [{
-              label: "Documents Finished",
-              data: [42, 58, 35, 74, 63, 91],
-              borderColor: "#5c4ae4",
-              backgroundColor: "rgba(92, 74, 228, 0.1)",
-              fill: true,
-              tension: 0.3,
-              pointBackgroundColor: "#5c4ae4",
-              pointRadius: 5
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: "top" },
-              title: {
-                display: true,
-                text: "Finished Documents Over the Last 6 Months",
-                font: { size: 16 }
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: { display: true, text: "Number of Documents" }
+        
+        fetch("../controllers/api_dashboard_stats.php?action=volume_trends")
+          .then(res => res.json())
+          .then(data => {
+            new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: data.labels,
+                datasets: [{
+                  label: "Documents Finished",
+                  data: data.data,
+                  borderColor: "#5c4ae4",
+                  backgroundColor: "rgba(92, 74, 228, 0.1)",
+                  fill: true,
+                  tension: 0.3,
+                  pointBackgroundColor: "#5c4ae4",
+                  pointRadius: 5
+                }]
               },
-              x: {
-                title: { display: true, text: "Month" }
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: { position: "top" },
+                  title: {
+                    display: true,
+                    text: "Finished Documents Over the Last 6 Months",
+                    font: { size: 16 }
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: { display: true, text: "Number of Documents" }
+                  },
+                  x: {
+                    title: { display: true, text: "Month" }
+                  }
+                }
               }
-            }
-          }
-        });
+            });
+          })
+          .catch(err => console.error("Error loading volume trends data:", err));
       });
     </script>
   </body>

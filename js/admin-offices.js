@@ -2,13 +2,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
   const logoutButton = document.querySelector(".logout-btn");
 
-  // Hardcoded offices array
-  let offices = [
-    { id: 1, name: "Finance" },
-    { id: 2, name: "Human Resources" },
-    { id: 3, name: "Administration" },
-    { id: 4, name: "Legal" }
-  ];
+  let offices = [];
+
+  function loadOffices() {
+    fetch("../controllers/api_offices.php?action=list")
+      .then(res => res.json())
+      .then(data => {
+        offices = data;
+        renderOffices();
+      })
+      .catch(err => console.error("Error loading offices:", err));
+  }
 
   const officeModal = document.getElementById("officeModal");
   const officeForm = document.getElementById("officeForm");
@@ -53,8 +57,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.deleteOffice = function(id) {
     if (confirm("Are you sure you want to delete this office?")) {
-      offices = offices.filter(o => o.id !== id);
-      renderOffices();
+      const formData = new FormData();
+      formData.append("action", "delete");
+      formData.append("id", id);
+
+      fetch("../controllers/api_offices.php", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          loadOffices();
+        } else {
+          alert("Error: " + (data.error || "Failed to delete office"));
+        }
+      })
+      .catch(err => console.error("Error deleting office:", err));
     }
   };
 
@@ -63,15 +82,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const id = document.getElementById("officeId").value;
     const name = document.getElementById("officeName").value.trim();
 
-    if (id) {
-      const index = offices.findIndex(o => o.id == id);
-      if (index !== -1) offices[index].name = name;
-    } else {
-      const newId = offices.length ? Math.max(...offices.map(o => o.id)) + 1 : 1;
-      offices.push({ id: newId, name });
-    }
-    closeModal('officeModal');
-    renderOffices();
+    const formData = new FormData();
+    formData.append("action", id ? "update" : "create");
+    if (id) formData.append("id", id);
+    formData.append("name", name);
+
+    fetch("../controllers/api_offices.php", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        closeModal('officeModal');
+        loadOffices();
+      } else {
+        alert("Error: " + (data.error || "Failed to save office"));
+      }
+    })
+    .catch(err => console.error("Error saving office:", err));
   });
 
   // Load saved theme
@@ -114,5 +143,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  renderOffices();
+  loadOffices();
 });

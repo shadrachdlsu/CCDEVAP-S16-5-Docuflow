@@ -84,12 +84,12 @@
             <input type="email" id="userEmail" required placeholder="name@office.gov" />
           </label>
           <label class="admin-field">
+            <span>Password <span style="color: #ef4444">*</span></span>
+            <input type="password" id="userPassword" placeholder="Required for new users, leave blank to keep current" />
+          </label>
+          <label class="admin-field">
             <span>Role <span style="color: #ef4444">*</span></span>
-            <select id="userRole" required>
-              <option value="Member">Member</option>
-              <option value="Secretary">Secretary</option>
-              <option value="Admin">Admin</option>
-            </select>
+            <select id="userRole" required></select>
           </label>
           <label class="admin-field" id="officeGroup" style="display: none;">
             <span>Office</span>

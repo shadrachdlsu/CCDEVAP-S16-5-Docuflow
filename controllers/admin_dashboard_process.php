@@ -14,7 +14,7 @@ try {
         // Total Documents
         'total_docs' => $pdo->query("SELECT COUNT(*) FROM documents")->fetchColumn(),
         // Active Users
-        'active_users' => $pdo->query("SELECT COUNT(*) FROM users WHERE status = 'Active'")->fetchColumn(),
+        'active_users' => $pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 1")->fetchColumn(),
         // Total Offices
         'total_offices' => $pdo->query("SELECT COUNT(*) FROM offices")->fetchColumn(),
         // Pending Documents

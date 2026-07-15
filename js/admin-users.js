@@ -2,19 +2,41 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
   const logoutButton = document.querySelector(".logout-btn");
 
-  // Hardcoded data arrays
-  let offices = [
-    { id: 1, name: "Finance" },
-    { id: 2, name: "Human Resources" },
-    { id: 3, name: "Administration" },
-    { id: 4, name: "Legal" }
-  ];
+  let offices = [];
+  let users = [];
+  let roles = [];
 
-  let users = [
-    { id: 1, name: "Maria Santos", email: "maria.santos@office.gov", role: "Secretary", office: "Records Office", status: "Active" },
-    { id: 2, name: "Juan Dela Cruz", email: "juan.delacruz@office.gov", role: "Admin", office: "", status: "Active" },
-    { id: 3, name: "Ana Reyes", email: "ana.reyes@office.gov", role: "Member", office: "", status: "Inactive" },
-  ];
+  function loadRoles() {
+    fetch("../controllers/api_users.php?action=get_roles")
+      .then(res => res.json())
+      .then(data => {
+        roles = data;
+        const select = document.getElementById("userRole");
+        select.innerHTML = roles.map(r => `<option value="${r.role_id}">${r.role_name}</option>`).join("");
+      })
+      .catch(err => console.error("Error loading roles:", err));
+  }
+
+  function loadOffices() {
+    fetch("../controllers/api_users.php?action=get_offices")
+      .then(res => res.json())
+      .then(data => {
+        offices = data;
+        const select = document.getElementById("userOffice");
+        select.innerHTML = offices.map(o => `<option value="${o.office_id}">${o.office_name}</option>`).join("");
+      })
+      .catch(err => console.error("Error loading offices:", err));
+  }
+
+  function loadUsers() {
+    fetch("../controllers/api_users.php?action=list")
+      .then(res => res.json())
+      .then(data => {
+        users = data;
+        renderUsers();
+      })
+      .catch(err => console.error("Error loading users:", err));
+  }
 
   // Modal references
   const userModal = document.getElementById("userModal");
@@ -24,13 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Show/hide office dropdown based on role
   userRoleSelect.addEventListener("change", (e) => {
-    officeGroup.style.display = e.target.value === "Secretary" ? "grid" : "none";
+    const selectedText = e.target.options[e.target.selectedIndex].text;
+    officeGroup.style.display = selectedText === "Secretary" ? "grid" : "none";
   });
 
-  // Populate office dropdown options
-  function populateOfficeDropdown(selectedValue) {
+  // Set office dropdown value
+  function setOfficeDropdown(selectedValue) {
     const select = document.getElementById("userOffice");
-    select.innerHTML = offices.map(o => `<option value="${o.name}">${o.name}</option>`).join("");
     if (selectedValue) select.value = selectedValue;
   }
 
@@ -42,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${u.name}</td>
         <td>${u.email}</td>
         <td>${u.role}</td>
-        <td>${u.role === 'Secretary' ? u.office : '-'}</td>
+        <td>${u.role === 'Secretary' ? u.office || '-' : '-'}</td>
         <td>${u.status}</td>
         <td>
           <button class="btn-small btn-edit" onclick="window.editUser(${u.id})">Edit</button>
@@ -68,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
     userForm.reset();
     document.getElementById("userId").value = "";
     officeGroup.style.display = "none";
-    populateOfficeDropdown();
+    setOfficeDropdown("");
     userModal.classList.add('active');
   };
 
@@ -79,17 +101,42 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("userId").value = user.id;
     document.getElementById("userName").value = user.name;
     document.getElementById("userEmail").value = user.email;
-    document.getElementById("userRole").value = user.role;
+    document.getElementById("userPassword").value = ""; // Don't show hash
+    
+    // Find role in dropdown to set it
+    const roleOpt = Array.from(document.getElementById("userRole").options).find(opt => opt.text === user.role);
+    if (roleOpt) document.getElementById("userRole").value = roleOpt.value;
+    
     document.getElementById("userStatus").value = user.status;
-    populateOfficeDropdown(user.office);
+    
+    // Find office in dropdown
+    const officeOpt = Array.from(document.getElementById("userOffice").options).find(opt => opt.text === user.office);
+    if (officeOpt) setOfficeDropdown(officeOpt.value);
+    else setOfficeDropdown("");
+    
     officeGroup.style.display = user.role === "Secretary" ? "grid" : "none";
     userModal.classList.add('active');
   };
 
   window.deleteUser = function(id) {
     if (confirm("Are you sure you want to delete this user?")) {
-      users = users.filter(u => u.id !== id);
-      renderUsers();
+      const formData = new FormData();
+      formData.append("action", "delete");
+      formData.append("id", id);
+
+      fetch("../controllers/api_users.php", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          loadUsers();
+        } else {
+          alert("Error: " + (data.error || "Failed to delete user"));
+        }
+      })
+      .catch(err => console.error("Error deleting user:", err));
     }
   };
 
@@ -99,9 +146,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const id = document.getElementById("userId").value;
     const name = document.getElementById("userName").value.trim();
     const email = document.getElementById("userEmail").value.trim();
-    const role = document.getElementById("userRole").value;
-    const office = role === "Secretary" ? document.getElementById("userOffice").value : "";
+    const password = document.getElementById("userPassword").value;
+    const roleId = document.getElementById("userRole").value;
     const status = document.getElementById("userStatus").value;
+    
+    const roleSelect = document.getElementById("userRole");
+    const roleText = roleSelect.options[roleSelect.selectedIndex].text;
+    const officeId = roleText === "Secretary" ? document.getElementById("userOffice").value : "";
 
     // Simple email validation per professor's requirement
     if (!(email.includes('@') && email.includes('.com'))) {
@@ -109,15 +160,35 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (id) {
-      const index = users.findIndex(u => u.id == id);
-      if (index !== -1) users[index] = { id: Number(id), name, email, role, office, status };
-    } else {
-      const newId = users.length ? Math.max(...users.map(u => u.id)) + 1 : 1;
-      users.push({ id: newId, name, email, role, office, status });
+    if (!id && !password) {
+      alert("Password is required for new users.");
+      return;
     }
-    closeModal('userModal');
-    renderUsers();
+
+    const formData = new FormData();
+    formData.append("action", id ? "update" : "create");
+    if (id) formData.append("id", id);
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("role_id", roleId);
+    formData.append("office_id", officeId);
+    formData.append("status", status);
+
+    fetch("../controllers/api_users.php", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        closeModal('userModal');
+        loadUsers();
+      } else {
+        alert("Error: " + (data.error || "Failed to save user"));
+      }
+    })
+    .catch(err => console.error("Error saving user:", err));
   });
 
   // Load saved theme
@@ -161,5 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Initial render
-  renderUsers();
+  loadRoles();
+  loadOffices();
+  loadUsers();
 });
