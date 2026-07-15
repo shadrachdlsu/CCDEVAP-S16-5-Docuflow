@@ -1,3 +1,17 @@
+<?php
+
+session_start();
+
+if (!isset($_SESSION["user_id"]))
+{
+    header("Location: ../index.php");
+    exit;
+}
+
+require_once "../controllers/MemberDashboardController.php";
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -138,12 +152,12 @@
         </a>
 
         <a
-            href="member-report.php"
-            class="nav-link active">
+            href="member-dashboard.php"
+            class="nav-link">
 
-            <i class="fas fa-chart-bar"></i>
+            <i class="fas fa-chart-line"></i>
 
-            Reports
+            Dashboard
 
         </a>
 
