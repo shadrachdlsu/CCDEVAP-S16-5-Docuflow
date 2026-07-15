@@ -14,7 +14,7 @@
     <main class="admin-main">
       <header class="admin-header">
         <div class="header-left">
-          <a href="admin-dashboard.html" class="logo-area">
+          <a href="admin-dashboard.php" class="logo-area">
             <span class="web-logo">Docuflow</span>
           </a>
         </div>
@@ -91,7 +91,7 @@
           </div>
           <div class="admin-preview-content" id="pending-content" style="max-height: 250px; overflow-y: auto;"></div>
         </div>
-        <a class="report-card" href="admin-chart-bottlenecks.html">
+        <a class="report-card" href="admin-chart-bottlenecks.php">
           <div class="report-card-header">
             <strong>Office Bottlenecks</strong>
             <span>14 Pending in Finance</span>
@@ -100,7 +100,7 @@
             <canvas id="miniBottleneckChart"></canvas>
           </div>
         </a>
-        <a class="report-card" href="admin-chart-trends.html">
+        <a class="report-card" href="admin-chart-trends.php">
           <div class="report-card-header">
             <strong>Volume Trends</strong>
             <span>+15% this month</span>
@@ -109,7 +109,7 @@
             <canvas id="miniTrendsChart"></canvas>
           </div>
         </a>
-        <a class="report-card" href="admin-chart-types.html">
+        <a class="report-card" href="admin-chart-types.php">
           <div class="report-card-header">
             <strong>Doc Types</strong>
             <span>45% Memorandums</span>
@@ -121,15 +121,15 @@
       </section>
 
       <section class="action-grid" style="margin-top: 24px;">
-        <a class="action-card" href="admin-document-types.html">
+        <a class="action-card" href="admin-document-types.php">
           <span class="action-icon"><i class="fas fa-search"></i></span>
           <span>Document Types</span>
         </a>
-        <a class="action-card" href="admin-users.html">
+        <a class="action-card" href="admin-users.php">
           <span class="action-icon"><i class="fas fa-user-cog"></i></span>
           <span>Manage Users</span>
         </a>
-        <a class="action-card" href="admin-offices.html">
+        <a class="action-card" href="admin-offices.php">
           <span class="action-icon"><i class="fas fa-briefcase"></i></span>
           <span>Manage Offices</span>
         </a>

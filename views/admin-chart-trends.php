@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Docuflow - Document Types Distribution</title>
+    <title>Docuflow - Document Volume Trends</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
@@ -15,10 +15,10 @@
       <main class="admin-main">
         <header class="admin-header">
           <div class="header-left">
-            <a href="admin-dashboard.html" class="logo-area">
+            <a href="admin-dashboard.php" class="logo-area">
               <span class="web-logo">Docuflow</span>
             </a>
-            <a href="admin-dashboard.html" class="back-btn">
+            <a href="admin-dashboard.php" class="back-btn">
               <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
           </div>
@@ -41,11 +41,11 @@
         <!-- Chart Content -->
         <section class="admin-preview-panel">
           <div class="preview-header">
-            <h2 class="section-title">Document Types Distribution</h2>
-            <p class="preview-description">Percentage breakdown of documents by type across the system.</p>
+            <h2 class="section-title">Document Volume Trends</h2>
+            <p class="preview-description">Number of documents processed (Finished) over the last 6 months.</p>
           </div>
-          <div class="admin-preview-content" style="max-width: 500px; margin: 0 auto;">
-            <canvas id="typesChart"></canvas>
+          <div class="admin-preview-content">
+            <canvas id="trendsChart"></canvas>
           </div>
         </section>
       </main>
@@ -92,38 +92,45 @@
         if (logoutButton) {
           logoutButton.addEventListener("click", () => {
             if (confirm("Are you sure you want to logout?")) {
-              window.location.href = "login.html";
+              window.location.href = "login.php";
             }
           });
         }
 
-        // --- Pie Chart: Document Types Distribution ---
-        const ctx = document.getElementById("typesChart").getContext("2d");
+        // --- Line Chart: Documents Finished per Month (Last 6 Months) ---
+        const ctx = document.getElementById("trendsChart").getContext("2d");
         new Chart(ctx, {
-          type: "pie",
+          type: "line",
           data: {
-            labels: ["Memorandum", "Budget Proposal", "Leave/Travel", "Contracts"],
+            labels: ["January", "February", "March", "April", "May", "June"],
             datasets: [{
-              label: "Documents by Type",
-              data: [45, 20, 15, 20],
-              backgroundColor: [
-                "#5c4ae4",
-                "#2563eb",
-                "#059669",
-                "#f59e0b"
-              ],
-              borderWidth: 2,
-              borderColor: "#ffffff"
+              label: "Documents Finished",
+              data: [42, 58, 35, 74, 63, 91],
+              borderColor: "#5c4ae4",
+              backgroundColor: "rgba(92, 74, 228, 0.1)",
+              fill: true,
+              tension: 0.3,
+              pointBackgroundColor: "#5c4ae4",
+              pointRadius: 5
             }]
           },
           options: {
             responsive: true,
             plugins: {
-              legend: { position: "bottom" },
+              legend: { position: "top" },
               title: {
                 display: true,
-                text: "Document Types Breakdown (%)",
+                text: "Finished Documents Over the Last 6 Months",
                 font: { size: 16 }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "Number of Documents" }
+              },
+              x: {
+                title: { display: true, text: "Month" }
               }
             }
           }
