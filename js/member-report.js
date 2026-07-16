@@ -10,13 +10,14 @@
 ========================================== */
 
 const API = {
+    reports:
+        "../controllers/MemberReportController.php?action=reports",
 
-    reports: "../php/getMemberReports.php",
+    statistics:
+        "../controllers/MemberReportController.php?action=statistics",
 
-    statistics: "../php/getMemberStatistics.php",
-
-    types: "../php/getDocumentTypes.php"
-
+    types:
+        "../controllers/MemberReportController.php?action=types"
 };
 
 /* ==========================================

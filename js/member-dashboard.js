@@ -23,7 +23,7 @@ const API =
     paperTrail:
         "../controllers/MemberDashboardController.php?action=paperTrail",
 
-    request:
+    requests:
         "../controllers/MemberRequestController.php",
 
     sign:
@@ -33,8 +33,7 @@ const API =
         "../controllers/MemberRejectController.php",
 
     upload:
-        "../controllers/MemberUploadController.php"
-,
+        "../controllers/MemberUploadController.php",
     deleteRequest:
         "../controllers/MemberDeleteRequestController.php"
 };
@@ -55,7 +54,7 @@ let documentTable = null;
 
 let paperTrailTable = null;
 
-let dashboardChart = null;
+let reportChart = null;
 
 /* ==========================================
    PAGE LOAD
@@ -82,6 +81,7 @@ async function initializeDashboard()
     await loadPaperTrail();
     await loadProfile();
 
+    await loadStatistics();
     loadChart();
 }
 /* ==========================================
@@ -187,6 +187,18 @@ function initializeEvents()
             uploadSignedDocument
         );
     }
+
+    document.addEventListener("click", function(event)
+    {
+        const button = event.target.closest(".deleteRequest");
+
+        if(!button)
+        {
+            return;
+        }
+
+        deleteRequest(button.dataset.id);
+    });
 }
 
 /* ==========================================
@@ -481,17 +493,21 @@ function openRejectModal(documentId)
 
 function openUploadModal(documentId)
 {
-    currentDocument =
-        findDocument(documentId);
+    currentDocument = findDocument(documentId);
 
-    if(currentDocument == null)
+    if(!currentDocument)
     {
         alert("Document not found.");
-
         return;
     }
 
-    document.getElementById("signedFile").value = "";
+    const fileInput =
+        document.getElementById("signedFile");
+
+    if(fileInput)
+    {
+        fileInput.value = "";
+    }
 
     const modal =
         new bootstrap.Modal(
@@ -532,9 +548,9 @@ async function loadPaperTrail()
             [
                 formatDate(log.created_at),
 
-                log.action_taken,
+                log.action_taken ?? "Unknown action",
 
-                log.action_by,
+                log.full_name ?? "Unknown user",
 
                 createStatusBadge(log.status)
             ]);
@@ -667,20 +683,25 @@ async function submitRequest(event)
             }
         );
 
-        const responseText = await response.text();
+        const responseText =
+            await response.text();
 
-        console.log("Server response:", responseText);
+        console.log(
+            "Server response:",
+            responseText
+        );
 
         let result;
 
         try
         {
-            result = JSON.parse(responseText);
+            result =
+                JSON.parse(responseText);
         }
         catch(error)
         {
             throw new Error(
-                "The server returned invalid JSON: " +
+                "Invalid server response: " +
                 responseText
             );
         }
@@ -688,105 +709,102 @@ async function submitRequest(event)
         if(!response.ok || !result.success)
         {
             throw new Error(
-                result.message || "Unable to submit request."
+                result.message ||
+                "Unable to submit request."
             );
         }
 
         alert(result.message);
 
         const modalElement =
-            document.getElementById("submitRequestModal");
+            document.getElementById(
+                "submitRequestModal"
+            );
 
         const modal =
-            bootstrap.Modal.getInstance(modalElement);
+            bootstrap.Modal.getInstance(
+                modalElement
+            );
 
         if(modal)
         {
             modal.hide();
         }
 
-        document.getElementById("requestForm").reset();
+        document
+            .getElementById("requestForm")
+            .reset();
 
         location.reload();
     }
     catch(error)
     {
-        console.error("Submit request error:", error);
+        console.error(
+            "Submit request error:",
+            error
+        );
 
-        alert(error.message);
+        alert(
+            error.message ||
+            "Unable to submit request."
+        );
     }
 }
 
 /* ==========================================
-    DELETE REQUEST
+   DELETE REQUEST
 ========================================== */
+
 async function deleteRequest(requestId)
 {
-
-    let confirmDelete =
-        confirm(
-            "Delete this request?"
-        );
-
+    const confirmDelete =
+        confirm("Delete this request?");
 
     if(!confirmDelete)
     {
         return;
     }
 
+    const formData = new FormData();
+
+    formData.append(
+        "request_id",
+        requestId
+    );
 
     try
     {
-
-        let response =
+        const response =
             await fetch(
                 API.deleteRequest,
                 {
-                    method:"POST",
-
-                    headers:
-                    {
-                        "Content-Type":
-                        "application/json"
-                    },
-
-                    body:
-                    JSON.stringify(
-                    {
-                        request_id:
-                            requestId
-                    })
+                    method: "POST",
+                    body: formData
                 }
             );
 
+        const message =
+            await response.text();
 
-        let result =
-            await response.json();
-
-
-        alert(result.message);
-
-
-
-        if(result.success)
+        if(!response.ok)
         {
-            location.reload();
+            throw new Error(message);
         }
 
+        alert(message);
 
+        location.reload();
     }
 
     catch(error)
     {
-
         console.error(error);
 
         alert(
+            error.message ||
             "Delete failed."
         );
-
     }
-
 }
 
 /* ==========================================
@@ -919,7 +937,10 @@ async function rejectDocument()
     {
         console.error(error);
 
-        alert("Unable to reject document.");
+        alert(
+            error.message ||
+            "Unable to reject document."
+        );
     }
 }
 
@@ -931,21 +952,29 @@ async function uploadSignedDocument()
 {
     if(currentDocument == null)
     {
+        alert("Please select a document first.");
         return;
     }
 
-    let file =
-        document.getElementById("signedFile").files[0];
+    const input =
+        document.getElementById("signedFile");
 
-    if(file == null)
+    const file =
+        input.files[0];
+
+    if(!file)
     {
-        alert("Please select a PDF.");
-
+        alert("Please select a PDF file.");
         return;
     }
 
-    let formData =
-        new FormData();
+    if(file.type !== "application/pdf")
+    {
+        alert("Only PDF files are allowed.");
+        return;
+    }
+
+    const formData = new FormData();
 
     formData.append(
         "document_id",
@@ -953,47 +982,53 @@ async function uploadSignedDocument()
     );
 
     formData.append(
-        "signedFile",
+        "signed_file",
         file
     );
 
     try
     {
-        let response =
-            await fetch("../controllers/MemberUploadController.php",
+        const response = await fetch(
+            API.upload,
             {
                 method: "POST",
+                body: formData
+            }
+        );
 
-                body:
-                    formData
-            });
+        const message =
+            await response.text();
 
-        let result =
-            await response.json();
-
-        alert(result.message);
-
-        if(result.success)
+        if(!response.ok)
         {
-            bootstrap.Modal
-            .getInstance(
-                document.getElementById("uploadModal")
-            )
-            .hide();
-
-            await loadDocuments();
-
-            await loadStatistics();
-
-            await loadPaperTrail();
+            throw new Error(message);
         }
-    }
 
+        alert(message);
+
+        const modalElement =
+            document.getElementById("uploadModal");
+
+        const modal =
+            bootstrap.Modal.getInstance(modalElement);
+
+        if(modal)
+        {
+            modal.hide();
+        }
+
+        input.value = "";
+
+        location.reload();
+    }
     catch(error)
     {
         console.error(error);
 
-        alert("Upload failed.");
+        alert(
+            error.message ||
+            "Upload failed."
+        );
     }
 }
 
@@ -1004,21 +1039,19 @@ async function uploadSignedDocument()
 function loadChart()
 {
     const canvas =
-        document.getElementById(
-            "documentChart"
-        );
+        document.getElementById("reportChart");
 
     if(canvas == null)
     {
         return;
     }
 
-    if(dashboardChart != null)
+    if(reportChart != null)
     {
-        dashboardChart.destroy();
+        reportChart.destroy();
     }
 
-    dashboardChart =
+    reportChart =
         new Chart(canvas,
         {
             type: "doughnut",
@@ -1037,23 +1070,9 @@ function loadChart()
                     {
                         data:
                         [
-                            parseInt(
-                                document.getElementById(
-                                    "pending-count"
-                                ).textContent
-                            ),
-
-                            parseInt(
-                                document.getElementById(
-                                    "signed-count"
-                                ).textContent
-                            ),
-
-                            parseInt(
-                                document.getElementById(
-                                    "finished-count"
-                                ).textContent
-                            )
+                            parseInt(document.getElementById("pending-count").textContent),
+                            parseInt(document.getElementById("signed-count").textContent),
+                            parseInt(document.getElementById("finished-count").textContent)
                         ],
 
                         backgroundColor:
@@ -1069,7 +1088,6 @@ function loadChart()
             options:
             {
                 responsive: true,
-
                 maintainAspectRatio: false
             }
         });

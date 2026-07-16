@@ -1,31 +1,42 @@
 <?php
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-require_once "../config/database.php";
+header("Content-Type: application/json; charset=utf-8");
 
+require_once __DIR__ . "/../config/connections.php";
 
 /*
 |--------------------------------------------------------------------------
-| CHECK LOGIN
+| CHECK REQUEST
 |--------------------------------------------------------------------------
 */
 
-if (!isset($_SESSION["user_id"]))
-{
-    echo json_encode(
-        [
-            "success" => false,
-            "message" => "Not authenticated"
-        ]
-    );
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    http_response_code(405);
 
-    exit();
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid request method."
+    ]);
+
+    exit;
 }
 
+if (!isset($_SESSION["user_id"])) {
+    http_response_code(401);
 
-$userId = $_SESSION["user_id"];
+    echo json_encode([
+        "success" => false,
+        "message" => "Your session has expired."
+    ]);
 
+    exit;
+}
+
+$userId = (int) $_SESSION["user_id"];
 
 /*
 |--------------------------------------------------------------------------
@@ -38,132 +49,148 @@ $data = json_decode(
     true
 );
 
+$documentId = (int) ($data["document_id"] ?? 0);
+$remarks = trim($data["remarks"] ?? "");
 
-$documentId = $data["document_id"];
+if ($documentId <= 0) {
+    http_response_code(422);
 
-$remarks = "";
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid document."
+    ]);
 
-
-if(isset($data["remarks"]))
-{
-    $remarks = $data["remarks"];
+    exit;
 }
 
+try {
+    $pdo->beginTransaction();
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE DOCUMENT ROUTE
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | SIGN CURRENT USER'S ROUTE
+    |--------------------------------------------------------------------------
+    */
 
-$sql = "
+    $stmt = $pdo->prepare("
+        UPDATE document_routes
+        SET
+            status = 'Signed',
+            remarks = ?,
+            acted_at = NOW()
+        WHERE document_id = ?
+          AND signatory_user_id = ?
+          AND status IN (
+              'Waiting',
+              'Pending',
+              'Received',
+              'For Signature'
+          )
+    ");
 
-UPDATE document_routes
-
-SET
-
-status='Signed',
-
-remarks=?,
-
-acted_at=NOW()
-
-WHERE
-
-document_id=?
-
-AND
-
-signatory_user_id=?
-
-";
-
-
-$stmt = $pdo->prepare($sql);
-
-
-$stmt->execute(
-    [
+    $stmt->execute([
         $remarks,
         $documentId,
         $userId
-    ]
-);
+    ]);
 
+    if ($stmt->rowCount() === 0) {
+        $pdo->rollBack();
 
-/*
-|--------------------------------------------------------------------------
-| CHECK IF ALL SIGNATURES ARE DONE
-|--------------------------------------------------------------------------
-*/
+        http_response_code(422);
 
-$check = $pdo->prepare("
+        echo json_encode([
+            "success" => false,
+            "message" => "This document is already signed or is not assigned to you."
+        ]);
 
-SELECT COUNT(*)
+        exit;
+    }
 
-FROM document_routes
+    /*
+    |--------------------------------------------------------------------------
+    | ADD PAPER TRAIL
+    |--------------------------------------------------------------------------
+    */
 
-WHERE
-
-document_id=?
-
-AND
-
-status!='Signed'
-
-");
-
-
-$check->execute(
-    [
-        $documentId
-    ]
-);
-
-
-$remaining =
-    $check->fetchColumn();
-
-
-
-if($remaining == 0)
-{
-
-    $update = $pdo->prepare("
-
-    UPDATE documents
-
-    SET
-
-    status='Completed'
-
-    WHERE
-
-    document_id=?
-
+    $trailStmt = $pdo->prepare("
+        INSERT INTO document_trails
+        (
+            document_id,
+            action_by_user_id,
+            action_taken,
+            remarks,
+            created_at
+        )
+        VALUES
+        (
+            ?,
+            ?,
+            'Signed',
+            ?,
+            NOW()
+        )
     ");
 
+    $trailStmt->execute([
+        $documentId,
+        $userId,
+        $remarks !== "" ? $remarks : "Document signed"
+    ]);
 
-    $update->execute(
-        [
-            $documentId
-        ]
+    /*
+    |--------------------------------------------------------------------------
+    | CHECK REMAINING SIGNATURES
+    |--------------------------------------------------------------------------
+    */
+
+    $check = $pdo->prepare("
+        SELECT COUNT(*)
+        FROM document_routes
+        WHERE document_id = ?
+          AND status NOT IN (
+              'Signed',
+              'Completed',
+              'Skipped'
+          )
+    ");
+
+    $check->execute([$documentId]);
+
+    $remaining = (int) $check->fetchColumn();
+
+    if ($remaining === 0) {
+        $update = $pdo->prepare("
+            UPDATE documents
+            SET
+                status = 'Completed',
+                updated_at = NOW()
+            WHERE document_id = ?
+        ");
+
+        $update->execute([$documentId]);
+    }
+
+    $pdo->commit();
+
+    echo json_encode([
+        "success" => true,
+        "message" => "Document signed successfully."
+    ]);
+
+} catch (PDOException $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    error_log(
+        "Member sign error: " . $e->getMessage()
     );
 
+    http_response_code(500);
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Database error while signing the document."
+    ]);
 }
-
-
-/*
-|--------------------------------------------------------------------------
-| RESPONSE
-|--------------------------------------------------------------------------
-*/
-
-echo json_encode(
-    [
-        "success" => true,
-        "message" => "Document signed successfully"
-    ]
-);
-
-?>

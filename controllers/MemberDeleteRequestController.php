@@ -1,76 +1,54 @@
 <?php
 
-session_start();
-
-require_once "../config/database.php";
-
-
-header("Content-Type: application/json");
-
-
-if(!isset($_SESSION["user_id"]))
-{
-    echo json_encode(
-    [
-        "success"=>false,
-        "message"=>"Not authenticated."
-    ]);
-
-    exit();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
+require_once __DIR__ . "/../config/connections.php";
 
-$userId = $_SESSION["user_id"];
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    http_response_code(405);
+    exit("Invalid request method.");
+}
 
+if (!isset($_SESSION["user_id"])) {
+    http_response_code(401);
+    exit("You are not logged in.");
+}
 
-$data = json_decode(
-    file_get_contents("php://input"),
-    true
-);
+$requestId =
+    (int) ($_POST["request_id"] ?? 0);
 
+$userId =
+    (int) $_SESSION["user_id"];
 
-$requestId = $data["request_id"];
+if ($requestId <= 0) {
+    http_response_code(400);
+    exit("Invalid request.");
+}
 
+/*
+Only allow the logged-in member to delete
+their own request while it is still Pending.
+*/
 
+$stmt = $pdo->prepare("
+    DELETE FROM document_requests
+    WHERE request_id = ?
+      AND requested_by_id = ?
+      AND status = 'Pending'
+");
 
-$sql = "
-
-DELETE FROM document_requests
-
-WHERE request_id = ?
-
-AND requested_by_id = ?
-
-";
-
-
-$stmt = $pdo->prepare($sql);
-
-
-$result = $stmt->execute(
-[
+$stmt->execute([
     $requestId,
     $userId
 ]);
 
-
-
-if($result)
-{
-    echo json_encode(
-    [
-        "success"=>true,
-        "message"=>"Request deleted successfully."
-    ]);
-}
-else
-{
-    echo json_encode(
-    [
-        "success"=>false,
-        "message"=>"Unable to delete request."
-    ]);
+if ($stmt->rowCount() === 0) {
+    http_response_code(400);
+    exit(
+        "Request was not found or can no longer be deleted."
+    );
 }
 
-
-?>
+echo "Request deleted successfully.";

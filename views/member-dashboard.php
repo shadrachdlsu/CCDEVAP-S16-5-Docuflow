@@ -304,12 +304,13 @@ require_once "../controllers/MemberDashboardController.php";
 
                 <button
                     class="action-btn"
-                    data-bs-toggle="modal"
-                    data-bs-target="#uploadModal">
+                    type="button"
+                    onclick="document.getElementById('documents-section').scrollIntoView({
+                        behavior: 'smooth'
+                    })">
 
                     <i class="fas fa-upload"></i>
-
-                    Upload Signed
+                    Select Document to Upload
 
                 </button>
 
@@ -1234,7 +1235,7 @@ require_once "../controllers/MemberDashboardController.php";
 
 <script> const chartData = <?= json_encode($chartData) ?>; </script>
 
-<script src="../js/member-dashboard.js"></script>
+<script src="../js/member-dashboard.js?v=10"></script>
 
 </body>
 
