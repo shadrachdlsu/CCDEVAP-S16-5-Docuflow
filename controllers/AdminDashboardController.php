@@ -136,13 +136,20 @@ $userDistGradient = implode(', ', $gradientStops);
 $userDistTotal = $totalUsers;
 
 // Office Directory
-$officeDirectory = $pdo->query("
+$officeDirectoryRaw = $pdo->query("
     SELECT o.office_name as name, COUNT(d.document_id) as doc_count
     FROM offices o
     LEFT JOIN documents d ON o.office_id = d.current_office_id
     GROUP BY o.office_name
     ORDER BY o.office_name
 ")->fetchAll(PDO::FETCH_ASSOC);
+
+$officeDirectory = array_map(function($o) {
+    return [
+        'name' => $o['name'],
+        'detail' => $o['doc_count'] . ' Active Documents'
+    ];
+}, $officeDirectoryRaw);
 
 
 // Pending Documents
