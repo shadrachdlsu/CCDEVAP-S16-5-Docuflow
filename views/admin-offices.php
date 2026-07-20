@@ -1,3 +1,4 @@
+<?php require_once '../controllers/AdminOfficesController.php'; ?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -55,7 +56,17 @@
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody></tbody>
+              <tbody>
+                <?php foreach($offices as $office): ?>
+                  <tr>
+                    <td><?= htmlspecialchars($office['name']) ?></td>
+                    <td>
+                      <button class="icon-btn edit-btn" title="Edit Office" data-id="<?= $office['id'] ?>" data-name="<?= htmlspecialchars($office['name']) ?>"><i class="fas fa-edit"></i></button>
+                      <button class="icon-btn delete-btn" title="Delete Office" data-id="<?= $office['id'] ?>"><i class="fas fa-trash"></i></button>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
             </table>
           </div>
         </section>

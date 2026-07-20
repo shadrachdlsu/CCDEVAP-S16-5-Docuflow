@@ -1,3 +1,4 @@
+<?php require_once '../controllers/AdminDashboardController.php'; ?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -54,7 +55,7 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      // --- Theme Toggle & Logout (shared across pages) ---
+      // Theme and Logout
       document.addEventListener("DOMContentLoaded", () => {
         const themeToggle = document.getElementById("themeToggle");
         const logoutButton = document.querySelector(".logout-btn");
@@ -97,43 +98,39 @@
           });
         }
 
-        // --- Pie Chart: Document Types Distribution ---
+        // Document Distribution
         const ctx = document.getElementById("typesChart").getContext("2d");
         
-        fetch("../controllers/admin_api_dashboard_stats.php?action=types_chart")
-          .then(res => res.json())
-          .then(data => {
-            new Chart(ctx, {
-              type: "pie",
-              data: {
-                labels: data.labels,
-                datasets: [{
-                  label: "Documents by Type",
-                  data: data.data,
-                  backgroundColor: [
-                    "#5c4ae4",
-                    "#2563eb",
-                    "#059669",
-                    "#f59e0b"
-                  ],
-                  borderWidth: 2,
-                  borderColor: "#ffffff"
-                }]
-              },
-              options: {
-                responsive: true,
-                plugins: {
-                  legend: { position: "bottom" },
-                  title: {
-                    display: true,
-                    text: "Document Types Breakdown (%)",
-                    font: { size: 16 }
-                  }
-                }
+        const chartData = <?= $typesChartJson ?>;
+        new Chart(ctx, {
+          type: "pie",
+          data: {
+            labels: chartData.labels,
+            datasets: [{
+              label: "Documents by Type",
+              data: chartData.data,
+              backgroundColor: [
+                "#5c4ae4",
+                "#2563eb",
+                "#059669",
+                "#f59e0b"
+              ],
+              borderWidth: 2,
+              borderColor: "#ffffff"
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: "bottom" },
+              title: {
+                display: true,
+                text: "Document Types Breakdown (%)",
+                font: { size: 16 }
               }
-            });
-          })
-          .catch(err => console.error("Error loading document types data:", err));
+            }
+          }
+        });
       });
     </script>
   </body>

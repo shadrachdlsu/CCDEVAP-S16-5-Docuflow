@@ -1,3 +1,4 @@
+<?php require_once '../controllers/AdminDocumentsController.php'; ?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -55,7 +56,21 @@
                   <th>Status</th>
                 </tr>
               </thead>
-              <tbody></tbody>
+              <tbody>
+                <?php foreach($documents as $doc): ?>
+                  <tr>
+                    <td><?= htmlspecialchars($doc['id']) ?></td>
+                    <td><?= htmlspecialchars($doc['title']) ?></td>
+                    <td><?= htmlspecialchars($doc['type']) ?></td>
+                    <td><?= htmlspecialchars($doc['office']) ?></td>
+                    <td>
+                      <span class="status-badge <?= strtolower(str_replace(' ', '-', $doc['status'])) ?>-status">
+                        <?= htmlspecialchars($doc['status']) ?>
+                      </span>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
             </table>
           </div>
         </section>

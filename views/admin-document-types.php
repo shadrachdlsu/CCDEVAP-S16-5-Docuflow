@@ -1,3 +1,4 @@
+<?php require_once '../controllers/AdminDocumentTypesController.php'; ?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -56,7 +57,18 @@
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody></tbody>
+              <tbody>
+                <?php foreach($docTypes as $type): ?>
+                  <tr>
+                    <td><?= htmlspecialchars($type['name']) ?></td>
+                    <td><?= htmlspecialchars(implode(', ', $type['offices'])) ?></td>
+                    <td>
+                      <button class="icon-btn edit-btn" title="Edit Document Type" data-id="<?= $type['id'] ?>" data-name="<?= htmlspecialchars($type['name']) ?>" data-offices="<?= htmlspecialchars(json_encode($type['offices'])) ?>"><i class="fas fa-edit"></i></button>
+                      <button class="icon-btn delete-btn" title="Delete Document Type" data-id="<?= $type['id'] ?>"><i class="fas fa-trash"></i></button>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
             </table>
           </div>
         </section>
@@ -78,7 +90,11 @@
           </label>
           <label class="admin-field">
             <span>Assign to Offices <span style="color: #ef4444">*</span></span>
-            <select id="docTypeOffices" multiple required style="min-height: 80px;"></select>
+            <select id="docTypeOffices" multiple required style="min-height: 80px;">
+              <?php foreach($officesList as $office): ?>
+                <option value="<?= htmlspecialchars($office['office_name']) ?>"><?= htmlspecialchars($office['office_name']) ?></option>
+              <?php endforeach; ?>
+            </select>
           </label>
           <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
             <button type="button" class="admin-submit" style="background:var(--gray-300); color:var(--gray-700);" onclick="closeModal('docTypeModal')">Cancel</button>
