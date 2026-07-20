@@ -73,8 +73,8 @@
                       </span>
                     </td>
                     <td>
-                      <button class="icon-btn edit-btn" title="Edit User" data-id="<?= $user['id'] ?>" data-name="<?= htmlspecialchars($user['name']) ?>" data-email="<?= htmlspecialchars($user['email']) ?>" data-role="<?= $user['role_id'] ?>" data-office="<?= $user['office_id'] ?>" data-status="<?= htmlspecialchars($user['status']) ?>"><i class="fas fa-edit"></i></button>
-                      <button class="icon-btn delete-btn" title="Delete User" data-id="<?= $user['id'] ?>"><i class="fas fa-trash"></i></button>
+                      <button class="btn-small edit-btn" title="Edit User" data-id="<?= $user['id'] ?>" data-name="<?= htmlspecialchars($user['name']) ?>" data-email="<?= htmlspecialchars($user['email']) ?>" data-role="<?= $user['role_id'] ?>" data-office="<?= $user['office_id'] ?>" data-status="<?= htmlspecialchars($user['status']) ?>">Edit</button>
+                      <button class="btn-small delete-btn" title="Delete User" data-id="<?= $user['id'] ?>">Delete</button>
                     </td>
                   </tr>
                 <?php endforeach; ?>

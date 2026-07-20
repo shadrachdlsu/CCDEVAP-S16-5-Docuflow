@@ -63,8 +63,8 @@
                     <td><?= htmlspecialchars($type['name']) ?></td>
                     <td><?= htmlspecialchars(implode(', ', $type['offices'])) ?></td>
                     <td>
-                      <button class="icon-btn edit-btn" title="Edit Document Type" data-id="<?= $type['id'] ?>" data-name="<?= htmlspecialchars($type['name']) ?>" data-offices="<?= htmlspecialchars(json_encode($type['offices'])) ?>"><i class="fas fa-edit"></i></button>
-                      <button class="icon-btn delete-btn" title="Delete Document Type" data-id="<?= $type['id'] ?>"><i class="fas fa-trash"></i></button>
+                      <button class="btn-small edit-btn" title="Edit Document Type" data-id="<?= $type['id'] ?>" data-name="<?= htmlspecialchars($type['name']) ?>" data-offices="<?= htmlspecialchars(json_encode($type['offices'])) ?>">Edit</button>
+                      <button class="btn-small delete-btn" title="Delete Document Type" data-id="<?= $type['id'] ?>">Delete</button>
                     </td>
                   </tr>
                 <?php endforeach; ?>
