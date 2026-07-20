@@ -2,106 +2,78 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
   const logoutButton = document.querySelector(".logout-btn");
 
-  let offices = [];
-  let documentTypes = [];
-
-  function loadOffices() {
-    fetch("../controllers/admin_api_document_types.php?action=get_offices")
-      .then(res => res.json())
-      .then(data => {
-        offices = data;
-        populateOfficeDropdown();
-      })
-      .catch(err => console.error("Error loading offices:", err));
+  // Initialize DataTable
+  if ($.fn.DataTable.isDataTable('#docTypesTable')) {
+    $('#docTypesTable').DataTable().destroy();
   }
-
-  function loadDocumentTypes() {
-    fetch("../controllers/admin_api_document_types.php?action=list")
-      .then(res => res.json())
-      .then(data => {
-        documentTypes = data;
-        renderDocumentTypes();
-      })
-      .catch(err => console.error("Error loading doc types:", err));
-  }
+  $('#docTypesTable').DataTable();
 
   const docTypeModal = document.getElementById("docTypeModal");
   const docTypeForm = document.getElementById("docTypeForm");
 
-  function populateOfficeDropdown(selectedValues) {
-    const select = document.getElementById("docTypeOffices");
-    select.innerHTML = offices.map(o => `<option value="${o.office_name}">${o.office_name}</option>`).join("");
-    if (selectedValues && Array.isArray(selectedValues)) {
-      Array.from(select.options).forEach(opt => {
-        if (selectedValues.includes(opt.value)) opt.selected = true;
-      });
-    }
-  }
-
-  function renderDocumentTypes() {
-    const tbody = document.querySelector("#docTypesTable tbody");
-    tbody.innerHTML = documentTypes.map(dt => `
-      <tr>
-        <td>${dt.name}</td>
-        <td>${dt.offices.join(", ")}</td>
-        <td>
-          <button class="btn-small btn-edit" onclick="window.editDocType(${dt.id})">Edit</button>
-          <button class="btn-small btn-delete" onclick="window.deleteDocType(${dt.id})">Delete</button>
-        </td>
-      </tr>
-    `).join("");
-
-    if ($.fn.DataTable.isDataTable('#docTypesTable')) {
-      $('#docTypesTable').DataTable().destroy();
-    }
-    $('#docTypesTable').DataTable();
-  }
-
-  window.closeModal = function(modalId) {
+  window.closeModal = function (modalId) {
     document.getElementById(modalId).classList.remove('active');
   };
 
-  window.openDocTypeModal = function() {
+  window.openDocTypeModal = function () {
     document.getElementById("docTypeModalTitle").textContent = "Add Document Type";
     docTypeForm.reset();
     document.getElementById("docTypeId").value = "";
-    populateOfficeDropdown();
+
+    const select = document.getElementById("docTypeOffices");
+    Array.from(select.options).forEach(opt => opt.selected = false);
+
     docTypeModal.classList.add('active');
   };
 
-  window.editDocType = function(id) {
-    const dt = documentTypes.find(d => d.id === id);
-    if (!dt) return;
-    document.getElementById("docTypeModalTitle").textContent = "Edit Document Type";
-    document.getElementById("docTypeId").value = dt.id;
-    document.getElementById("docTypeName").value = dt.name;
-    populateOfficeDropdown(dt.offices);
-    docTypeModal.classList.add('active');
-  };
+  // Edit and delete buttons
+  document.querySelector('#docTypesTable tbody').addEventListener('click', function (e) {
+    const editBtn = e.target.closest('.edit-btn');
+    const deleteBtn = e.target.closest('.delete-btn');
 
-  window.deleteDocType = function(id) {
-    if (confirm("Are you sure you want to delete this document type?")) {
-      const formData = new FormData();
-      formData.append("action", "delete");
-      formData.append("id", id);
-      
-      fetch("../controllers/admin_api_document_types.php", {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) loadDocumentTypes();
-        else alert("Error: " + (data.error || "Failed to delete"));
-      })
-      .catch(err => console.error("Error deleting:", err));
+    if (editBtn) {
+      document.getElementById("docTypeModalTitle").textContent = "Edit Document Type";
+      document.getElementById("docTypeId").value = editBtn.dataset.id;
+      document.getElementById("docTypeName").value = editBtn.dataset.name;
+
+      const offices = JSON.parse(editBtn.dataset.offices || "[]");
+      const select = document.getElementById("docTypeOffices");
+      Array.from(select.options).forEach(opt => {
+        opt.selected = offices.includes(opt.value);
+      });
+
+      docTypeModal.classList.add('active');
     }
-  };
+
+    if (deleteBtn) {
+      const id = deleteBtn.dataset.id;
+      if (confirm("Are you sure you want to delete this document type?")) {
+        const formData = new FormData();
+        formData.append("action", "delete");
+        formData.append("id", id);
+
+        fetch("../controllers/AdminDocumentTypesController.php", {
+          method: "POST",
+          body: formData
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              location.reload();
+            } else {
+              alert("Error: " + (data.error || "Failed to delete document type"));
+            }
+          })
+          .catch(err => console.error("Error deleting document type:", err));
+      }
+    }
+  });
 
   docTypeForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const id = document.getElementById("docTypeId").value;
     const name = document.getElementById("docTypeName").value.trim();
+
     const select = document.getElementById("docTypeOffices");
     const selectedOffices = Array.from(select.selectedOptions).map(opt => opt.value);
 
@@ -111,20 +83,19 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("name", name);
     formData.append("offices", JSON.stringify(selectedOffices));
 
-    fetch("../controllers/admin_api_document_types.php", {
+    fetch("../controllers/AdminDocumentTypesController.php", {
       method: "POST",
       body: formData
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        closeModal('docTypeModal');
-        loadDocumentTypes();
-      } else {
-        alert("Error: " + (data.error || "Failed to save"));
-      }
-    })
-    .catch(err => console.error("Error saving:", err));
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert("Error: " + (data.error || "Failed to save document type"));
+        }
+      })
+      .catch(err => console.error("Error saving document type:", err));
   });
 
   // Load saved theme
@@ -166,7 +137,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  loadOffices();
-  loadDocumentTypes();
 });

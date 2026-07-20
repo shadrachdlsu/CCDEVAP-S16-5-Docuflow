@@ -1,3 +1,4 @@
+<?php require_once '../controllers/AdminDashboardController.php'; ?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -54,7 +55,7 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      // --- Theme Toggle & Logout (shared across pages) ---
+      // Theme and Logout
       document.addEventListener("DOMContentLoaded", () => {
         const themeToggle = document.getElementById("themeToggle");
         const logoutButton = document.querySelector(".logout-btn");
@@ -97,50 +98,46 @@
           });
         }
 
-        // --- Line Chart: Documents Finished per Month (Last 6 Months) ---
+        // Documents Finished per Month
         const ctx = document.getElementById("trendsChart").getContext("2d");
         
-        fetch("../controllers/admin_api_dashboard_stats.php?action=volume_trends")
-          .then(res => res.json())
-          .then(data => {
-            new Chart(ctx, {
-              type: "line",
-              data: {
-                labels: data.labels,
-                datasets: [{
-                  label: "Documents Finished",
-                  data: data.data,
-                  borderColor: "#5c4ae4",
-                  backgroundColor: "rgba(92, 74, 228, 0.1)",
-                  fill: true,
-                  tension: 0.3,
-                  pointBackgroundColor: "#5c4ae4",
-                  pointRadius: 5
-                }]
-              },
-              options: {
-                responsive: true,
-                plugins: {
-                  legend: { position: "top" },
-                  title: {
-                    display: true,
-                    text: "Finished Documents Over the Last 6 Months",
-                    font: { size: 16 }
-                  }
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    title: { display: true, text: "Number of Documents" }
-                  },
-                  x: {
-                    title: { display: true, text: "Month" }
-                  }
-                }
+        const chartData = <?= $trendsChartJson ?>;
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: chartData.labels,
+            datasets: [{
+              label: "Documents Finished",
+              data: chartData.data,
+              borderColor: "#5c4ae4",
+              backgroundColor: "rgba(92, 74, 228, 0.1)",
+              fill: true,
+              tension: 0.3,
+              pointBackgroundColor: "#5c4ae4",
+              pointRadius: 5
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: "top" },
+              title: {
+                display: true,
+                text: "Finished Documents Over the Last 6 Months",
+                font: { size: 16 }
               }
-            });
-          })
-          .catch(err => console.error("Error loading volume trends data:", err));
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "Number of Documents" }
+              },
+              x: {
+                title: { display: true, text: "Month" }
+              }
+            }
+          }
+        });
       });
     </script>
   </body>

@@ -2,80 +2,61 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
   const logoutButton = document.querySelector(".logout-btn");
 
-  let offices = [];
-
-  function loadOffices() {
-    fetch("../controllers/admin_api_offices.php?action=list")
-      .then(res => res.json())
-      .then(data => {
-        offices = data;
-        renderOffices();
-      })
-      .catch(err => console.error("Error loading offices:", err));
+  // Initialize DataTable
+  if ($.fn.DataTable.isDataTable('#officesTable')) {
+    $('#officesTable').DataTable().destroy();
   }
+  $('#officesTable').DataTable();
 
   const officeModal = document.getElementById("officeModal");
   const officeForm = document.getElementById("officeForm");
 
-  function renderOffices() {
-    const tbody = document.querySelector("#officesTable tbody");
-    tbody.innerHTML = offices.map(o => `
-      <tr>
-        <td>${o.name}</td>
-        <td>
-          <button class="btn-small btn-edit" onclick="window.editOffice(${o.id})">Edit</button>
-          <button class="btn-small btn-delete" onclick="window.deleteOffice(${o.id})">Delete</button>
-        </td>
-      </tr>
-    `).join("");
-
-    if ($.fn.DataTable.isDataTable('#officesTable')) {
-      $('#officesTable').DataTable().destroy();
-    }
-    $('#officesTable').DataTable();
-  }
-
-  window.closeModal = function(modalId) {
+  window.closeModal = function (modalId) {
     document.getElementById(modalId).classList.remove('active');
   };
 
-  window.openOfficeModal = function() {
+  window.openOfficeModal = function () {
     document.getElementById("officeModalTitle").textContent = "Add Office";
     officeForm.reset();
     document.getElementById("officeId").value = "";
     officeModal.classList.add('active');
   };
 
-  window.editOffice = function(id) {
-    const office = offices.find(o => o.id === id);
-    if (!office) return;
-    document.getElementById("officeModalTitle").textContent = "Edit Office";
-    document.getElementById("officeId").value = office.id;
-    document.getElementById("officeName").value = office.name;
-    officeModal.classList.add('active');
-  };
+  // Edit and delete buttons
+  document.querySelector('#officesTable tbody').addEventListener('click', function (e) {
+    const editBtn = e.target.closest('.edit-btn');
+    const deleteBtn = e.target.closest('.delete-btn');
 
-  window.deleteOffice = function(id) {
-    if (confirm("Are you sure you want to delete this office?")) {
-      const formData = new FormData();
-      formData.append("action", "delete");
-      formData.append("id", id);
-
-      fetch("../controllers/admin_api_offices.php", {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          loadOffices();
-        } else {
-          alert("Error: " + (data.error || "Failed to delete office"));
-        }
-      })
-      .catch(err => console.error("Error deleting office:", err));
+    if (editBtn) {
+      document.getElementById("officeModalTitle").textContent = "Edit Office";
+      document.getElementById("officeId").value = editBtn.dataset.id;
+      document.getElementById("officeName").value = editBtn.dataset.name;
+      officeModal.classList.add('active');
     }
-  };
+
+    if (deleteBtn) {
+      const id = deleteBtn.dataset.id;
+      if (confirm("Are you sure you want to delete this office?")) {
+        const formData = new FormData();
+        formData.append("action", "delete");
+        formData.append("id", id);
+
+        fetch("../controllers/AdminOfficesController.php", {
+          method: "POST",
+          body: formData
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              location.reload();
+            } else {
+              alert("Error: " + (data.error || "Failed to delete office"));
+            }
+          })
+          .catch(err => console.error("Error deleting office:", err));
+      }
+    }
+  });
 
   officeForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -87,20 +68,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (id) formData.append("id", id);
     formData.append("name", name);
 
-    fetch("../controllers/admin_api_offices.php", {
+    fetch("../controllers/AdminOfficesController.php", {
       method: "POST",
       body: formData
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        closeModal('officeModal');
-        loadOffices();
-      } else {
-        alert("Error: " + (data.error || "Failed to save office"));
-      }
-    })
-    .catch(err => console.error("Error saving office:", err));
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        } else {
+          alert("Error: " + (data.error || "Failed to save office"));
+        }
+      })
+      .catch(err => console.error("Error saving office:", err));
   });
 
   // Load saved theme
@@ -142,6 +122,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  loadOffices();
 });

@@ -1,4 +1,4 @@
-<?php require_once '../controllers/admin_dashboard_process.php'; ?>
+<?php require_once '../controllers/AdminDashboardController.php'; ?>
 <!doctype html>
 <html lang="en">
 
@@ -66,7 +66,12 @@
             <h2 class="section-title">Document Distribution</h2>
             <p class="preview-description">Breakdown of documents by current status.</p>
           </div>
-          <div class="admin-preview-content" id="doc-dist-content"></div>
+          <div class="admin-preview-content" id="doc-dist-content">
+            <canvas id="dynamicPieChart" style="max-height: 250px;"></canvas>
+            <script>
+              const docDistChartData = <?= $docDistJson ?>;
+            </script>
+          </div>
         </div>
 
         <div class="admin-preview-panel">
@@ -74,7 +79,22 @@
             <h2 class="section-title">User Distribution</h2>
             <p class="preview-description">Percentage of users by role.</p>
           </div>
-          <div class="admin-preview-content" id="user-dist-content"></div>
+          <div class="admin-preview-content" id="user-dist-content">
+            <div class="preview-layout">
+              <div class="pie-chart" style="background: conic-gradient(<?= $userDistGradient ?>)" aria-label="User Distribution">
+                <span><?= $userDistTotal ?></span>
+              </div>
+              <div class="preview-list">
+                <?php foreach($formattedUserDistRows as $row): ?>
+                  <div class="preview-row">
+                    <span class="preview-swatch" style="background: <?= $row['color'] ?>"></span>
+                    <span><?= htmlspecialchars($row['label']) ?></span>
+                    <strong><?= $row['value'] ?></strong>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="admin-preview-panel">
@@ -82,7 +102,16 @@
             <h2 class="section-title">Office Directory</h2>
             <p class="preview-description">Registered offices and assigned document load.</p>
           </div>
-          <div class="admin-preview-content" id="offices-content" style="max-height: 250px; overflow-y: auto;"></div>
+          <div class="admin-preview-content" id="offices-content" style="max-height: 250px; overflow-y: auto;">
+            <div class="office-grid">
+              <?php foreach($officeDirectory as $office): ?>
+                <div class="office-card">
+                  <strong><?= htmlspecialchars($office['name']) ?></strong>
+                  <span><?= htmlspecialchars($office['detail']) ?></span>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
         </div>
 
         <div class="admin-preview-panel">
@@ -90,7 +119,19 @@
             <h2 class="section-title">Pending Documents</h2>
             <p class="preview-description">Documents waiting for action across offices.</p>
           </div>
-          <div class="admin-preview-content" id="pending-content" style="max-height: 250px; overflow-y: auto;"></div>
+          <div class="admin-preview-content" id="pending-content" style="max-height: 250px; overflow-y: auto;">
+            <div class="pending-list">
+              <?php foreach($pendingDocsList as $doc): ?>
+                <div class="pending-card">
+                  <div>
+                    <strong><?= htmlspecialchars($doc['title']) ?></strong>
+                    <span><?= htmlspecialchars($doc['id']) ?> - <?= htmlspecialchars($doc['office']) ?></span>
+                  </div>
+                  <span class="pending-status">Pending</span>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
         </div>
         <a class="report-card" href="admin-chart-bottlenecks.php">
           <div class="report-card-header">
@@ -138,6 +179,11 @@
     </main>
   </div>
 
+  <script>
+    const bottleneckChartData = <?= $bottleneckChartJson ?>;
+    const trendsChartData = <?= $trendsChartJson ?>;
+    const typesChartData = <?= $typesChartJson ?>;
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="../js/admin-dashboard.js"></script>
 </body>

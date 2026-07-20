@@ -1,3 +1,4 @@
+<?php require_once '../controllers/AdminDashboardController.php'; ?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -54,7 +55,7 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      // --- Theme Toggle & Logout (shared across pages) ---
+      // Theme and Logout
       document.addEventListener("DOMContentLoaded", () => {
         const themeToggle = document.getElementById("themeToggle");
         const logoutButton = document.querySelector(".logout-btn");
@@ -97,53 +98,49 @@
           });
         }
 
-        // --- Bar Chart: Pending Documents per Office ---
+        // Pending documents per offics
         const ctx = document.getElementById("bottlenecksChart").getContext("2d");
         
-        fetch("../controllers/admin_api_dashboard_stats.php?action=bottleneck_chart")
-          .then(res => res.json())
-          .then(data => {
-            new Chart(ctx, {
-              type: "bar",
-              data: {
-                labels: data.labels,
-                datasets: [{
-                  label: "Pending Documents",
-                  data: data.data,
-                  backgroundColor: [
-                    "#5c4ae4",
-                    "#2563eb",
-                    "#059669",
-                    "#f59e0b",
-                    "#dc2626",
-                    "#0f766e"
-                  ],
-                  borderRadius: 6
-                }]
-              },
-              options: {
-                responsive: true,
-                plugins: {
-                  legend: { display: false },
-                  title: {
-                    display: true,
-                    text: "Pending Documents by Office",
-                    font: { size: 16 }
-                  }
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    title: { display: true, text: "Number of Documents" }
-                  },
-                  x: {
-                    title: { display: true, text: "Office / Department" }
-                  }
-                }
+        const chartData = <?= $bottleneckChartJson ?>;
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: chartData.labels,
+            datasets: [{
+              label: "Pending Documents",
+              data: chartData.data,
+              backgroundColor: [
+                "#5c4ae4",
+                "#2563eb",
+                "#059669",
+                "#f59e0b",
+                "#dc2626",
+                "#0f766e"
+              ],
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              title: {
+                display: true,
+                text: "Pending Documents by Office",
+                font: { size: 16 }
               }
-            });
-          })
-          .catch(err => console.error("Error loading bottleneck data:", err));
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "Number of Documents" }
+              },
+              x: {
+                title: { display: true, text: "Office / Department" }
+              }
+            }
+          }
+        });
       });
     </script>
   </body>

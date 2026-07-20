@@ -1,3 +1,4 @@
+<?php require_once '../controllers/AdminUsersController.php'; ?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -59,7 +60,25 @@
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody></tbody>
+              <tbody>
+                <?php foreach($users as $user): ?>
+                  <tr>
+                    <td><?= htmlspecialchars($user['name']) ?></td>
+                    <td><?= htmlspecialchars($user['email']) ?></td>
+                    <td><?= htmlspecialchars($user['role']) ?></td>
+                    <td><?= htmlspecialchars($user['office'] ?? '') ?></td>
+                    <td>
+                      <span class="status-badge <?= $user['status'] === 'Active' ? 'status-active' : 'status-inactive' ?>">
+                        <?= htmlspecialchars($user['status']) ?>
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn-small edit-btn" title="Edit User" data-id="<?= $user['id'] ?>" data-name="<?= htmlspecialchars($user['name']) ?>" data-email="<?= htmlspecialchars($user['email']) ?>" data-role="<?= $user['role_id'] ?>" data-office="<?= $user['office_id'] ?>" data-status="<?= htmlspecialchars($user['status']) ?>">Edit</button>
+                      <button class="btn-small delete-btn" title="Delete User" data-id="<?= $user['id'] ?>">Delete</button>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
             </table>
           </div>
         </section>
@@ -89,11 +108,21 @@
           </label>
           <label class="admin-field">
             <span>Role <span style="color: #ef4444">*</span></span>
-            <select id="userRole" required></select>
+            <select id="userRole" required>
+              <option value="">Select Role</option>
+              <?php foreach($roles as $role): ?>
+                <option value="<?= $role['role_id'] ?>"><?= htmlspecialchars($role['role_name']) ?></option>
+              <?php endforeach; ?>
+            </select>
           </label>
           <label class="admin-field" id="officeGroup" style="display: none;">
             <span>Office</span>
-            <select id="userOffice"></select>
+            <select id="userOffice">
+              <option value="">Select Office</option>
+              <?php foreach($offices as $office): ?>
+                <option value="<?= $office['office_id'] ?>"><?= htmlspecialchars($office['office_name']) ?></option>
+              <?php endforeach; ?>
+            </select>
           </label>
           <label class="admin-field">
             <span>Status <span style="color: #ef4444">*</span></span>
