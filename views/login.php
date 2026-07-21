@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -36,7 +36,7 @@
           </div>
       <?php endif; ?>
 
-      <form action ="../controllers/login_process.php" method="POST">
+      <form action ="../controllers/LoginController.php" method="POST">
         <div class="form-group">
           <label for="email">Email Address</label>
           <input id="email" name="email" type="email" placeholder="your.email@office.gov" required/>

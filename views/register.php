@@ -38,7 +38,7 @@
       <?php endif; ?>
 
 
-      <form action="../controllers/register_process.php" method="POST">
+      <form action="../controllers/RegisterController.php" method="POST">
         <div class="form-group">
           <label for="full_name">Full Name</label>
           <input 
