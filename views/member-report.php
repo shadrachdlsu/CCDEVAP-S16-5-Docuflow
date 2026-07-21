@@ -101,7 +101,7 @@ require_once "../controllers/MemberReportController.php";
             </button>
 
             <a
-                href="../controllers/logout.php"
+                href="../controllers/LogoutController.php"
                 class="icon-btn logout-btn"
                 title="Logout">
 

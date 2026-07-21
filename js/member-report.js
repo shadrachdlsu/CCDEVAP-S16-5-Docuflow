@@ -723,10 +723,12 @@ function initializeEvents()
     if(logout)
     {
 
-        logout.addEventListener("click", function()
+        logout.addEventListener("click", function(e)
         {
 
-            window.location.href = "../index.html";
+            if (!confirm("Are you sure you want to logout?")) {
+                e.preventDefault();
+            }
 
         });
 
