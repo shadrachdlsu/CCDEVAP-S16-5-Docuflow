@@ -61,11 +61,13 @@ class User
 
     public function update(int $user_id, int $role_id, ?int $office_id, string $full_name, string $email, ?string $password_hash, int $is_active): void
     {
+        $registration_status = ($is_active == 1) ? 'Approved' : 'Pending';
+
         if ($password_hash !== null) {
             $stmt = $this->pdo->prepare("
                 UPDATE users 
                 SET role_id = :role_id, office_id = :office_id, full_name = :name, 
-                    email = :email, password_hash = :password_hash, is_active = :is_active 
+                    email = :email, password_hash = :password_hash, is_active = :is_active, registration_status = :registration_status
                 WHERE user_id = :id
             ");
             $stmt->execute([
@@ -75,13 +77,14 @@ class User
                 ':email' => $email,
                 ':password_hash' => $password_hash,
                 ':is_active' => $is_active,
+                ':registration_status' => $registration_status,
                 ':id' => $user_id
             ]);
         } else {
             $stmt = $this->pdo->prepare("
                 UPDATE users 
                 SET role_id = :role_id, office_id = :office_id, full_name = :name, 
-                    email = :email, is_active = :is_active 
+                    email = :email, is_active = :is_active, registration_status = :registration_status
                 WHERE user_id = :id
             ");
             $stmt->execute([
@@ -90,6 +93,7 @@ class User
                 ':name' => $full_name,
                 ':email' => $email,
                 ':is_active' => $is_active,
+                ':registration_status' => $registration_status,
                 ':id' => $user_id
             ]);
         }

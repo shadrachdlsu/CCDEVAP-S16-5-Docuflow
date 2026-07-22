@@ -120,7 +120,7 @@
             <select id="userOffice">
               <option value="">Select Office</option>
               <?php foreach($offices as $office): ?>
-                <option value="<?= $office['office_id'] ?>"><?= htmlspecialchars($office['office_name']) ?></option>
+                <option value="<?= $office['id'] ?>"><?= htmlspecialchars($office['name']) ?></option>
               <?php endforeach; ?>
             </select>
           </label>

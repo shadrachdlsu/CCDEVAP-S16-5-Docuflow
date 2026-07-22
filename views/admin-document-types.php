@@ -92,7 +92,7 @@
             <span>Assign to Offices <span style="color: #ef4444">*</span></span>
             <select id="docTypeOffices" multiple required style="min-height: 80px;">
               <?php foreach($officesList as $office): ?>
-                <option value="<?= htmlspecialchars($office['office_name']) ?>"><?= htmlspecialchars($office['office_name']) ?></option>
+                <option value="<?= htmlspecialchars($office['name']) ?>"><?= htmlspecialchars($office['name']) ?></option>
               <?php endforeach; ?>
             </select>
           </label>
