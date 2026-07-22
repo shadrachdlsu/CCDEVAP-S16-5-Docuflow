@@ -1,16 +1,14 @@
 <?php
-/* ==========================================
-   SECRETARY DASHBOARD CONTROLLER (Monolithic)
-   CCDEVAP-S16-5-Docuflow
-========================================== */
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 require_once __DIR__ . '/../config/connections.php';
+require_once __DIR__ . '/../models/user.php';
 require_once __DIR__ . '/../models/document.php';
 require_once __DIR__ . '/../models/documentType.php';
+require_once __DIR__ . '/../models/documentTrail.php';
 require_once __DIR__ . '/../models/office.php';
 
 // Auth Check
@@ -19,8 +17,10 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_SESSIO
     exit;
 }
 
+$userModel     = new User();
 $documentModel = new Document();
 $docTypeModel  = new DocumentType();
+$trailModel    = new DocumentTrail();
 $officeModel   = new Office();
 
 $officeId      = $_SESSION['office_id'];
@@ -46,14 +46,11 @@ $stats = [
 $documentTypes = $docTypeModel->getTypesByOffice($officeId);
 
 // 3. MEMBERS (For Assignment)
-global $pdo;
-$stmt = $pdo->prepare("SELECT user_id, full_name, email FROM users WHERE role_id = 3 AND office_id = :office_id AND is_active = 1");
-$stmt->execute([':office_id' => $officeId]);
-$members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$members = $userModel->getMembersByOffice($officeId);
 
 // 4. OFFICES (For Forwarding)
 $allOffices = $officeModel->getAllOffices();
-$forwardableOffices = array_filter($allOffices, fn($o) => $o['office_id'] != $officeId);
+$forwardableOffices = array_filter($allOffices, fn($o) => $o['id'] != $officeId);
 
 // AJAX HANDLER (For lightweight GET requests if needed by JS, e.g., Paper Trail)
 if (isset($_GET['action'])) {
@@ -61,7 +58,7 @@ if (isset($_GET['action'])) {
     if ($_GET['action'] === 'trail') {
         $docId = $_GET['document_id'] ?? null;
         if ($docId) {
-            $trail = $documentModel->getTrail((int)$docId);
+            $trail = $trailModel->getByDocument((int)$docId);
             foreach ($trail as &$t) {
                 $t['action_date'] = date('M d, Y h:i A', strtotime($t['created_at']));
             }

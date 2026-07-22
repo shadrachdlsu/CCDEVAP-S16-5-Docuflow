@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../config/connections.php';
+require_once __DIR__ . '/../models/office.php';
 
 if (!isset($_SESSION['logged_in']) || $_SESSION['role_id'] != 1) {
     if (isset($_POST['action'])) {
@@ -16,6 +17,8 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['role_id'] != 1) {
     exit;
 }
 
+$officeModel = new Office();
+
 // Action Handlers
 if (isset($_POST['action'])) {
     header('Content-Type: application/json');
@@ -26,8 +29,7 @@ if (isset($_POST['action'])) {
             $name = $_POST['name'] ?? '';
             if (empty($name)) throw new Exception("Office name is required.");
 
-            $stmt = $pdo->prepare("INSERT INTO offices (office_name) VALUES (:name)");
-            $stmt->execute([':name' => $name]);
+            $officeModel->create($name);
             echo json_encode(['success' => true]);
         } 
         elseif ($action === 'update') {
@@ -35,16 +37,14 @@ if (isset($_POST['action'])) {
             $name = $_POST['name'] ?? '';
             if (empty($id) || empty($name)) throw new Exception("ID and Office name are required.");
 
-            $stmt = $pdo->prepare("UPDATE offices SET office_name = :name WHERE office_id = :id");
-            $stmt->execute([':name' => $name, ':id' => $id]);
+            $officeModel->update($id, $name);
             echo json_encode(['success' => true]);
         } 
         elseif ($action === 'delete') {
             $id = $_POST['id'] ?? 0;
             if (empty($id)) throw new Exception("ID is required.");
 
-            $stmt = $pdo->prepare("DELETE FROM offices WHERE office_id = :id");
-            $stmt->execute([':id' => $id]);
+            $officeModel->delete($id);
             echo json_encode(['success' => true]);
         } 
         else {
@@ -56,6 +56,5 @@ if (isset($_POST['action'])) {
     exit;
 }
 
-$stmtOffices = $pdo->query("SELECT office_id as id, office_name as name FROM offices ORDER BY office_name");
-$offices = $stmtOffices->fetchAll(PDO::FETCH_ASSOC);
+$offices = $officeModel->getAllOffices();
 ?>

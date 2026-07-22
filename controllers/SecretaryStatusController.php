@@ -1,8 +1,4 @@
 <?php
-/* ==========================================
-   SECRETARY STATUS ACTION CONTROLLER
-   CCDEVAP-S16-5-Docuflow
-========================================== */
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -10,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../config/connections.php';
 require_once __DIR__ . '/../models/document.php';
+require_once __DIR__ . '/../models/documentTrail.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_SESSION['office_id'])) {
     header('Location: ../controllers/LogoutController.php');
@@ -18,6 +15,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_SESSIO
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $documentModel = new Document();
+    $trailModel    = new DocumentTrail();
     
     $docId = $_POST['document_id'] ?? null;
     $action = $_POST['action'];
@@ -35,11 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         
         if ($action === 'finish') {
             $documentModel->updateStatus($docId, 'Completed');
-            $documentModel->addTrailEntry($docId, $userId, $officeId, null, 'Finished', 'Marked as Finished');
+            $trailModel->addEntry($docId, $userId, $officeId, null, 'Finished', 'Marked as Finished');
             $_SESSION['success'] = 'Document marked as Finished.';
         } elseif ($action === 'cancel') {
             $documentModel->updateStatus($docId, 'Recalled');
-            $documentModel->addTrailEntry($docId, $userId, $officeId, null, 'Cancelled', 'Document Cancelled');
+            $trailModel->addEntry($docId, $userId, $officeId, null, 'Cancelled', 'Document Cancelled');
             $_SESSION['success'] = 'Document Cancelled.';
         } else {
             $_SESSION['error'] = 'Invalid status action.';

@@ -20,9 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // }
 
     try {
-        $stmt = $pdo->prepare("SELECT u.user_id, u.role_id, u.full_name, u.email, u.password_hash, u.is_active, u.registration_status, u.office_id, o.office_name FROM users u LEFT JOIN offices o ON u.office_id = o.office_id WHERE u.email = :email LIMIT 1");
-        $stmt->execute(['email' => $email]);
-        $user = $stmt->fetch();
+        require_once '../models/user.php';
+        $userModel = new User();
+        $user = $userModel->findByEmail($email);
 
         if ($user && password_verify($password, $user['password_hash'])) {
             if ($user['is_active'] == 1 && $user['registration_status'] === 'Approved') {

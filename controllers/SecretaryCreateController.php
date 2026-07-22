@@ -1,8 +1,4 @@
 <?php
-/* ==========================================
-   SECRETARY CREATE ACTION CONTROLLER
-   CCDEVAP-S16-5-Docuflow
-========================================== */
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -10,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../config/connections.php';
 require_once __DIR__ . '/../models/document.php';
+require_once __DIR__ . '/../models/documentTrail.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_SESSION['office_id'])) {
     header('Location: ../controllers/LogoutController.php');
@@ -18,6 +15,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_SESSIO
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $documentModel = new Document();
+    $trailModel    = new DocumentTrail();
     
     $title  = trim($_POST['title'] ?? '');
     $typeId = $_POST['type_id'] ?? null;
@@ -52,26 +50,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     try {
         global $pdo;
-        $stmt = $pdo->prepare("
-            INSERT INTO documents (tracking_code, title, file_path, type_id, requires_signature, creator_id, current_office_id, status)
-            VALUES (:tracking, :title, :file, :type_id, 1, :creator, :office, 'Created')
-        ");
-        $stmt->execute([
-            ':tracking' => $trackingCode,
-            ':title'    => $title,
-            ':file'     => $filePath,
-            ':type_id'  => $typeId,
-            ':creator'  => $userId,
-            ':office'   => $officeId,
-        ]);
+        $pdo->beginTransaction();
         
-        $docId = $pdo->lastInsertId();
-        $documentModel->addTrailEntry($docId, $userId, $officeId, null, 'Created', 'Document created');
+        $docId = $documentModel->createDocument(
+            $trackingCode,
+            $title,
+            $filePath,
+            $typeId,
+            1, // requires_signature
+            $userId,
+            $officeId,
+            'Created'
+        );
+        
+        $trailModel->addEntry($docId, $userId, $officeId, null, 'Created', 'Document created');
+        
+        $pdo->commit();
         
         $_SESSION['success'] = 'Document created successfully.';
         header('Location: ../views/secretary-dashboard.php');
         exit;
     } catch(Exception $e) {
+        global $pdo;
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         $_SESSION['error'] = 'Failed to create document: ' . $e->getMessage();
         header('Location: ../views/secretary-dashboard.php');
         exit;

@@ -28,9 +28,9 @@
             <button class="icon-btn toggle-theme" id="themeToggle" aria-label="Toggle dark/light mode">
               <i class="fas fa-moon"></i>
             </button>
-            <button class="icon-btn logout-btn" aria-label="Exit / Logout">
+            <a href="../controllers/LogoutController.php" class="icon-btn logout-btn" aria-label="Exit / Logout">
               <i class="fas fa-sign-out-alt"></i>
-            </button>
+            </a>
           </div>
         </div>
       </header>
@@ -185,7 +185,7 @@
     const typesChartData = <?= $typesChartJson ?>;
   </script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../js/admin-dashboard.js"></script>
+  <script src="../js/admin-dashboard.js?v=<?= time() ?>"></script>
 </body>
 
 </html>

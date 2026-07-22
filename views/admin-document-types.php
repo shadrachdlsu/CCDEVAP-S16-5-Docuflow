@@ -33,9 +33,9 @@
               <button class="icon-btn toggle-theme" id="themeToggle" aria-label="Toggle dark/light mode">
                 <i class="fas fa-moon"></i>
               </button>
-              <button class="icon-btn logout-btn" aria-label="Exit / Logout">
+              <a href="../controllers/LogoutController.php" class="icon-btn logout-btn" aria-label="Exit / Logout">
                 <i class="fas fa-sign-out-alt"></i>
-              </button>
+              </a>
             </div>
           </div>
         </header>
@@ -106,6 +106,6 @@
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="../js/admin-document-types.js"></script>
+    <script src="../js/admin-document-types.js?v=<?= time() ?>"></script>
   </body>
 </html>

@@ -726,9 +726,7 @@ function initializeEvents()
         logout.addEventListener("click", function(e)
         {
 
-            if (!confirm("Are you sure you want to logout?")) {
-                e.preventDefault();
-            }
+            window.location.href = "../controllers/LogoutController.php";
 
         });
 

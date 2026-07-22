@@ -1,8 +1,4 @@
 <?php
-/* ==========================================
-   SECRETARY ASSIGN ACTION CONTROLLER
-   CCDEVAP-S16-5-Docuflow
-========================================== */
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -10,6 +6,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../config/connections.php';
 require_once __DIR__ . '/../models/document.php';
+require_once __DIR__ . '/../models/documentRoute.php';
+require_once __DIR__ . '/../models/documentTrail.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_SESSION['office_id'])) {
     header('Location: ../controllers/LogoutController.php');
@@ -18,6 +16,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_SESSIO
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'assign') {
     $documentModel = new Document();
+    $routeModel    = new DocumentRoute();
+    $trailModel    = new DocumentTrail();
     
     $docId = $_POST['document_id'] ?? null;
     $memberIds = $_POST['member_ids'] ?? [];
@@ -37,16 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $documentModel->updateStatus($docId, 'For Signature');
         
         foreach ($memberIds as $memberId) {
-            $documentModel->assignSignatory($docId, $memberId);
+            $routeModel->create($docId, $memberId);
         }
         
-        $documentModel->addTrailEntry($docId, $userId, $officeId, null, 'Assigned', 'Assigned for signature');
+        $trailModel->addEntry($docId, $userId, $officeId, null, 'Assigned', 'Assigned for signature');
         $pdo->commit();
         
         $_SESSION['success'] = 'Document assigned successfully.';
         header('Location: ../views/secretary-dashboard.php#pending');
         exit;
     } catch(Exception $e) {
+        global $pdo;
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }

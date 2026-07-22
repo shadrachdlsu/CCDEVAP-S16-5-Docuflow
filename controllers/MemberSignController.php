@@ -7,6 +7,9 @@ if (session_status() === PHP_SESSION_NONE) {
 header("Content-Type: application/json; charset=utf-8");
 
 require_once __DIR__ . "/../config/connections.php";
+require_once __DIR__ . "/../models/documentRoute.php";
+require_once __DIR__ . "/../models/documentTrail.php";
+require_once __DIR__ . "/../models/document.php";
 
 /*
 |--------------------------------------------------------------------------
@@ -64,7 +67,12 @@ if ($documentId <= 0) {
 }
 
 try {
+    global $pdo;
     $pdo->beginTransaction();
+
+    $routeModel = new DocumentRoute();
+    $trailModel = new DocumentTrail();
+    $documentModel = new Document();
 
     /*
     |--------------------------------------------------------------------------
@@ -72,29 +80,7 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $stmt = $pdo->prepare("
-        UPDATE document_routes
-        SET
-            status = 'Signed',
-            remarks = ?,
-            acted_at = NOW()
-        WHERE document_id = ?
-          AND signatory_user_id = ?
-          AND status IN (
-              'Waiting',
-              'Pending',
-              'Received',
-              'For Signature'
-          )
-    ");
-
-    $stmt->execute([
-        $remarks,
-        $documentId,
-        $userId
-    ]);
-
-    if ($stmt->rowCount() === 0) {
+    if (!$routeModel->signRoute($documentId, $userId, $remarks)) {
         $pdo->rollBack();
 
         http_response_code(422);
@@ -113,30 +99,14 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $trailStmt = $pdo->prepare("
-        INSERT INTO document_trails
-        (
-            document_id,
-            action_by_user_id,
-            action_taken,
-            remarks,
-            created_at
-        )
-        VALUES
-        (
-            ?,
-            ?,
-            'Signed',
-            ?,
-            NOW()
-        )
-    ");
-
-    $trailStmt->execute([
+    $trailModel->addEntry(
         $documentId,
         $userId,
+        null,
+        null,
+        'Signed',
         $remarks !== "" ? $remarks : "Document signed"
-    ]);
+    );
 
     /*
     |--------------------------------------------------------------------------
@@ -144,31 +114,10 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $check = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM document_routes
-        WHERE document_id = ?
-          AND status NOT IN (
-              'Signed',
-              'Completed',
-              'Skipped'
-          )
-    ");
-
-    $check->execute([$documentId]);
-
-    $remaining = (int) $check->fetchColumn();
+    $remaining = $routeModel->countRemainingUnsigned($documentId);
 
     if ($remaining === 0) {
-        $update = $pdo->prepare("
-            UPDATE documents
-            SET
-                status = 'Completed',
-                updated_at = NOW()
-            WHERE document_id = ?
-        ");
-
-        $update->execute([$documentId]);
+        $documentModel->updateStatus($documentId, 'Completed');
     }
 
     $pdo->commit();
@@ -178,7 +127,8 @@ try {
         "message" => "Document signed successfully."
     ]);
 
-} catch (PDOException $e) {
+} catch (Exception $e) {
+    global $pdo;
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }

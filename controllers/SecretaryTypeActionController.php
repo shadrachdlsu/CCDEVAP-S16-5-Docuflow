@@ -1,8 +1,4 @@
 <?php
-/* ==========================================
-   SECRETARY DOCUMENT TYPE ACTION CONTROLLER
-   CCDEVAP-S16-5-Docuflow
-========================================== */
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
