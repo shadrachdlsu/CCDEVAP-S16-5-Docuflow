@@ -4,9 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if(!isset($_SESSION["user_id"]))
+if (!isset($_SESSION["user_id"]))
 {
-    header("Location: ../login.php");
+    header("Location: ../views/login.php");
     exit;
 }
 
@@ -101,7 +101,7 @@ require_once "../controllers/MemberReportController.php";
             </button>
 
             <a
-                href="../controllers/logout.php"
+                href="../controllers/LogoutController.php"
                 class="icon-btn logout-btn"
                 title="Logout">
 

@@ -33,9 +33,9 @@
               <button class="icon-btn toggle-theme" id="themeToggle" aria-label="Toggle dark/light mode">
                 <i class="fas fa-moon"></i>
               </button>
-              <button class="icon-btn logout-btn" aria-label="Exit / Logout">
+              <a href="../controllers/LogoutController.php" class="icon-btn logout-btn" aria-label="Exit / Logout">
                 <i class="fas fa-sign-out-alt"></i>
-              </button>
+              </a>
             </div>
           </div>
         </header>
@@ -120,7 +120,7 @@
             <select id="userOffice">
               <option value="">Select Office</option>
               <?php foreach($offices as $office): ?>
-                <option value="<?= $office['office_id'] ?>"><?= htmlspecialchars($office['office_name']) ?></option>
+                <option value="<?= $office['id'] ?>"><?= htmlspecialchars($office['name']) ?></option>
               <?php endforeach; ?>
             </select>
           </label>
@@ -141,6 +141,6 @@
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="../js/admin-users.js"></script>
+    <script src="../js/admin-users.js?v=<?= time() ?>"></script>
   </body>
 </html>

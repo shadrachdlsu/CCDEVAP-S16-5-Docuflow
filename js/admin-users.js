@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Show/hide office dropdown based on role
   userRoleSelect.addEventListener("change", (e) => {
     const selectedText = e.target.options[e.target.selectedIndex].text;
-    officeGroup.style.display = selectedText === "Secretary" ? "grid" : "none";
+    officeGroup.style.display = (selectedText === "Secretary" || selectedText === "Member") ? "grid" : "none";
   });
 
   function setOfficeDropdown(selectedValue) {
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setOfficeDropdown("");
       }
 
-      officeGroup.style.display = roleText === "Secretary" ? "grid" : "none";
+      officeGroup.style.display = (roleText === "Secretary" || roleText === "Member") ? "grid" : "none";
       userModal.classList.add('active');
     }
 
@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const roleSelect = document.getElementById("userRole");
     const roleText = roleSelect.options[roleSelect.selectedIndex].text;
-    const officeId = roleText === "Secretary" ? document.getElementById("userOffice").value : "";
+    const officeId = (roleText === "Secretary" || roleText === "Member") ? document.getElementById("userOffice").value : "";
 
     if (!(email.includes('@') && email.includes('.com'))) {
       alert("Please enter a valid email containing '@' and '.com'.");
@@ -172,9 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Logout
   if (logoutButton) {
     logoutButton.addEventListener("click", () => {
-      if (confirm("Are you sure you want to logout?")) {
-        window.location.href = "login.php";
-      }
+      window.location.href = "../controllers/LogoutController.php";
     });
   }
 });

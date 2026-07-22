@@ -1,3 +1,10 @@
+<?php
+require_once '../config/connections.php';
+require_once '../models/office.php';
+
+$officeModel = new Office();
+$officesList = $officeModel->getAllOffices();
+?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -38,7 +45,7 @@
       <?php endif; ?>
 
 
-      <form action="../controllers/register_process.php" method="POST">
+      <form action="../controllers/RegisterController.php" method="POST">
         <div class="form-group">
           <label for="full_name">Full Name</label>
           <input 
@@ -87,10 +94,9 @@
           <label for="office_id">Office</label>
           <select id="office_id" name="office_id" required>
             <option value="" disabled selected>Select your office</option>
-            <option value="1">Registar Office</option>
-            <option value="2">Finance Office</option>
-            <option value="3">Dean Office</option>
-            <option value="4">IT Office</option>
+            <?php foreach($officesList as $office): ?>
+              <option value="<?= $office['id'] ?>"><?= htmlspecialchars($office['name']) ?></option>
+            <?php endforeach; ?>
           </select>
         </div>
 

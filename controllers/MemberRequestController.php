@@ -5,6 +5,9 @@ session_start();
 header("Content-Type: application/json");
 
 require_once __DIR__ . "/../config/connections.php";
+require_once __DIR__ . "/../models/user.php";
+require_once __DIR__ . "/../models/documentType.php";
+require_once __DIR__ . "/../models/documentRequest.php";
 
 function sendResponse(bool $success, string $message): void
 {
@@ -52,24 +55,17 @@ if (
 
 try
 {
+    $userModel = new User();
+    $docTypeModel = new DocumentType();
+    $requestModel = new DocumentRequest();
+
     /*
     |--------------------------------------------------------------------------
     | GET MEMBER OFFICE
     |--------------------------------------------------------------------------
     */
 
-    $stmt = $pdo->prepare("
-        SELECT office_id
-        FROM users
-        WHERE user_id = ?
-          AND is_active = 1
-          AND registration_status = 'Approved'
-        LIMIT 1
-    ");
-
-    $stmt->execute([$userId]);
-
-    $officeId = $stmt->fetchColumn();
+    $officeId = $userModel->getUserOfficeId($userId);
 
     if (!$officeId)
     {
@@ -83,21 +79,7 @@ try
     |--------------------------------------------------------------------------
     */
 
-    $stmt = $pdo->prepare("
-        SELECT u.user_id
-        FROM users u
-        INNER JOIN roles r
-            ON u.role_id = r.role_id
-        WHERE u.email = ?
-          AND r.role_name = 'Secretary'
-          AND u.is_active = 1
-          AND u.registration_status = 'Approved'
-        LIMIT 1
-    ");
-
-    $stmt->execute([$secretaryEmail]);
-
-    $secretaryId = $stmt->fetchColumn();
+    $secretaryId = $userModel->findSecretaryByEmail($secretaryEmail);
 
     if (!$secretaryId)
     {
@@ -114,17 +96,7 @@ try
     |--------------------------------------------------------------------------
     */
 
-    $stmt = $pdo->prepare("
-        SELECT type_id
-        FROM document_types
-        WHERE type_id = ?
-          AND is_active = 1
-        LIMIT 1
-    ");
-
-    $stmt->execute([$typeId]);
-
-    if (!$stmt->fetchColumn())
+    if (!$docTypeModel->typeExists($typeId))
     {
         http_response_code(422);
         sendResponse(false, "The selected document type is invalid.");
@@ -136,40 +108,17 @@ try
     |--------------------------------------------------------------------------
     */
 
-    $stmt = $pdo->prepare("
-        INSERT INTO document_requests
-        (
-            requested_by_id,
-            office_id,
-            type_id,
-            title,
-            description,
-            status,
-            created_at
-        )
-        VALUES
-        (
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            'Pending',
-            NOW()
-        )
-    ");
-
-    $stmt->execute([
+    $requestModel->create(
         $userId,
         $officeId,
         $typeId,
         $title,
         $description
-    ]);
+    );
 
     sendResponse(true, "Request submitted successfully.");
 }
-catch (PDOException $e)
+catch (Exception $e)
 {
     error_log("Member request error: " . $e->getMessage());
 

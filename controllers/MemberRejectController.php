@@ -7,6 +7,9 @@ if (session_status() === PHP_SESSION_NONE) {
 header("Content-Type: application/json; charset=utf-8");
 
 require_once __DIR__ . "/../config/connections.php";
+require_once __DIR__ . "/../models/documentRoute.php";
+require_once __DIR__ . "/../models/document.php";
+require_once __DIR__ . "/../models/documentTrail.php";
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
@@ -63,80 +66,36 @@ if ($reason === "") {
 }
 
 try {
+    global $pdo;
     $pdo->beginTransaction();
 
-    $stmt = $pdo->prepare("
-        UPDATE document_routes
-        SET
-            status = 'Rejected',
-            remarks = ?,
-            acted_at = NOW()
-        WHERE document_id = ?
-          AND signatory_user_id = ?
-          AND status IN (
-              'Waiting',
-              'Pending',
-              'Received',
-              'For Signature'
-          )
-    ");
+    $routeModel = new DocumentRoute();
+    $documentModel = new Document();
+    $trailModel = new DocumentTrail();
 
-    $stmt->execute([
-        $reason,
-        $documentId,
-        $userId
-    ]);
-
-    if ($stmt->rowCount() === 0) {
+    if (!$routeModel->rejectRoute($documentId, $userId, $reason)) {
         $pdo->rollBack();
 
         http_response_code(422);
 
         echo json_encode([
             "success" => false,
-            "message" =>
-                "This document is already processed or is not assigned to you."
+            "message" => "This document is already processed or is not assigned to you."
         ]);
 
         exit;
     }
 
-    $updateDocument = $pdo->prepare("
-        UPDATE documents
-        SET
-            status = 'Rejected',
-            updated_at = NOW()
-        WHERE document_id = ?
-    ");
+    $documentModel->updateStatus($documentId, 'Rejected');
 
-    $updateDocument->execute([
-        $documentId
-    ]);
-
-    $trailStmt = $pdo->prepare("
-        INSERT INTO document_trails
-        (
-            document_id,
-            action_by_user_id,
-            action_taken,
-            remarks,
-            created_at
-        )
-        VALUES
-        (
-            ?,
-            ?,
-            'Rejected',
-            ?,
-            NOW()
-        )
-    ");
-
-    $trailStmt->execute([
+    $trailModel->addEntry(
         $documentId,
         $userId,
+        null,
+        null,
+        'Rejected',
         $reason
-    ]);
+    );
 
     $pdo->commit();
 
@@ -145,7 +104,8 @@ try {
         "message" => "Document rejected successfully."
     ]);
 
-} catch (PDOException $e) {
+} catch (Exception $e) {
+    global $pdo;
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }

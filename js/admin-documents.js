@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("themeToggle");
   const logoutButton = document.querySelector(".logout-btn");
-  
+
   // Initialize DataTable
   if ($.fn.DataTable.isDataTable('#documentsTable')) {
     $('#documentsTable').DataTable().destroy();
@@ -42,9 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Logout
   if (logoutButton) {
     logoutButton.addEventListener("click", () => {
-      if (confirm("Are you sure you want to logout?")) {
-        window.location.href = "login.php";
-      }
+      window.location.href = "../controllers/LogoutController.php";
     });
   }
 });

@@ -723,10 +723,10 @@ function initializeEvents()
     if(logout)
     {
 
-        logout.addEventListener("click", function()
+        logout.addEventListener("click", function(e)
         {
 
-            window.location.href = "../index.html";
+            window.location.href = "../controllers/LogoutController.php";
 
         });
 

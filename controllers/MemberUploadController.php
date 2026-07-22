@@ -5,6 +5,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . "/../config/connections.php";
+require_once __DIR__ . "/../models/document.php";
+require_once __DIR__ . "/../models/documentRoute.php";
+require_once __DIR__ . "/../models/documentTrail.php";
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
@@ -73,97 +76,44 @@ if (!move_uploaded_file(
 $filePath =
     "/CCDEVAP-MP1/pdfs/" . $filename;
 
-$stmt = $pdo->prepare("
-    UPDATE documents
-    SET
-        file_path = ?,
-        updated_at = CURRENT_TIMESTAMP
-    WHERE document_id = ?
-");
+try {
+    global $pdo;
+    $pdo->beginTransaction();
 
-$stmt->execute([
-    $filePath,
-    $documentId
-]);
+    $documentModel = new Document();
+    $routeModel = new DocumentRoute();
+    $trailModel = new DocumentTrail();
 
-$userId = (int) $_SESSION["user_id"];
+    $documentModel->updateFilePath($documentId, $filePath);
 
-$routeStmt = $pdo->prepare("
-    UPDATE document_routes
-    SET
-        status = 'Signed',
-        acted_at = NOW(),
-        remarks = 'Signed PDF uploaded'
-    WHERE document_id = ?
-      AND signatory_user_id = ?
-      AND status IN (
-          'Waiting',
-          'Received',
-          'For Signature'
-      )
-");
+    $userId = (int) $_SESSION["user_id"];
 
-$routeStmt->execute([
-    $documentId,
-    $userId
-]);
+    $routeModel->signRoute($documentId, $userId, 'Signed PDF uploaded');
 
-$trailStmt = $pdo->prepare("
-    INSERT INTO document_trails
-    (
-        document_id,
-        action_by_user_id,
-        action_taken,
-        remarks,
-        created_at
-    )
-    VALUES
-    (
-        ?,
-        ?,
+    $trailModel->addEntry(
+        $documentId,
+        $userId,
+        null,
+        null,
         'Signed',
-        ?,
-        NOW()
-    )
-");
+        "Signed PDF uploaded: " . $filename
+    );
 
-$trailStmt->execute([
-    $documentId,
-    $userId,
-    "Signed PDF uploaded: " . $filename
-]);
+    $remainingRoutes = $routeModel->countRemainingUnsigned($documentId);
 
-$checkStmt = $pdo->prepare("
-    SELECT COUNT(*)
-    FROM document_routes
-    WHERE document_id = ?
-      AND status NOT IN (
-          'Signed',
-          'Skipped',
-          'Completed'
-      )
-");
+    if($remainingRoutes === 0)
+    {
+        $documentModel->updateStatus($documentId, 'Completed');
+    }
 
-$checkStmt->execute([
-    $documentId
-]);
+    $pdo->commit();
 
-$remainingRoutes =
-    (int) $checkStmt->fetchColumn();
-
-if($remainingRoutes === 0)
-{
-    $documentStmt = $pdo->prepare("
-        UPDATE documents
-        SET
-            status = 'Completed',
-            updated_at = NOW()
-        WHERE document_id = ?
-    ");
-
-    $documentStmt->execute([
-        $documentId
-    ]);
+    echo "Signed document uploaded successfully.";
+} catch (Exception $e) {
+    global $pdo;
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    http_response_code(500);
+    exit("Database error while processing the upload.");
 }
-
-echo "Signed document uploaded successfully.";

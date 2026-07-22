@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . "/../config/connections.php";
+require_once __DIR__ . "/../models/documentRequest.php";
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
@@ -32,19 +33,9 @@ Only allow the logged-in member to delete
 their own request while it is still Pending.
 */
 
-$stmt = $pdo->prepare("
-    DELETE FROM document_requests
-    WHERE request_id = ?
-      AND requested_by_id = ?
-      AND status = 'Pending'
-");
+$requestModel = new DocumentRequest();
 
-$stmt->execute([
-    $requestId,
-    $userId
-]);
-
-if ($stmt->rowCount() === 0) {
+if (!$requestModel->deletePending($requestId, $userId)) {
     http_response_code(400);
     exit(
         "Request was not found or can no longer be deleted."
