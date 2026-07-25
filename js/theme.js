@@ -3,11 +3,14 @@
   const THEME_KEY = "docuflow-theme";
 
   function applyTheme(isDarkMode) {
-    if (isDarkMode) {
-      document.body.classList.add("night-mode");
-    } else {
-      document.body.classList.remove("night-mode");
-    }
+    document.body.classList.toggle("night-mode", isDarkMode);
+
+    document.querySelectorAll("#themeToggle").forEach((button) => {
+      button.setAttribute(
+        "aria-label",
+        isDarkMode ? "Switch to light mode" : "Switch to dark mode",
+      );
+    });
   }
 
   function initTheme() {
@@ -17,7 +20,8 @@
   }
 
   function toggleTheme() {
-    const isDarkMode = document.body.classList.toggle("night-mode");
+    const isDarkMode = !document.body.classList.contains("night-mode");
+    applyTheme(isDarkMode);
     localStorage.setItem(THEME_KEY, isDarkMode ? "dark" : "light");
   }
 

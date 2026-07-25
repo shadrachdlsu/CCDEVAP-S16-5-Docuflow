@@ -299,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const confirmed = confirm("Are you sure you want to logout?");
       if (confirmed) {
         alert("Logged out successfully.");
-        window.location.href = "login.html";
+        window.location.href = "login.php";
       }
     });
   }

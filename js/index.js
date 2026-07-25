@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const confirmPassword = confirmPasswordInput.value;
 
       if (email.toLowerCase() === "member@gmail.com") {
-        window.location.replace("./member-dashboard.html");
+        window.location.replace("./member-dashboard.php");
         return;
       }
 
@@ -54,42 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.classList.add("success");
 
       form.reset();
-    });
-  }
-
-  // Handle login form
-  const loginForm = document.querySelector("form:not(#signupForm)");
-  const loginEmailInput = loginForm ? loginForm.querySelector("#email") : null;
-  const loginPasswordInput = loginForm
-    ? loginForm.querySelector("#password")
-    : null;
-
-  if (loginForm && loginEmailInput && loginPasswordInput) {
-    loginForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      const email = loginEmailInput.value.trim();
-      const password = loginPasswordInput.value;
-
-      // Demo credentials
-      const validCredentials = {
-        "admin@office.gov": "admin123",
-        "secretary@office.gov": "secretary123",
-        "member@office.gov": "member123",
-      };
-
-      if (validCredentials[email] === password) {
-        // Login successful - redirect to dashboard
-        if (email === "member@office.gov") {
-          window.location.replace("./member-dashboard.html");
-        } else if (email === "secretary@office.gov") {
-          window.location.replace("./secretary-dashboard.html");
-        } else if (email === "admin@office.gov") {
-          window.location.replace("./admin-dashboard.html");
-        }
-      } else {
-        alert("Invalid email or password. Please try again.");
-      }
     });
   }
 });
