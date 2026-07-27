@@ -222,5 +222,74 @@ class DocumentRoute
             'total' => 0, 'pending' => 0, 'signed' => 0, 'finished' => 0
         ];
     }
+
+
+    /**
+     * Return member report totals based on route steps.
+     */
+    public function getMemberReportStatistics(int $userId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                COUNT(*) AS total_route_steps,
+                COUNT(DISTINCT document_id) AS total_documents,
+                SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) AS rejected,
+                SUM(CASE WHEN status IN ('Waiting', 'Received', 'For Signature') THEN 1 ELSE 0 END) AS pending,
+                SUM(CASE WHEN status = 'Signed' THEN 1 ELSE 0 END) AS signed,
+                SUM(CASE WHEN status IN ('Completed', 'Released') THEN 1 ELSE 0 END) AS completed
+            FROM document_routes
+            WHERE signatory_user_id = ?
+        ");
+
+        $stmt->execute([$userId]);
+        $data = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        return [
+            'total_route_steps' => (int) ($data['total_route_steps'] ?? 0),
+            'total_documents' => (int) ($data['total_documents'] ?? 0),
+            'rejected' => (int) ($data['rejected'] ?? 0),
+            'pending' => (int) ($data['pending'] ?? 0),
+            'signed' => (int) ($data['signed'] ?? 0),
+            'completed' => (int) ($data['completed'] ?? 0)
+        ];
+    }
+
+    /**
+     * Count each route status per office for the member line chart.
+     */
+    public function getOfficeStatusTrends(int $userId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                COALESCE(o.office_name, 'No Office') AS office_name,
+                dr.status AS route_status,
+                COUNT(*) AS total
+            FROM document_routes dr
+            LEFT JOIN offices o ON o.office_id = dr.office_id
+            WHERE dr.signatory_user_id = ?
+            GROUP BY o.office_id, o.office_name, dr.status
+            ORDER BY office_name, dr.status
+        ");
+
+        $stmt->execute([$userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Count all current route statuses for the member pie chart.
+     */
+    public function getRouteStatusDistribution(int $userId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT status AS route_status, COUNT(*) AS total
+            FROM document_routes
+            WHERE signatory_user_id = ?
+            GROUP BY status
+            ORDER BY status
+        ");
+
+        $stmt->execute([$userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

@@ -1,764 +1,349 @@
-/* ==========================================
-   MEMBER REPORT
-   CCDEVAP-MP1
-========================================== */
-
 "use strict";
 
-/* ==========================================
-   API ENDPOINTS
-========================================== */
-
 const API = {
-    reports:
-        "../controllers/MemberReportController.php?action=reports",
-
-    statistics:
-        "../controllers/MemberReportController.php?action=statistics",
-
-    types:
-        "../controllers/MemberReportController.php?action=types"
+    reports: "../controllers/MemberReportController.php?action=reports",
+    statistics: "../controllers/MemberReportController.php?action=statistics",
+    types: "../controllers/MemberReportController.php?action=types",
+    officeTrends: "../controllers/MemberReportController.php?action=officeTrends",
+    routeStatus: "../controllers/MemberReportController.php?action=routeStatus"
 };
 
-/* ==========================================
-   GLOBAL VARIABLES
-========================================== */
-
 let reportTable = null;
-
 let reportData = [];
+let officeLineChart = null;
+let routeStatusPieChart = null;
 
-let chart = null;
+const STATUS_ORDER = [
+    "Waiting", "Received", "For Signature", "Signed",
+    "Rejected", "Released", "Skipped", "Completed"
+];
 
-let reportChart = null;
+const STATUS_COLORS = {
+    Waiting: "#f59e0b",
+    Received: "#3b82f6",
+    "For Signature": "#8b5cf6",
+    Signed: "#22c55e",
+    Rejected: "#ef4444",
+    Released: "#06b6d4",
+    Skipped: "#9ca3af",
+    Completed: "#4f46e5"
+};
 
-/* ==========================================
-   INITIALIZE REPORT CHART
-========================================== */
+document.addEventListener("DOMContentLoaded", initializePage);
 
-function initializeReportChart() {
+async function initializePage() {
+    applyStoredTheme();
+    initializeDataTable();
+    initializeEvents();
 
-    const canvas = document.getElementById("reportChart");
+    await Promise.all([
+        loadStatistics(),
+        loadDocumentTypes(),
+        loadReports(),
+        loadOfficeTrends(),
+        loadRouteStatusDistribution()
+    ]);
+}
 
+function initializeDataTable() {
+    reportTable = $("#reportTable").DataTable({
+        responsive: true,
+        pageLength: 10,
+        ordering: true,
+        searching: true,
+        autoWidth: false,
+        lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ route records"
+        }
+    });
+}
+
+async function fetchJson(url) {
+    const response = await fetch(url, { headers: { Accept: "application/json" } });
+    const text = await response.text();
+
+    if (!response.ok) {
+        throw new Error(`Request failed (${response.status}): ${text}`);
+    }
+
+    try {
+        return JSON.parse(text);
+    } catch {
+        throw new Error(`Invalid JSON response: ${text.substring(0, 200)}`);
+    }
+}
+
+async function loadStatistics() {
+    try {
+        const data = await fetchJson(API.statistics);
+        setText("totalRouteSteps", data.total_route_steps);
+        setText("rejectedRoutes", data.rejected);
+        setText("totalDocuments", data.total_documents);
+        setText("completedRoutes", data.completed);
+        setText("summaryTotal", data.total_route_steps);
+        setText("summaryPending", data.pending);
+        setText("summarySigned", data.signed);
+        setText("summaryRejected", data.rejected);
+    } catch (error) {
+        console.error("Statistics error:", error);
+    }
+}
+
+async function loadDocumentTypes() {
+    try {
+        const types = await fetchJson(API.types);
+        const select = document.getElementById("typeFilter");
+        types.forEach(type => {
+            const option = document.createElement("option");
+            option.value = type.type_name;
+            option.textContent = type.type_name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Document types error:", error);
+    }
+}
+
+async function loadReports() {
+    try {
+        reportData = await fetchJson(API.reports);
+        renderReportTable(reportData);
+    } catch (error) {
+        console.error("Reports error:", error);
+    }
+}
+
+function renderReportTable(data) {
+    reportTable.clear();
+
+    data.forEach(item => {
+        reportTable.row.add([
+            escapeHtml(item.tracking_code),
+            escapeHtml(item.title),
+            escapeHtml(item.type_name),
+            escapeHtml(item.office_name),
+            formatDate(item.created_at),
+            createStatusBadge(item.computed_status || item.route_status),
+            createActionButtons(item)
+        ]);
+    });
+
+    reportTable.draw(false);
+}
+
+function createStatusBadge(status) {
+    const css = String(status).toLowerCase().replaceAll(" ", "-");
+    return `<span class="status-badge status-${css}">${escapeHtml(status)}</span>`;
+}
+
+function createActionButtons(item) {
+    const safePath = encodeURI(item.file_path || "#");
+    return `
+        <div class="action-buttons">
+            <button class="btn btn-preview btn-sm" type="button"
+                onclick="previewDocument(${Number(item.document_id)})" title="Preview">
+                <i class="fas fa-eye"></i>
+            </button>
+            <a href="${safePath}" download class="btn btn-download btn-sm" title="Download">
+                <i class="fas fa-download"></i>
+            </a>
+        </div>`;
+}
+
+async function loadOfficeTrends() {
+    try {
+        const rows = await fetchJson(API.officeTrends);
+        renderOfficeLineChart(rows);
+    } catch (error) {
+        console.error("Office trend error:", error);
+    }
+}
+
+function renderOfficeLineChart(rows) {
+    const canvas = document.getElementById("officeLineChart");
     if (!canvas) return;
 
-    reportChart = new Chart(canvas, {
-        type: "doughnut",
+    const offices = [...new Set(rows.map(row => row.office_name))];
+    const colors = ["#2563eb", "#f97316", "#a855f7", "#06b6d4", "#eab308", "#64748b"];
+
+    const datasets = offices.map((office, index) => {
+        const normalized = office.toLowerCase();
+        let color = colors[index % colors.length];
+
+        // Required office colors from the project notes.
+        if (normalized.includes("it") || normalized.includes("its")) color = "#ef4444";
+        if (normalized.includes("hr") || normalized.includes("human resource")) color = "#22c55e";
+
+        return {
+            label: office,
+            data: STATUS_ORDER.map(status => {
+                const match = rows.find(row => row.office_name === office && row.route_status === status);
+                return match ? Number(match.total) : 0;
+            }),
+            borderColor: color,
+            backgroundColor: color,
+            tension: 0.25,
+            fill: false,
+            pointRadius: 4
+        };
+    });
+
+    if (officeLineChart) officeLineChart.destroy();
+
+    officeLineChart = new Chart(canvas, {
+        type: "line",
+        data: { labels: STATUS_ORDER, datasets },
+        options: commonChartOptions("Route Steps per Office")
+    });
+}
+
+async function loadRouteStatusDistribution() {
+    try {
+        const rows = await fetchJson(API.routeStatus);
+        renderRouteStatusPieChart(rows);
+    } catch (error) {
+        console.error("Route-status distribution error:", error);
+    }
+}
+
+function renderRouteStatusPieChart(rows) {
+    const canvas = document.getElementById("routeStatusPieChart");
+    if (!canvas) return;
+
+    const labels = rows.map(row => row.route_status);
+    const values = rows.map(row => Number(row.total));
+    const colors = labels.map(label => STATUS_COLORS[label] || "#64748b");
+
+    if (routeStatusPieChart) routeStatusPieChart.destroy();
+
+    routeStatusPieChart = new Chart(canvas, {
+        type: "pie",
         data: {
-            labels: ["Pending", "Signed", "Finished"],
-            datasets: [{
-                data: [
-                    reportChartData.pending,
-                    reportChartData.signed,
-                    reportChartData.finished
-                ],
-                backgroundColor: [
-                    "#f59e0b",
-                    "#22c55e",
-                    "#5c4ae4"
-                ]
-            }]
+            labels,
+            datasets: [{ data: values, backgroundColor: colors, borderWidth: 1 }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: "bottom",
-                    labels: {
-                        color: document.body.classList.contains("dark-mode")
-                            ? "#ffffff"
-                            : "#111827"
-                    }
-                }
+                title: { display: true, text: "All Route Steps by Current Status" },
+                legend: { position: "bottom" }
             }
         }
     });
-
 }
 
-/* ==========================================
-   PAGE LOAD
-========================================== */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark-mode");
-    }
-
-    // Create the chart
-    initializeReportChart();
-
-    const toggle = document.getElementById("themeToggle");
-
-    if (toggle) {
-
-        toggle.addEventListener("click", () => {
-
-            document.body.classList.toggle("dark-mode");
-
-            if (document.body.classList.contains("dark-mode")) {
-                localStorage.setItem("theme", "dark");
-            } else {
-                localStorage.setItem("theme", "light");
-            }
-
-            // Update chart legend color
-            if (reportChart) {
-
-                reportChart.options.plugins.legend.labels.color =
-                    document.body.classList.contains("dark-mode")
-                        ? "#ffffff"
-                        : "#111827";
-
-                reportChart.update();
-            }
-
-        });
-
-    }
-
-});
-
-/* ==========================================
-   INITIALIZE
-========================================== */
-
-async function initializePage()
-{
-
-    initializeDataTable();
-
-    initializeTheme();
-
-    initializeEvents();
-
-    await loadStatistics();
-
-    await loadDocumentTypes();
-
-    await loadReports();
-
-}
-
-/* ==========================================
-   DATATABLE
-========================================== */
-
-function initializeDataTable()
-{
-
-    reportTable = $("#reportTable").DataTable({
-
+function commonChartOptions(title) {
+    return {
         responsive: true,
-
-        pageLength: 10,
-
-        ordering: true,
-
-        searching: true,
-
-        autoWidth: false,
-
-        lengthMenu: [
-
-            [5,10,25,50],
-
-            [5,10,25,50]
-
-        ],
-
-        language: {
-
-            search: "Search:",
-
-            lengthMenu: "Show _MENU_ entries",
-
-            info: "Showing _START_ to _END_ of _TOTAL_ documents"
-
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+            title: { display: true, text: title },
+            legend: { position: "bottom" }
+        },
+        scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } }
         }
-
-    });
-
+    };
 }
 
-/* ==========================================
-   LOAD STATISTICS
-========================================== */
-
-async function loadStatistics()
-{
-
-    try
-    {
-
-        const response =
-            await fetch(API.statistics);
-
-        const data =
-            await response.json();
-
-        document.getElementById("totalDocuments").textContent =
-            data.total;
-
-        document.getElementById("pendingDocuments").textContent =
-            data.pending;
-
-        document.getElementById("signedDocuments").textContent =
-            data.signed;
-
-        document.getElementById("finishedDocuments").textContent =
-            data.finished;
-
-        document.getElementById("summaryTotal").textContent =
-            data.total;
-
-        document.getElementById("summaryPending").textContent =
-            data.pending;
-
-        document.getElementById("summarySigned").textContent =
-            data.signed;
-
-        document.getElementById("summaryFinished").textContent =
-            data.finished;
-
-        loadChart(data);
-
-    }
-
-    catch(error)
-    {
-
-        console.error(error);
-
-    }
-
-}
-
-/* ==========================================
-   LOAD DOCUMENT TYPES
-========================================== */
-
-async function loadDocumentTypes()
-{
-
-    try
-    {
-
-        const response =
-            await fetch(API.types);
-
-        const types =
-            await response.json();
-
-        const select =
-            document.getElementById("typeFilter");
-
-        types.forEach(function(type)
-        {
-
-            select.innerHTML +=
-
-                `<option value="${type.type_name}">
-
-                    ${type.type_name}
-
-                </option>`;
-
-        });
-
-    }
-
-    catch(error)
-    {
-
-        console.error(error);
-
-    }
-
-}
-
-/* ==========================================
-   LOAD REPORTS
-========================================== */
-
-async function loadReports()
-{
-
-    try
-    {
-
-        const response =
-            await fetch(API.reports);
-
-        reportData =
-            await response.json();
-
-        renderReportTable(reportData);
-
-    }
-
-    catch(error)
-    {
-
-        console.error(error);
-
-    }
-
-}
-
-/* ==========================================
-   RENDER REPORT TABLE
-========================================== */
-
-function renderReportTable(data)
-{
-
-    reportTable.clear();
-
-    data.forEach(function(document)
-    {
-
-        reportTable.row.add([
-
-            document.tracking_code,
-
-            document.title,
-
-            document.type_name,
-
-            document.office_name,
-
-            formatDate(document.created_at),
-
-            createStatusBadge(document.status),
-
-            createActionButtons(document)
-
-        ]);
-
-    });
-
-    reportTable.draw(false);
-
-}
-
-/* ==========================================
-   STATUS BADGES
-========================================== */
-
-function createStatusBadge(status)
-{
-
-    if(status === "Pending")
-    {
-
-        return '<span class="status-badge status-pending">Pending</span>';
-
-    }
-
-    if(status === "Signed")
-    {
-
-        return '<span class="status-badge status-signed">Signed</span>';
-
-    }
-
-    if(status === "Finished")
-    {
-
-        return '<span class="status-badge status-finished">Finished</span>';
-
-    }
-
-    return '<span class="status-badge status-rejected">Rejected</span>';
-
-}
-
-/* ==========================================
-   ACTION BUTTONS
-========================================== */
-
-function createActionButtons(document)
-{
-
-    return `
-
-        <div class="action-buttons">
-
-            <button
-                class="btn btn-preview btn-sm"
-                onclick="previewDocument(${document.document_id})">
-
-                <i class="fas fa-eye"></i>
-
-            </button>
-
-            <a
-                href="${document.file_path}"
-                download
-                class="btn btn-download btn-sm">
-
-                <i class="fas fa-download"></i>
-
-            </a>
-
-        </div>
-
-    `;
-
-}
-
-/* ==========================================
-   FILTERS
-========================================== */
-
-document
-.getElementById("statusFilter")
-.addEventListener("change", filterReports);
-
-document
-.getElementById("typeFilter")
-.addEventListener("change", filterReports);
-
-document
-.getElementById("dateFilter")
-.addEventListener("change", filterReports);
-
-function filterReports()
-{
-
-    const status =
-        document.getElementById("statusFilter").value;
-
-    const type =
-        document.getElementById("typeFilter").value;
-
-    const date =
-        document.getElementById("dateFilter").value;
-
-    const filtered = reportData.filter(function(document)
-    {
-
-        let valid = true;
-
-        if(status !== "")
-        {
-
-            valid =
-                valid &&
-                document.status === status;
-
-        }
-
-        if(type !== "")
-        {
-
-            valid =
-                valid &&
-                document.type_name === type;
-
-        }
-
-        if(date !== "")
-        {
-
-            valid =
-                valid &&
-                document.created_at.startsWith(date);
-
-        }
-
-        return valid;
-
+function filterReports() {
+    const status = document.getElementById("statusFilter").value;
+    const type = document.getElementById("typeFilter").value;
+    const date = document.getElementById("dateFilter").value;
+
+    const filtered = reportData.filter(item => {
+        const itemStatus = item.computed_status || item.route_status;
+        return (!status || itemStatus === status)
+            && (!type || item.type_name === type)
+            && (!date || String(item.created_at).startsWith(date));
     });
 
     renderReportTable(filtered);
-
 }
 
-/* ==========================================
-   PREVIEW DOCUMENT
-========================================== */
-
-function previewDocument(documentId)
-{
-
-    const documentData = reportData.find(function(document)
-    {
-
-        return document.document_id == documentId;
-
-    });
-
-    if(documentData == null)
-    {
-
-        return;
-
-    }
-
-    document.getElementById("previewFrame").src =
-        documentData.file_path;
-
-    document.getElementById("downloadDocument").href =
-        documentData.file_path;
-
-    const modal =
-        new bootstrap.Modal(
-            document.getElementById("previewModal")
-        );
-
-    modal.show();
-
+function previewDocument(documentId) {
+    const item = reportData.find(row => Number(row.document_id) === Number(documentId));
+    if (!item || !item.file_path) return;
+    window.open(item.file_path, "_blank", "noopener");
 }
 
-/* ==========================================
-   REPORT CHART
-========================================== */
+function exportCSV() {
+    const rows = [["Tracking Code", "Title", "Type", "Office", "Date", "Route Status"]];
+    reportData.forEach(item => rows.push([
+        item.tracking_code,
+        item.title,
+        item.type_name,
+        item.office_name,
+        item.created_at,
+        item.computed_status || item.route_status
+    ]));
 
-function loadChart(data)
-{
-
-    const canvas =
-        document.getElementById("reportChart");
-
-    if(canvas == null)
-    {
-
-        return;
-
-    }
-
-    if(chart != null)
-    {
-
-        chart.destroy();
-
-    }
-
-    chart = new Chart(canvas,
-    {
-
-        type: "doughnut",
-
-        data:
-        {
-
-            labels:
-            [
-
-                "Pending",
-
-                "Signed",
-
-                "Finished"
-
-            ],
-
-            datasets:
-            [
-
-                {
-
-                    data:
-                    [
-
-                        data.pending,
-
-                        data.signed,
-
-                        data.finished
-
-                    ],
-
-                    backgroundColor:
-                    [
-
-                        "#ffc107",
-
-                        "#198754",
-
-                        "#0d6efd"
-
-                    ]
-
-                }
-
-            ]
-
-        },
-
-        options:
-        {
-
-            responsive: true,
-
-            maintainAspectRatio: false
-
-        }
-
-    });
-
-}
-
-/* ==========================================
-   EXPORT CSV
-========================================== */
-
-document
-.getElementById("downloadCSV")
-.addEventListener("click", exportCSV);
-
-function exportCSV()
-{
-
-    let csv =
-        "Tracking Code,Title,Type,Office,Date,Status\n";
-
-    reportData.forEach(function(document)
-    {
-
-        csv +=
-
-            `"${document.tracking_code}",` +
-
-            `"${document.title}",` +
-
-            `"${document.type_name}",` +
-
-            `"${document.office_name}",` +
-
-            `"${formatDate(document.created_at)}",` +
-
-            `"${document.status}"\n`;
-
-    });
-
-    const blob =
-        new Blob([csv],
-        {
-
-            type:"text/csv"
-
-        });
-
-    const url =
-        window.URL.createObjectURL(blob);
-
-    const link =
-        document.createElement("a");
-
+    const csv = rows.map(row => row.map(value => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
     link.href = url;
-
-    link.download = "Member_Report.csv";
-
+    link.download = "member-route-report.csv";
     link.click();
-
+    URL.revokeObjectURL(url);
 }
 
-/* ==========================================
-   EXPORT PDF
-========================================== */
+function initializeEvents() {
+    ["statusFilter", "typeFilter", "dateFilter"].forEach(id => {
+        document.getElementById(id)?.addEventListener("change", filterReports);
+    });
 
-document
-.getElementById("downloadPDF")
-.addEventListener("click", function()
-{
+    document.getElementById("refreshReport")?.addEventListener("click", async () => {
+        await Promise.all([loadStatistics(), loadReports(), loadOfficeTrends(), loadRouteStatusDistribution()]);
+    });
 
-    window.print();
+    document.getElementById("downloadCSV")?.addEventListener("click", exportCSV);
+    document.getElementById("downloadPDF")?.addEventListener("click", () => window.print());
 
-});
+    document.getElementById("themeToggle")?.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+        updateChartsForTheme();
+    });
+}
 
-/* ==========================================
-   REFRESH
-========================================== */
-
-document
-.getElementById("refreshReport")
-.addEventListener("click", async function()
-{
-
-    await loadStatistics();
-
-    await loadReports();
-
-});
-
-/* ==========================================
-   THEME
-========================================== */
-
-function initializeTheme()
-{
-
-    const toggle =
-        document.getElementById("themeToggle");
-
-    if(toggle)
-    {
-
-        toggle.addEventListener("click", function()
-        {
-
-            document.body.classList.toggle("dark-mode");
-
-        });
-
+function applyStoredTheme() {
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark-mode");
     }
-
 }
 
-/* ==========================================
-   EVENTS
-========================================== */
-
-function initializeEvents()
-{
-
-    const logout =
-        document.querySelector(".logout-btn");
-
-    if(logout)
-    {
-
-        logout.addEventListener("click", function(e)
-        {
-
-            window.location.href = "../controllers/LogoutController.php";
-
-        });
-
-    }
-
+function updateChartsForTheme() {
+    const color = document.body.classList.contains("dark-mode") ? "#f9fafb" : "#111827";
+    [officeLineChart, routeStatusPieChart].forEach(instance => {
+        if (!instance) return;
+        if (instance.options.plugins?.legend?.labels) instance.options.plugins.legend.labels.color = color;
+        if (instance.options.plugins?.title) instance.options.plugins.title.color = color;
+        instance.update();
+    });
 }
 
-/* ==========================================
-   FORMAT DATE
-========================================== */
-
-function formatDate(date)
-{
-
-    const formatted =
-        new Date(date);
-
-    return formatted.toLocaleDateString(
-
-        "en-PH",
-
-        {
-
-            year: "numeric",
-
-            month: "short",
-
-            day: "numeric"
-
-        }
-
-    );
-
+function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = Number(value || 0);
 }
 
+function formatDate(date) {
+    return new Date(date).toLocaleDateString("en-PH", {
+        year: "numeric", month: "short", day: "numeric"
+    });
+}
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}

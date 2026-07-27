@@ -32,7 +32,17 @@ if ($action !== null) {
     }
 
     if ($action === "statistics") {
-        echo json_encode($routeModel->getStatisticsForSignatory($userId));
+        echo json_encode($routeModel->getMemberReportStatistics($userId));
+        exit;
+    }
+
+    if ($action === "officeTrends") {
+        echo json_encode($routeModel->getOfficeStatusTrends($userId));
+        exit;
+    }
+
+    if ($action === "routeStatus") {
+        echo json_encode($routeModel->getRouteStatusDistribution($userId));
         exit;
     }
 
@@ -79,37 +89,11 @@ $reportDocuments = $routeModel->getRoutesForSignatory($userId);
 |--------------------------------------------------------------------------
 */
 
-$totalDocuments = count($reportDocuments);
-$pendingDocuments = 0;
-$signedDocuments = 0;
-$finishedDocuments = 0;
+$statistics = $routeModel->getMemberReportStatistics($userId);
 
-foreach ($reportDocuments as $document) {
-    $routeStatus = $document["route_status"];
-    $documentStatus = $document["document_status"];
-
-    if (
-        $routeStatus === "Waiting" ||
-        $routeStatus === "Received" ||
-        $routeStatus === "For Signature"
-    ) {
-        $pendingDocuments++;
-    }
-
-    if ($routeStatus === "Signed") {
-        $signedDocuments++;
-    }
-
-    if (
-        $routeStatus === "Completed" ||
-        $documentStatus === "Completed"
-    ) {
-        $finishedDocuments++;
-    }
-}
-
-$chartData = [
-    $pendingDocuments,
-    $signedDocuments,
-    $finishedDocuments
-];
+$totalRouteSteps = $statistics["total_route_steps"];
+$totalDocuments = $statistics["total_documents"];
+$rejectedRoutes = $statistics["rejected"];
+$pendingDocuments = $statistics["pending"];
+$signedDocuments = $statistics["signed"];
+$finishedDocuments = $statistics["completed"];

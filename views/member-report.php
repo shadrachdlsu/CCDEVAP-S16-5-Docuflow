@@ -123,6 +123,11 @@ require_once "../controllers/MemberReportController.php";
 
     <div class="nav-left">
 
+        <a href="javascript:history.back()" class="nav-link" title="Back">
+            <i class="fas fa-arrow-left"></i>
+            Back
+        </a>
+
         <a
             href="member-dashboard.php"
             class="nav-link">
@@ -167,143 +172,68 @@ require_once "../controllers/MemberReportController.php";
 
 <section class="stats-row">
 
-    <button class="stat-card">
-
-        <span
-            id="totalDocuments"
-            class="stat-number">
-
-            <?= $totalDocuments ?>
-
-        </span>
-
-        <span class="stat-label">
-
-            Total Documents
-
-        </span>
-
+    <button class="stat-card" type="button">
+        <span id="totalRouteSteps" class="stat-number"><?= (int) $totalRouteSteps ?></span>
+        <span class="stat-label">Total Route Steps</span>
     </button>
 
-    <button class="stat-card">
-
-        <span
-            id="pendingDocuments"
-            class="stat-number">
-
-            <?= $pendingDocuments ?>
-
-        </span>
-
-        <span class="stat-label">
-
-            Pending
-
-        </span>
-
+    <button class="stat-card" type="button">
+        <span id="rejectedRoutes" class="stat-number"><?= (int) $rejectedRoutes ?></span>
+        <span class="stat-label">Rejected Routes</span>
     </button>
 
-    <button class="stat-card">
-
-        <span
-            id="signedDocuments"
-            class="stat-number">
-
-            <?= $signedDocuments ?>
-
-        </span>
-
-        <span class="stat-label">
-
-            Signed
-
-        </span>
-
+    <button class="stat-card" type="button">
+        <span id="totalDocuments" class="stat-number"><?= (int) $totalDocuments ?></span>
+        <span class="stat-label">Total Documents</span>
     </button>
 
-    <button class="stat-card">
-
-        <span
-            id="finishedDocuments"
-            class="stat-number">
-
-            <?= $finishedDocuments ?>
-
-        </span>
-
-        <span class="stat-label">
-
-            Finished
-
-        </span>
-
+    <button class="stat-card" type="button">
+        <span id="completedRoutes" class="stat-number"><?= (int) $finishedDocuments ?></span>
+        <span class="stat-label">Completed Routes</span>
     </button>
 
 </section>
 
-<section class="dashboard-grid">
+<section class="report-chart-grid">
 
-<div class="panel-card">
+    <div class="panel-card chart-panel chart-panel-wide">
+        <div class="panel-header">
+            <div>
+                <h2 class="section-title">Office Route Trends</h2>
+                <small>Each line represents one office. IT/ITS is red and HR is green.</small>
+            </div>
+        </div>
+        <div class="panel-body chart-body">
+            <canvas id="officeLineChart"></canvas>
+        </div>
+    </div>
 
-<div class="panel-header">
+    <div class="panel-card chart-panel">
+        <div class="panel-header">
+            <div>
+                <h2 class="section-title">Route Status Distribution</h2>
+                <small>All assigned route steps grouped by current status.</small>
+            </div>
+        </div>
+        <div class="panel-body chart-body">
+            <canvas id="routeStatusPieChart"></canvas>
+        </div>
+    </div>
 
-<h2 class="section-title">
+</section>
 
-Document Statistics
-
-</h2>
-
-</div>
-
-<div class="panel-body">
-
-<canvas
-    id="reportChart">
-
-</canvas>
-
-</div>
-
-</div>
-
-<div class="panel-card">
-
-<div class="panel-header">
-
-<h2 class="section-title">
-
-Quick Report
-
-</h2>
-
-</div>
-
-<div class="panel-body">
-
-<button
-    id="downloadPDF"
-    class="action-btn">
-
-<i class="fas fa-file-pdf"></i>
-
-Export PDF
-
-</button>
-
-<button
-    id="downloadCSV"
-    class="action-btn mt-3">
-
-<i class="fas fa-file-csv"></i>
-
-Export CSV
-
-</button>
-
-</div>
-
-</div>
-
+<section class="panel-card quick-report-card">
+    <div class="panel-header">
+        <h2 class="section-title">Quick Report</h2>
+    </div>
+    <div class="panel-body quick-report-actions">
+        <button id="downloadPDF" class="action-btn" type="button">
+            <i class="fas fa-file-pdf"></i> Export / Print PDF
+        </button>
+        <button id="downloadCSV" class="action-btn" type="button">
+            <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+    </div>
 </section>
 
 <!-- ====================================== -->
@@ -603,17 +533,8 @@ Export CSV
 
             <div class="col-md-3">
 
-                <h3 id="summaryTotal">
-
-                    0
-
-                </h3>
-
-                <p>
-
-                    Total Documents
-
-                </p>
+                <h3 id="summaryTotal">0</h3>
+                <p>Total Route Steps</p>
 
             </div>
 
@@ -651,17 +572,8 @@ Export CSV
 
             <div class="col-md-3">
 
-                <h3 id="summaryFinished">
-
-                    0
-
-                </h3>
-
-                <p>
-
-                    Finished
-
-                </p>
+                <h3 id="summaryRejected">0</h3>
+                <p>Rejected</p>
 
             </div>
 
@@ -688,15 +600,6 @@ Export CSV
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    const reportChartData = {
-        total: <?= (int) $totalDocuments ?>,
-        pending: <?= (int) $pendingDocuments ?>,
-        signed: <?= (int) $signedDocuments ?>,
-        finished: <?= (int) $finishedDocuments ?>
-    };
-</script>
 
 <!-- Your JavaScript -->
 <script src="../js/member-report.js"></script>

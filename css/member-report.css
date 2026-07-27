@@ -1034,3 +1034,94 @@ body.dark-mode .member-navbar .nav-link.active{
     background:var(--primary);
     color:#ffffff;
 }
+/* =======================================
+   MEMBER REPORT PHASE 3 CHARTS
+======================================= */
+.report-chart-grid{
+    display:grid;
+    grid-template-columns:minmax(0,2fr) minmax(320px,1fr);
+    gap:24px;
+    margin-bottom:24px;
+}
+
+.chart-panel{
+    min-width:0;
+}
+
+.chart-body{
+    position:relative;
+    height:390px;
+    padding:20px;
+}
+
+.quick-report-card{
+    margin-bottom:24px;
+}
+
+.quick-report-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+}
+
+.status-waiting,
+.status-received,
+.status-for-signature,
+.status-pending{
+    background:rgba(245,158,11,.15);
+    color:#b45309;
+}
+
+.status-signed{
+    background:rgba(34,197,94,.15);
+    color:#15803d;
+}
+
+.status-completed,
+.status-released,
+.status-finished{
+    background:rgba(79,70,229,.15);
+    color:#4338ca;
+}
+
+.status-rejected{
+    background:rgba(239,68,68,.15);
+    color:#b91c1c;
+}
+
+@media (max-width: 1000px){
+    .report-chart-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media (max-width: 700px){
+    .stats-row{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .quick-report-actions{
+        grid-template-columns:1fr;
+    }
+
+    .chart-body{
+        height:330px;
+    }
+}
+
+@media print{
+    .member-header,
+    .member-navbar,
+    .report-actions,
+    .quick-report-card,
+    .action-buttons,
+    .dataTables_filter,
+    .dataTables_length,
+    .dataTables_paginate{
+        display:none !important;
+    }
+
+    .member-main{
+        padding:0;
+    }
+}
