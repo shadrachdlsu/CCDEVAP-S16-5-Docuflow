@@ -163,12 +163,59 @@ body.admin-body {
   padding: 16px 24px;
 }
 
+.header-left {
+  align-items: center;
+  display: flex;
+  gap: 24px;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gray-100);
+  padding: 4px 6px;
+  border-radius: var(--radius-md);
+}
+
+.header-nav-item {
+  color: var(--gray-700);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.header-nav-item:hover {
+  background: var(--white);
+  color: var(--primary);
+}
+
+body.dark-mode .header-nav {
+  background: #4b5563;
+}
+
+body.dark-mode .header-nav-item {
+  color: #e5e7eb;
+}
+
+body.dark-mode .header-nav-item:hover {
+  background: #374151;
+  color: #a78bfa;
+}
+
 .header-left,
 .header-right,
 .header-actions,
 .user-info {
   align-items: center;
   display: flex;
+}
+
+.header-left {
+  gap: 24px;
 }
 
 .header-right {

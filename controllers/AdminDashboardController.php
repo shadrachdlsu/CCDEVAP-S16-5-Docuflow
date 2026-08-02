@@ -24,7 +24,7 @@ try {
     $stats = [
         'total_docs' => $documentModel->countAll(),
         'active_users' => $userModel->countActiveUsers(),
-        'total_offices' => $officeModel->countAllOffices(),
+        'pending_users' => $userModel->countPendingUsers(),
         'pending_docs' => $documentModel->countByStatus('Pending')
     ];
 
@@ -71,7 +71,7 @@ try {
     $stats = [
         'total_docs' => 0, 
         'active_users' => 0, 
-        'total_offices' => 0, 
+        'pending_users' => 0, 
         'pending_docs' => 0,
         'bottleneck_text' => '0 Pending Documents',
         'trend_text' => '0% this month',

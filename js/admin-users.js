@@ -6,7 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if ($.fn.DataTable.isDataTable('#usersTable')) {
     $('#usersTable').DataTable().destroy();
   }
-  $('#usersTable').DataTable();
+  $('#usersTable').DataTable({
+    "order": [[ 4, "desc" ]] // 4 is the Status column (0-indexed). "desc" puts "Inactive" before "Active"
+  });
 
   // Modal references
   const userModal = document.getElementById("userModal");
@@ -43,6 +45,30 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector('#usersTable tbody').addEventListener('click', function (e) {
     const editBtn = e.target.closest('.edit-btn');
     const deleteBtn = e.target.closest('.delete-btn');
+    const approveBtn = e.target.closest('.approve-btn');
+
+    if (approveBtn) {
+      const id = approveBtn.dataset.id;
+      if (confirm("Are you sure you want to approve and activate this user?")) {
+        const formData = new FormData();
+        formData.append("action", "approve");
+        formData.append("id", id);
+
+        fetch("../controllers/AdminUsersController.php", {
+          method: "POST",
+          body: formData
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              location.reload();
+            } else {
+              alert("Error: " + (data.error || "Failed to approve user"));
+            }
+          })
+          .catch(err => console.error("Error approving user:", err));
+      }
+    }
 
     if (editBtn) {
       document.getElementById("userModalTitle").textContent = "Edit User";
@@ -103,8 +129,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const roleText = roleSelect.options[roleSelect.selectedIndex].text;
     const officeId = (roleText === "Secretary" || roleText === "Member") ? document.getElementById("userOffice").value : "";
 
-    if (!(email.includes('@') && email.includes('.com'))) {
-      alert("Please enter a valid email containing '@' and '.com'.");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address.");
       return;
     }
 

@@ -1,10 +1,10 @@
-<?php require_once '../controllers/AdminOfficesController.php'; ?>
+<?php require_once '../controllers/AdminPendingUsersController.php'; ?>
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Docuflow - Manage Offices</title>
+    <title>Docuflow - Pending Users</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
@@ -41,27 +41,35 @@
 
         <section class="admin-preview-panel">
           <div class="preview-header">
-            <h2 class="section-title">Manage Office Departments</h2>
-            <p class="preview-description">Manage offices and view assigned secretaries.</p>
+            <h2 class="section-title">Pending Users</h2>
+            <p class="preview-description">Approve new users to activate their accounts.</p>
           </div>
           <div class="admin-preview-content" id="admin-preview-content">
-            <div style="margin-bottom:16px;">
-              <button class="btn-primary" onclick="window.openOfficeModal()">Add Office</button>
-            </div>
-            <table id="officesTable" class="display" style="width:100%">
+            <table id="pendingUsersTable" class="display" style="width:100%">
               <thead>
                 <tr>
-                  <th>Office Name</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Office</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <?php foreach($offices as $office): ?>
+                <?php foreach($pendingUsers as $user): ?>
                   <tr>
-                    <td><?= htmlspecialchars($office['name']) ?></td>
+                    <td><?= htmlspecialchars($user['name']) ?></td>
+                    <td><?= htmlspecialchars($user['email']) ?></td>
+                    <td><?= htmlspecialchars($user['role']) ?></td>
+                    <td><?= htmlspecialchars($user['office'] ?? '') ?></td>
                     <td>
-                      <button class="btn-small edit-btn" title="Edit Office" data-id="<?= $office['id'] ?>" data-name="<?= htmlspecialchars($office['name']) ?>">Edit</button>
-                      <button class="btn-small delete-btn" title="Delete Office" data-id="<?= $office['id'] ?>">Delete</button>
+                      <span class="status-badge status-inactive">
+                        Pending
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn-small approve-btn" style="background: #e0e7ff; color: #3730a3;" title="Approve User" data-id="<?= $user['id'] ?>">Approve</button>
                     </td>
                   </tr>
                 <?php endforeach; ?>
@@ -72,29 +80,8 @@
       </main>
     </div>
 
-    <!-- Office Modal -->
-    <div id="officeModal" class="modal-overlay">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 id="officeModalTitle" class="section-title" style="margin:0;">Add Office</h3>
-          <button class="close-btn icon-btn" type="button" onclick="closeModal('officeModal')"><i class="fas fa-times"></i></button>
-        </div>
-        <form id="officeForm" class="admin-form" style="grid-template-columns: 1fr;">
-          <input type="hidden" id="officeId" />
-          <label class="admin-field">
-            <span>Office Name <span style="color: #ef4444">*</span></span>
-            <input type="text" id="officeName" required placeholder="e.g. Procurement" />
-          </label>
-          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-            <button type="button" class="admin-submit" style="background:var(--gray-300); color:var(--gray-700);" onclick="closeModal('officeModal')">Cancel</button>
-            <button type="submit" class="admin-submit">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="../js/admin-offices.js?v=<?= time() ?>"></script>
+    <script src="../js/admin-pending-users.js?v=<?= time() ?>"></script>
   </body>
 </html>

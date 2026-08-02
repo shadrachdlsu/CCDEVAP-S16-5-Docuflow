@@ -26,8 +26,7 @@
           </div>
           <div class="header-right">
             <div class="user-info">
-              <span class="user-email">admin@office.gov</span>
-              <span class="user-role">Administrator</span>
+              <span class="user-role">Admin</span>
             </div>
             <div class="header-actions">
               <button class="icon-btn toggle-theme" id="themeToggle" aria-label="Toggle dark/light mode">

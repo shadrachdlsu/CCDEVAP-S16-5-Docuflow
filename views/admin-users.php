@@ -26,8 +26,7 @@
           </div>
           <div class="header-right">
             <div class="user-info">
-              <span class="user-email">admin@office.gov</span>
-              <span class="user-role">Administrator</span>
+              <span class="user-role">Admin</span>
             </div>
             <div class="header-actions">
               <button class="icon-btn toggle-theme" id="themeToggle" aria-label="Toggle dark/light mode">
@@ -73,6 +72,9 @@
                       </span>
                     </td>
                     <td>
+                      <?php if($user['status'] === 'Inactive'): ?>
+                        <button class="btn-small approve-btn" style="background: #e0e7ff; color: #3730a3;" title="Approve User" data-id="<?= $user['id'] ?>">Approve</button>
+                      <?php endif; ?>
                       <button class="btn-small edit-btn" title="Edit User" data-id="<?= $user['id'] ?>" data-name="<?= htmlspecialchars($user['name']) ?>" data-email="<?= htmlspecialchars($user['email']) ?>" data-role="<?= $user['role_id'] ?>" data-office="<?= $user['office_id'] ?>" data-status="<?= htmlspecialchars($user['status']) ?>">Edit</button>
                       <button class="btn-small delete-btn" title="Delete User" data-id="<?= $user['id'] ?>">Delete</button>
                     </td>

@@ -94,6 +94,13 @@ if (isset($_POST['action'])) {
             $userModel->delete($id);
             echo json_encode(['success' => true]);
         } 
+        elseif ($action === 'approve') {
+            $id = $_POST['id'] ?? 0;
+            if (empty($id)) throw new Exception("ID is required.");
+
+            $userModel->approveUser($id);
+            echo json_encode(['success' => true]);
+        } 
         else {
             echo json_encode(['error' => 'Invalid action']);
         }

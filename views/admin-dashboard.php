@@ -13,16 +13,21 @@
 <body class="admin-body">
   <div class="admin-layout">
     <main class="admin-main">
-      <header class="admin-header">
+      <header class="admin-header" style="position: sticky; top: 0; z-index: 900;">
         <div class="header-left">
           <a href="admin-dashboard.php" class="logo-area">
             <span class="web-logo">Docuflow</span>
           </a>
+          <nav class="header-nav">
+            <a class="header-nav-item" href="admin-document-types.php">Document Types</a>
+            <a class="header-nav-item" href="admin-users.php">Manage Users</a>
+            <a class="header-nav-item" href="admin-offices.php">Manage Offices</a>
+          </nav>
         </div>
+
         <div class="header-right">
           <div class="user-info">
-            <span class="user-email">admin@office.gov</span>
-            <span class="user-role">Administrator</span>
+            <span class="user-role">Admin</span>
           </div>
           <div class="header-actions">
             <button class="icon-btn toggle-theme" id="themeToggle" aria-label="Toggle dark/light mode">
@@ -47,11 +52,11 @@
           <span class="stat-number"><?php echo $stats['active_users']; ?></span>
           <span class="stat-label">Active Users</span>
         </div>
-        <div class="stat-card">
-          <span class="stat-icon"><i class="fas fa-building"></i></span>
-          <span class="stat-number"><?php echo $stats['total_offices']; ?></span>
-          <span class="stat-label">Offices</span>
-        </div>
+        <a href="admin-pending-users.php" class="stat-card" style="text-decoration: none; color: inherit; cursor: pointer;">
+          <span class="stat-icon"><i class="fas fa-user-clock"></i></span>
+          <span class="stat-number"><?php echo $stats['pending_users']; ?></span>
+          <span class="stat-label">Pending Users</span>
+        </a>
         <div class="stat-card">
           <span class="stat-icon"><i class="fas fa-clock"></i></span>
           <span class="stat-number"><?php echo $stats['pending_docs']; ?></span>
@@ -162,20 +167,6 @@
         </a>
       </section>
 
-      <section class="action-grid" style="margin-top: 24px;">
-        <a class="action-card" href="admin-document-types.php">
-          <span class="action-icon"><i class="fas fa-search"></i></span>
-          <span>Document Types</span>
-        </a>
-        <a class="action-card" href="admin-users.php">
-          <span class="action-icon"><i class="fas fa-user-cog"></i></span>
-          <span>Manage Users</span>
-        </a>
-        <a class="action-card" href="admin-offices.php">
-          <span class="action-icon"><i class="fas fa-briefcase"></i></span>
-          <span>Manage Offices</span>
-        </a>
-      </section>
     </main>
   </div>
 

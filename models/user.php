@@ -99,6 +99,16 @@ class User
         }
     }
 
+    public function approveUser(int $user_id): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE users 
+            SET is_active = 1, registration_status = 'Approved' 
+            WHERE user_id = :id
+        ");
+        $stmt->execute([':id' => $user_id]);
+    }
+
     public function delete(int $user_id): void
     {
         $stmt = $this->pdo->prepare("DELETE FROM users WHERE user_id = :id");
@@ -183,6 +193,11 @@ class User
     public function countActiveUsers(): int
     {
         return (int)$this->pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 1")->fetchColumn();
+    }
+
+    public function countPendingUsers(): int
+    {
+        return (int)$this->pdo->query("SELECT COUNT(*) FROM users WHERE registration_status = 'Pending'")->fetchColumn();
     }
 
     /**
