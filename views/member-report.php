@@ -21,20 +21,21 @@ require_once "../controllers/MemberReportController.php";
 
     <meta charset="UTF-8">
 
+    <script>
+        (function () {
+            const theme = localStorage.getItem("docuflow-theme") || localStorage.getItem("theme");
+            if (theme === "dark") {
+                document.documentElement.classList.add("dark-mode");
+                document.documentElement.style.backgroundColor = "#111827";
+            }
+        })();
+    </script>
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0">
 
-    <title>
-
-        DocuFlow | Member Reports
-
-    </title>
-
-        <!-- Bootstrap 5 -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet">
+    <title>DocuFlow - Member Reports</title>
 
     <!-- DataTables -->
     <link
@@ -45,465 +46,485 @@ require_once "../controllers/MemberReportController.php";
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <!-- Your CSS -->
+
+    <!-- Custom CSS -->
     <link
         rel="stylesheet"
-        href="../css/member-report.css">
+        href="../css/admin-dashboard.css?v=<?= time() ?>">
+
+    <link
+        rel="stylesheet"
+        href="../css/member-report.css?v=<?= time() ?>">
 
 </head>
 
-<body class="member-body">
+<body class="admin-body">
 
-<header class="member-header">
+<div class="admin-layout">
 
-    <div class="header-left">
+    <!-- ====================================== -->
+    <!-- NAVIGATION HEADER -->
+    <!-- ====================================== -->
 
-        <div class="logo-area">
+    <header class="admin-header">
 
-            <span class="web-logo">
-                DocuFlow
-            </span>
+        <div class="header-left">
 
-        </div>
+            <a href="member-dashboard.php"
+               class="logo-area">
 
-    </div>
-
-    <div class="header-right">
-
-        <div class="user-info">
-
-            <span class="user-email">
-                <?= htmlspecialchars($user["email"]) ?>
-            </span>
-
-            <span class="user-role">
-
-                <?= htmlspecialchars($user["role_name"]) ?>
-
-                <?php if (!empty($user["office_name"])): ?>
-                    - <?= htmlspecialchars($user["office_name"]) ?>
-                <?php endif; ?>
-
-            </span>
-
-        </div>
-
-        <div class="header-actions">
-
-            <button
-                id="themeToggle"
-                class="icon-btn toggle-theme"
-                type="button"
-                title="Toggle dark mode">
-
-                <i class="fas fa-moon"></i>
-
-            </button>
-
-            <a
-                href="../controllers/LogoutController.php"
-                class="icon-btn logout-btn"
-                title="Logout">
-
-                <i class="fas fa-sign-out-alt"></i>
+                <span class="web-logo">
+                    DocuFlow
+                </span>
 
             </a>
 
-        </div>
+            <nav class="header-nav">
 
-    </div>
+                <a href="member-dashboard.php"
+                   class="header-nav-item">
 
-</header>
+                    Dashboard
 
-<!-- ====================================== -->
-<!-- MEMBER NAVBAR -->
-<!-- ====================================== -->
+                </a>
 
-<nav class="member-navbar">
+                <a href="member-report.php"
+                   class="header-nav-item active">
 
-    <div class="nav-left">
+                    Reports
 
-        <a href="javascript:history.back()" class="nav-link" title="Back">
-            <i class="fas fa-arrow-left"></i>
-            Back
-        </a>
+                </a>
 
-        <a
-            href="member-dashboard.php"
-            class="nav-link">
-
-            <i class="fas fa-chart-line"></i>
-            Dashboard
-
-        </a>
-
-        <a
-            href="member-dashboard.php#documents-section"
-            class="nav-link">
-
-            <i class="fas fa-file-signature"></i>
-            Pending Documents
-
-        </a>
-
-        <a
-            href="member-dashboard.php#paperTrail-section"
-            class="nav-link">
-
-            <i class="fas fa-history"></i>
-            Paper Trail
-
-        </a>
-
-        <a
-            href="member-report.php"
-            class="nav-link active">
-
-            <i class="fas fa-chart-bar"></i>
-            Reports
-
-        </a>
-
-    </div>
-
-</nav>
-
-<main class="member-main">
-
-<section class="stats-row">
-
-    <button class="stat-card" type="button">
-        <span id="totalRouteSteps" class="stat-number"><?= (int) $totalRouteSteps ?></span>
-        <span class="stat-label">Total Route Steps</span>
-    </button>
-
-    <button class="stat-card" type="button">
-        <span id="rejectedRoutes" class="stat-number"><?= (int) $rejectedRoutes ?></span>
-        <span class="stat-label">Rejected Routes</span>
-    </button>
-
-    <button class="stat-card" type="button">
-        <span id="totalDocuments" class="stat-number"><?= (int) $totalDocuments ?></span>
-        <span class="stat-label">Total Documents</span>
-    </button>
-
-    <button class="stat-card" type="button">
-        <span id="completedRoutes" class="stat-number"><?= (int) $finishedDocuments ?></span>
-        <span class="stat-label">Completed Routes</span>
-    </button>
-
-</section>
-
-<section class="report-chart-grid">
-
-    <div class="panel-card chart-panel chart-panel-wide">
-        <div class="panel-header">
-            <div>
-                <h2 class="section-title">Office Route Trends</h2>
-                <small>Each line represents one office. IT/ITS is red and HR is green.</small>
-            </div>
-        </div>
-        <div class="panel-body chart-body">
-            <canvas id="officeLineChart"></canvas>
-        </div>
-    </div>
-
-    <div class="panel-card chart-panel">
-        <div class="panel-header">
-            <div>
-                <h2 class="section-title">Route Status Distribution</h2>
-                <small>All assigned route steps grouped by current status.</small>
-            </div>
-        </div>
-        <div class="panel-body chart-body">
-            <canvas id="routeStatusPieChart"></canvas>
-        </div>
-    </div>
-
-</section>
-
-<section class="panel-card quick-report-card">
-    <div class="panel-header">
-        <h2 class="section-title">Quick Report</h2>
-    </div>
-    <div class="panel-body quick-report-actions">
-        <button id="downloadPDF" class="action-btn" type="button">
-            <i class="fas fa-file-pdf"></i> Export / Print PDF
-        </button>
-        <button id="downloadCSV" class="action-btn" type="button">
-            <i class="fas fa-file-csv"></i> Export CSV
-        </button>
-    </div>
-</section>
-
-<!-- ====================================== -->
-<!-- REPORT TABLE -->
-<!-- ====================================== -->
-
-<section class="panel-card mt-4">
-
-    <div class="panel-header">
-
-        <div>
-
-            <h2 class="section-title">
-
-                Document Report
-
-            </h2>
-
-            <small>
-
-                View all documents assigned to you
-
-            </small>
+            </nav>
 
         </div>
 
-        <div class="report-actions">
+        <div class="header-right">
 
-            <button
-                class="btn btn-primary"
-                id="refreshReport">
+            <div class="user-info">
 
-                <i class="fas fa-rotate"></i>
-
-                Refresh
-
-            </button>
-
-        </div>
-
-    </div>
-
-    <div class="table-responsive">
-
-        <table
-            id="reportTable"
-            class="table table-hover align-middle">
-
-            <thead>
-
-                <tr>
-
-                    <th>Tracking Code</th>
-
-                    <th>Title</th>
-
-                    <th>Document Type</th>
-
-                    <th>Office</th>
-
-                    <th>Date</th>
-
-                    <th>Status</th>
-
-                    <th width="220">
-
-                        Actions
-
-                    </th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                <!--
-
-                Loaded from MySQL
-
-                tracking_code
-                title
-                type_name
-                office_name
-                created_at
-                status
-
-                -->
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-</section>
-
-<!-- ====================================== -->
-<!-- FILTERS -->
-<!-- ====================================== -->
-
-<section class="panel-card mt-4">
-
-    <div class="panel-header">
-
-        <h2 class="section-title">
-
-            Report Filters
-
-        </h2>
-
-    </div>
-
-    <div class="panel-body">
-
-        <div class="row">
-
-            <div class="col-md-4">
-
-                <label>
-
-                    Status
-
-                </label>
-
-                <select
-                    id="statusFilter"
-                    class="form-select">
-
-                    <option value="">
-
-                        All
-
-                    </option>
-
-                    <option value="Pending">
-
-                        Pending
-
-                    </option>
-
-                    <option value="Signed">
-
-                        Signed
-
-                    </option>
-
-                    <option value="Finished">
-
-                        Finished
-
-                    </option>
-
-                </select>
+                <span class="user-role">
+                    Member - <?= htmlspecialchars($user["office_name"] ?? "") ?>
+                </span>
 
             </div>
 
-            <div class="col-md-4">
+            <div class="header-actions">
 
-                <label>
+                <button
+                    id="profileBtn"
+                    class="icon-btn"
+                    type="button"
+                    title="My Profile"
+                    onclick="openModal('profileModal')">
 
-                    Document Type
+                    <i class="fas fa-user-circle"></i>
 
-                </label>
+                </button>
 
-                <select
-                    id="typeFilter"
-                    class="form-select">
+                <button
+                    id="themeToggle"
+                    class="icon-btn toggle-theme"
+                    type="button"
+                    title="Toggle theme">
 
-                    <option value="">
+                    <i class="fas fa-moon"></i>
 
-                        All Types
+                </button>
 
-                    </option>
+                <a
+                    href="../controllers/LogoutController.php"
+                    class="icon-btn logout-btn"
+                    title="Logout">
 
-                </select>
+                    <i class="fas fa-sign-out-alt"></i>
 
-            </div>
-
-            <div class="col-md-4">
-
-                <label>
-
-                    Date
-
-                </label>
-
-                <input
-                    type="date"
-                    id="dateFilter"
-                    class="form-control">
+                </a>
 
             </div>
 
         </div>
 
-    </div>
+    </header>
 
-</section>
+    <main class="admin-main">
+
+        <!-- ====================================== -->
+        <!-- REPORT STATISTICS -->
+        <!-- ====================================== -->
+
+        <section class="stats-row">
+
+            <div class="stat-card">
+                <span id="totalRouteSteps" class="stat-number"><?= (int) $totalRouteSteps ?></span>
+                <span class="stat-label">Total Route Steps</span>
+            </div>
+
+            <div class="stat-card">
+                <span id="rejectedRoutes" class="stat-number"><?= (int) $rejectedRoutes ?></span>
+                <span class="stat-label">Rejected Routes</span>
+            </div>
+
+            <div class="stat-card">
+                <span id="totalDocuments" class="stat-number"><?= (int) $totalDocuments ?></span>
+                <span class="stat-label">Total Documents</span>
+            </div>
+
+            <div class="stat-card">
+                <span id="completedRoutes" class="stat-number"><?= (int) $finishedDocuments ?></span>
+                <span class="stat-label">Completed Routes</span>
+            </div>
+
+        </section>
+
+        <!-- ====================================== -->
+        <!-- CHARTS GRID -->
+        <!-- ====================================== -->
+
+        <section class="report-chart-grid">
+
+            <div class="panel-card chart-panel chart-panel-wide">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="section-title">Office Route Trends</h2>
+                        <small>Each line represents one office. IT/ITS is red and HR is green.</small>
+                    </div>
+                </div>
+                <div class="panel-body chart-body">
+                    <canvas id="officeLineChart"></canvas>
+                </div>
+            </div>
+
+            <div class="panel-card chart-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="section-title">Route Status Distribution</h2>
+                        <small>All assigned route steps grouped by current status.</small>
+                    </div>
+                </div>
+                <div class="panel-body chart-body">
+                    <canvas id="routeStatusPieChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ====================================== -->
+        <!-- QUICK EXPORT ACTIONS -->
+        <!-- ====================================== -->
+
+        <section class="panel-card quick-report-card">
+            <div class="panel-header">
+                <h2 class="section-title">Quick Report</h2>
+            </div>
+            <div class="panel-body quick-report-actions">
+                <button id="downloadPDF" class="action-btn" type="button">
+                    Export / Print PDF
+                </button>
+                <button id="downloadCSV" class="action-btn" type="button">
+                    Export CSV
+                </button>
+            </div>
+        </section>
+
+        <!-- ====================================== -->
+        <!-- REPORT TABLE -->
+        <!-- ====================================== -->
+
+        <section class="panel-card mt-4">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2 class="section-title">
+
+                        Document Report
+
+                    </h2>
+
+                    <small>
+
+                        View all documents assigned to you
+
+                    </small>
+
+                </div>
+
+                <div class="report-actions">
+
+                    <button
+                        class="btn-small submit-btn"
+                        type="button"
+                        id="refreshReport">
+
+                        Refresh
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table
+                    id="reportTable"
+                    class="display"
+                    style="width: 100%;">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Tracking Code</th>
+
+                            <th>Title</th>
+
+                            <th>Document Type</th>
+
+                            <th>Office</th>
+
+                            <th>Date</th>
+
+                            <th>Status</th>
+
+                            <th width="220">
+
+                                Actions
+
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- ====================================== -->
+        <!-- FILTERS -->
+        <!-- ====================================== -->
+
+        <section class="panel-card mt-4">
+
+            <div class="panel-header">
+
+                <h2 class="section-title">
+
+                    Report Filters
+
+                </h2>
+
+            </div>
+
+            <div class="panel-body">
+
+                <div class="filter-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+
+                    <div class="admin-field">
+
+                        <span>Status</span>
+
+                        <select
+                            id="statusFilter"
+                            class="admin-select">
+
+                            <option value="">
+                                All
+                            </option>
+
+                            <option value="Pending">
+                                Pending
+                            </option>
+
+                            <option value="Signed">
+                                Signed
+                            </option>
+
+                            <option value="Finished">
+                                Finished
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="admin-field">
+
+                        <span>Document Type</span>
+
+                        <select
+                            id="typeFilter"
+                            class="admin-select">
+
+                            <option value="">
+                                All Types
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="admin-field">
+
+                        <span>Date</span>
+
+                        <input
+                            type="date"
+                            id="dateFilter"
+                            class="admin-input">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ====================================== -->
+        <!-- REPORT SUMMARY -->
+        <!-- ====================================== -->
+
+        <section class="panel-card mt-4">
+
+            <div class="panel-header">
+
+                <h2 class="section-title">
+
+                    Report Summary
+
+                </h2>
+
+            </div>
+
+            <div class="panel-body">
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; text-align: center;">
+
+                    <div>
+
+                        <h3 id="summaryTotal" style="font-size: 1.75rem; font-weight: 700; color: var(--primary);">0</h3>
+                        <p style="color: var(--gray-500); font-size: 0.875rem;">Total Route Steps</p>
+
+                    </div>
+
+                    <div>
+
+                        <h3 id="summaryPending" style="font-size: 1.75rem; font-weight: 700; color: var(--primary);">
+                            0
+                        </h3>
+
+                        <p style="color: var(--gray-500); font-size: 0.875rem;">
+                            Pending
+                        </p>
+
+                    </div>
+
+                    <div>
+
+                        <h3 id="summarySigned" style="font-size: 1.75rem; font-weight: 700; color: var(--primary);">
+                            0
+                        </h3>
+
+                        <p style="color: var(--gray-500); font-size: 0.875rem;">
+                            Signed
+                        </p>
+
+                    </div>
+
+                    <div>
+
+                        <h3 id="summaryRejected" style="font-size: 1.75rem; font-weight: 700; color: var(--primary);">0</h3>
+                        <p style="color: var(--gray-500); font-size: 0.875rem;">Rejected</p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
 
 <!-- ====================================== -->
 <!-- PREVIEW MODAL -->
 <!-- ====================================== -->
 
 <div
-    class="modal fade"
     id="previewModal"
-    tabindex="-1">
+    class="modal-overlay">
 
-    <div class="modal-dialog modal-xl">
+    <div
+        class="modal-content modal-xl"
+        style="max-width: 900px; width: 95%;">
 
-        <div class="modal-content">
+        <div class="modal-header">
 
-            <div class="modal-header">
+            <h3
+                class="card-title"
+                style="margin:0;">
 
-                <h5>
+                Document Preview
 
-                    Document Preview
+            </h3>
 
-                </h5>
+            <button
+                class="close-btn icon-btn"
+                type="button"
+                onclick="closeModal('previewModal')">
 
-                <button
-                    class="btn-close"
-                    data-bs-dismiss="modal">
+                <i class="fas fa-times"></i>
 
-                </button>
+            </button>
 
-            </div>
+        </div>
 
-            <div class="modal-body">
+        <div class="modal-body">
 
-                <iframe
+            <iframe
+                id="previewFrame"
+                width="100%"
+                height="600"
+                style="border: none; border-radius: var(--radius-sm);">
 
-                    id="previewFrame"
+            </iframe>
 
-                    width="100%"
+        </div>
 
-                    height="650"
+        <div
+            class="modal-footer"
+            style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
 
-                    style="border:none;">
+            <a
+                id="downloadDocument"
+                class="btn-small action-btn"
+                style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;"
+                download>
 
-                </iframe>
+                Download
 
-            </div>
+            </a>
 
-            <div class="modal-footer">
+            <button
+                class="btn-small cancel-btn"
+                type="button"
+                onclick="closeModal('previewModal')">
 
-                <a
+                Close
 
-                    id="downloadDocument"
-
-                    class="btn btn-primary"
-
-                    download>
-
-                    <i class="fas fa-download"></i>
-
-                    Download
-
-                </a>
-
-                <button
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-
-                    Close
-
-                </button>
-
-            </div>
+            </button>
 
         </div>
 
@@ -512,78 +533,102 @@ require_once "../controllers/MemberReportController.php";
 </div>
 
 <!-- ====================================== -->
-<!-- REPORT SUMMARY -->
+<!-- MY PROFILE MODAL -->
 <!-- ====================================== -->
 
-<section class="panel-card mt-4">
+<div
+    id="profileModal"
+    class="modal-overlay">
 
-    <div class="panel-header">
+    <div class="modal-content">
 
-        <h2 class="section-title">
+        <div class="modal-header">
 
-            Report Summary
+            <h3
+                class="card-title"
+                style="margin:0;">
 
-        </h2>
+                My Profile
 
-    </div>
+            </h3>
 
-    <div class="panel-body">
+            <button
+                class="close-btn icon-btn"
+                type="button"
+                onclick="closeModal('profileModal')">
 
-        <div class="row text-center">
+                <i class="fas fa-times"></i>
 
-            <div class="col-md-3">
+            </button>
 
-                <h3 id="summaryTotal">0</h3>
-                <p>Total Route Steps</p>
+        </div>
 
-            </div>
+        <div class="modal-body">
 
-            <div class="col-md-3">
+            <div style="display: grid; gap: 12px;">
 
-                <h3 id="summaryPending">
+                <div class="admin-field">
 
-                    0
+                    <span>Name</span>
 
-                </h3>
+                    <div id="profileName" style="padding: 8px 12px; background: var(--gray-100); border-radius: var(--radius-sm); font-weight: 500;">
+                        <?= htmlspecialchars($user["full_name"] ?? "") ?>
+                    </div>
 
-                <p>
+                </div>
 
-                    Pending
+                <div class="admin-field">
 
-                </p>
+                    <span>Email</span>
 
-            </div>
+                    <div id="profileEmail" style="padding: 8px 12px; background: var(--gray-100); border-radius: var(--radius-sm); font-weight: 500;">
+                        <?= htmlspecialchars($user["email"] ?? "") ?>
+                    </div>
 
-            <div class="col-md-3">
+                </div>
 
-                <h3 id="summarySigned">
+                <div class="admin-field">
 
-                    0
+                    <span>Office</span>
 
-                </h3>
+                    <div id="profileOffice" style="padding: 8px 12px; background: var(--gray-100); border-radius: var(--radius-sm); font-weight: 500;">
+                        <?= htmlspecialchars($user["office_name"] ?? "") ?>
+                    </div>
 
-                <p>
+                </div>
 
-                    Signed
+                <div class="admin-field">
 
-                </p>
+                    <span>Role</span>
 
-            </div>
+                    <div id="profileRole" style="padding: 8px 12px; background: var(--gray-100); border-radius: var(--radius-sm); font-weight: 500;">
+                        <?= htmlspecialchars($user["role_name"] ?? "") ?>
+                    </div>
 
-            <div class="col-md-3">
-
-                <h3 id="summaryRejected">0</h3>
-                <p>Rejected</p>
+                </div>
 
             </div>
 
         </div>
 
+        <div
+            class="modal-footer"
+            style="display: flex; justify-content: flex-end; margin-top: 16px;">
+
+            <button
+                class="btn-small cancel-btn"
+                type="button"
+                onclick="closeModal('profileModal')">
+
+                Close
+
+            </button>
+
+        </div>
+
     </div>
 
-</section>
-
-</main>
+</div>
 
 <!-- ====================================== -->
 <!-- JAVASCRIPT -->
@@ -592,17 +637,13 @@ require_once "../controllers/MemberReportController.php";
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<!-- Bootstrap -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <!-- DataTables -->
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Your JavaScript -->
-<script src="../js/member-report.js"></script>
+<script src="../js/member-report.js?v=<?= time() ?>"></script>
 
 </body>
 

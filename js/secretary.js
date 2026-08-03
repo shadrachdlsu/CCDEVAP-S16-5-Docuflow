@@ -1,131 +1,236 @@
-$(document).ready(function() {
-    // Theme toggle
-    $(".toggle-theme").click(() => {
-        $("body").toggleClass("dark-mode");
-        $(".toggle-theme i").toggleClass("fa-moon fa-sun");
-    });
+"use strict";
 
-    // Tab Navigation
-    $('.nav-link').on('click', function(e) {
-        e.preventDefault();
-        
-        // Remove active class from all links and pages
-        $('.nav-link').removeClass('active');
-        $('.page').removeClass('active');
-        
-        // Add active class to clicked link
-        $(this).addClass('active');
-        
-        // Show corresponding page
-        const target = $(this).data('target');
-        $('#page-' + target).addClass('active');
-        
-        // Store active tab in localStorage
-        localStorage.setItem('secretaryActiveTab', target);
-    });
+$(document).ready(function () {
 
-    // Restore active tab on load
-    const activeTab = localStorage.getItem('secretaryActiveTab');
-    if (activeTab && $('#page-' + activeTab).length) {
-        $('.nav-link').removeClass('active');
-        $('.page').removeClass('active');
-        $(`.nav-link[data-target="${activeTab}"]`).addClass('active');
-        $('#page-' + activeTab).addClass('active');
+    /*
+    |--------------------------------------------------------------------------
+    | THEME TOGGLE & INITIALIZATION
+    |--------------------------------------------------------------------------
+    */
+
+    function updateThemeIcon(isDark) {
+        const icon = $("#themeToggle i");
+        if (icon.length) {
+            icon.toggleClass("fa-moon", !isDark);
+            icon.toggleClass("fa-sun", isDark);
+        }
     }
 
-    // Initialize DataTables
-    const dataTableOptions = { responsive: true, order: [[3, 'desc']] };
-    $('#table-all-documents').DataTable(dataTableOptions);
-    $('#table-receive').DataTable({ responsive: true });
-    $('#table-pending').DataTable({ responsive: true });
-    $('#table-release').DataTable({ responsive: true });
-    $('#table-types').DataTable({ responsive: true });
+    const savedTheme = localStorage.getItem("docuflow-theme") || localStorage.getItem("theme");
+    const isDarkTheme = savedTheme === "dark";
 
-    // Document View Handler
-    $('.btn-view').on('click', function() {
-        const file = $(this).data('file');
-        if(file) {
-            window.open(file, '_blank');
+    if (isDarkTheme) {
+        document.documentElement.classList.add("dark-mode");
+        document.body.classList.add("dark-mode");
+        updateThemeIcon(true);
+    } else {
+        document.documentElement.classList.remove("dark-mode");
+        document.body.classList.remove("dark-mode");
+        updateThemeIcon(false);
+    }
+
+    $("#themeToggle").on("click", function () {
+        const isDark = document.body.classList.toggle("dark-mode");
+        document.documentElement.classList.toggle("dark-mode", isDark);
+
+        localStorage.setItem("docuflow-theme", isDark ? "dark" : "light");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+
+        updateThemeIcon(isDark);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | MODAL HELPERS & PROFILE LOADER
+    |--------------------------------------------------------------------------
+    */
+
+    window.openModal = function (modalId) {
+        $("#" + modalId).addClass("active");
+        if (modalId === "profileModal") {
+            loadProfile();
+        }
+    };
+
+    window.closeModal = function (modalId) {
+        $("#" + modalId).removeClass("active");
+    };
+
+    async function loadProfile() {
+        try {
+            const res = await fetch("../controllers/SecretaryDashboardController.php?action=profile");
+            if (!res.ok) return;
+            const profile = await res.json();
+            if (!profile) return;
+
+            $("#profileName").text(profile.full_name || "N/A");
+            $("#profileEmail").text(profile.email || "N/A");
+            $("#profileOffice").text(profile.office_name || "Unassigned");
+            $("#profileRole").text(profile.role_name || "Secretary");
+        } catch (err) {
+            console.error("Load profile error:", err);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TAB NAVIGATION & PERSISTENCE
+    |--------------------------------------------------------------------------
+    */
+
+    $(document).on("click", ".header-nav-item, .nav-link", function (e) {
+        e.preventDefault();
+
+        $(".header-nav-item, .nav-link").removeClass("active");
+        $(".page").removeClass("active");
+
+        const target = $(this).data("target");
+        if (!target) return;
+
+        $(`.header-nav-item[data-target="${target}"], .nav-link[data-target="${target}"]`).addClass("active");
+        $("#page-" + target).addClass("active");
+
+        localStorage.setItem("secretaryActiveTab", target);
+    });
+
+    const activeTab = localStorage.getItem("secretaryActiveTab");
+
+    if (activeTab && $("#page-" + activeTab).length) {
+        $(".header-nav-item, .nav-link").removeClass("active");
+        $(".page").removeClass("active");
+        $(`.header-nav-item[data-target="${activeTab}"], .nav-link[data-target="${activeTab}"]`).addClass("active");
+        $("#page-" + activeTab).addClass("active");
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DATATABLE INITIALIZATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    const dataTableOptions = {
+        responsive: true,
+        order: [[3, "desc"]]
+    };
+
+    if ($("#table-all-documents").length) $("#table-all-documents").DataTable(dataTableOptions);
+    if ($("#table-receive").length) $("#table-receive").DataTable({ responsive: true });
+    if ($("#table-pending").length) $("#table-pending").DataTable({ responsive: true });
+    if ($("#table-release").length) $("#table-release").DataTable({ responsive: true });
+    if ($("#table-types").length) $("#table-types").DataTable({ responsive: true });
+
+    /*
+    |--------------------------------------------------------------------------
+    | DOCUMENT VIEW HANDLER
+    |--------------------------------------------------------------------------
+    */
+
+    $(document).on("click", ".btn-view", function () {
+        const file = $(this).data("file");
+        if (file) {
+            window.open(file, "_blank");
         }
     });
 
-    // Assign Modal
-    $('.btn-assign').on('click', function() {
-        const docId = $(this).data('id');
-        const title = $(this).data('title');
-        $('#assign-doc-id').val(docId);
-        $('#assign-doc-title').text(title);
-        $('#modal-assign').addClass('active');
+    /*
+    |--------------------------------------------------------------------------
+    | MODALS (ASSIGN, FORWARD, DOCUMENT TYPES)
+    |--------------------------------------------------------------------------
+    */
+
+    $(document).on("click", ".btn-assign", function () {
+        const docId = $(this).data("id");
+        const title = $(this).data("title");
+
+        $("#assign-doc-id").val(docId);
+        $("#assign-doc-title").text(title);
+        openModal("modal-assign");
     });
 
-    // Forward Modal
-    $('.btn-forward').on('click', function() {
-        const docId = $(this).data('id');
-        const title = $(this).data('title');
-        $('#forward-doc-id').val(docId);
-        $('#forward-doc-title').text(title);
-        $('#modal-forward').addClass('active');
+    $(document).on("click", ".btn-forward", function () {
+        const docId = $(this).data("id");
+        const title = $(this).data("title");
+
+        $("#forward-doc-id").val(docId);
+        $("#forward-doc-title").text(title);
+        openModal("modal-forward");
     });
 
-    // Document Type Modal
-    $('#btn-add-type').on('click', function() {
-        $('#type-action').val('add');
-        $('#type-id').val('');
-        $('#type-name').val('');
-        $('#type-modal-title').text('Add Document Type');
-        $('#modal-type').addClass('active');
+    $(document).on("click", "#btn-add-type", function () {
+        $("#type-action").val("add");
+        $("#type-id").val("");
+        $("#type-name").val("");
+        $("#type-modal-title").text("Add Document Type");
+        openModal("modal-type");
     });
 
-    $('.btn-edit-type').on('click', function() {
-        const id = $(this).data('id');
-        const name = $(this).data('name');
-        $('#type-action').val('edit');
-        $('#type-id').val(id);
-        $('#type-name').val(name);
-        $('#type-modal-title').text('Edit Document Type');
-        $('#modal-type').addClass('active');
+    $(document).on("click", ".btn-edit-type", function () {
+        const id = $(this).data("id");
+        const name = $(this).data("name");
+
+        $("#type-action").val("edit");
+        $("#type-id").val(id);
+        $("#type-name").val(name);
+        $("#type-modal-title").text("Edit Document Type");
+        openModal("modal-type");
     });
 
-    // Paper Trail Handler
-    $('.btn-trail').on('click', function() {
-        const docId = $(this).data('id');
-        $('#modal-trail').addClass('active');
-        $('#trail-list').html('<li style="text-align:center;">Loading trail...</li>');
-        
+    /*
+    |--------------------------------------------------------------------------
+    | PAPER TRAIL HANDLER (AJAX)
+    |--------------------------------------------------------------------------
+    */
+
+    $(document).on("click", ".btn-trail", function () {
+        const docId = $(this).data("id");
+
+        openModal("modal-trail");
+        $("#trail-list").html('<li style="text-align:center;">Loading trail...</li>');
+
         fetch(`../controllers/SecretaryDashboardController.php?action=trail&document_id=${docId}`)
             .then(res => res.json())
             .then(data => {
-                const ul = $('#trail-list');
+                const ul = $("#trail-list");
                 ul.empty();
-                if(data.success && data.trail.length > 0) {
+
+                if (data.success && data.trail && data.trail.length > 0) {
                     data.trail.forEach(t => {
-                        const li = $('<li></li>');
-                        let html = `<strong>${t.action}</strong> - ${t.remarks || ''}<br>`;
-                        html += `<small>${t.from_office || 'System'} &rarr; ${t.to_office || 'N/A'}</small><br>`;
+                        const li = $("<li></li>");
+                        let html = `<strong>${t.action}</strong> - ${t.remarks || ""}<br>`;
+                        html += `<small>${t.from_office || "System"} &rarr; ${t.to_office || "N/A"}</small><br>`;
                         html += `<small class="timestamp">${t.action_date}</small>`;
-                        if (t.action_by_name) html += `<br><small>by ${t.action_by_name}</small>`;
+
+                        if (t.action_by_name) {
+                            html += `<br><small>by ${t.action_by_name}</small>`;
+                        }
+
                         li.html(html);
                         ul.append(li);
                     });
                 } else {
-                    ul.html('<li>No trail data found.</li>');
+                    ul.html("<li>No trail data found.</li>");
                 }
             })
             .catch(err => {
                 console.error(err);
-                $('#trail-list').html('<li style="color:red;">Error loading trail data.</li>');
+                $("#trail-list").html('<li style="color:red;">Error loading trail data.</li>');
             });
     });
 
-    // Close Modals
-    $('.modal-close').on('click', function() {
-        $(this).closest('.modal-overlay').removeClass('active');
+    /*
+    |--------------------------------------------------------------------------
+    | MODAL CLOSE HANDLERS
+    |--------------------------------------------------------------------------
+    */
+
+    $(document).on("click", ".modal-close, [data-close]", function () {
+        $(this).closest(".modal-overlay").removeClass("active");
     });
-    
-    // Global Modal Close
+
     $(document).on("click", ".modal-overlay", function (e) {
-      if (e.target === this) {
-        $(this).removeClass("active");
-      }
+        if (e.target === this) {
+            $(this).removeClass("active");
+        }
     });
+
 });

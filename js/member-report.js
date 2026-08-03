@@ -5,7 +5,8 @@ const API = {
     statistics: "../controllers/MemberReportController.php?action=statistics",
     types: "../controllers/MemberReportController.php?action=types",
     officeTrends: "../controllers/MemberReportController.php?action=officeTrends",
-    routeStatus: "../controllers/MemberReportController.php?action=routeStatus"
+    routeStatus: "../controllers/MemberReportController.php?action=routeStatus",
+    profile: "../controllers/MemberDashboardController.php?action=profile"
 };
 
 let reportTable = null;
@@ -19,15 +20,39 @@ const STATUS_ORDER = [
 ];
 
 const STATUS_COLORS = {
-    Waiting: "#f59e0b",
-    Received: "#3b82f6",
+    Waiting: "#d97706",
+    Received: "#2563eb",
     "For Signature": "#8b5cf6",
-    Signed: "#22c55e",
-    Rejected: "#ef4444",
+    Signed: "#16a34a",
+    Rejected: "#dc2626",
     Released: "#06b6d4",
     Skipped: "#9ca3af",
     Completed: "#4f46e5"
 };
+
+/* ==========================================
+   MODAL CONTROLLERS
+========================================== */
+
+window.openModal = function (modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add("active");
+    }
+};
+
+window.closeModal = function (modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove("active");
+    }
+};
+
+document.addEventListener("click", function (e) {
+    if (e.target.classList.contains("modal-overlay")) {
+        e.target.classList.remove("active");
+    }
+});
 
 document.addEventListener("DOMContentLoaded", initializePage);
 
@@ -35,6 +60,7 @@ async function initializePage() {
     applyStoredTheme();
     initializeDataTable();
     initializeEvents();
+    loadProfile();
 
     await Promise.all([
         loadStatistics(),
@@ -143,12 +169,12 @@ function createActionButtons(item) {
     const safePath = encodeURI(item.file_path || "#");
     return `
         <div class="action-buttons">
-            <button class="btn btn-preview btn-sm" type="button"
+            <button class="btn-small previewBtn" type="button"
                 onclick="previewDocument(${Number(item.document_id)})" title="Preview">
-                <i class="fas fa-eye"></i>
+                Preview
             </button>
-            <a href="${safePath}" download class="btn btn-download btn-sm" title="Download">
-                <i class="fas fa-download"></i>
+            <a href="${safePath}" download class="btn-small action-btn" style="text-decoration:none;" title="Download">
+                Download
             </a>
         </div>`;
 }
@@ -173,9 +199,8 @@ function renderOfficeLineChart(rows) {
         const normalized = office.toLowerCase();
         let color = colors[index % colors.length];
 
-        // Required office colors from the project notes.
-        if (normalized.includes("it") || normalized.includes("its")) color = "#ef4444";
-        if (normalized.includes("hr") || normalized.includes("human resource")) color = "#22c55e";
+        if (normalized.includes("it") || normalized.includes("its")) color = "#dc2626";
+        if (normalized.includes("hr") || normalized.includes("human resource")) color = "#16a34a";
 
         return {
             label: office,
@@ -269,7 +294,11 @@ function filterReports() {
 function previewDocument(documentId) {
     const item = reportData.find(row => Number(row.document_id) === Number(documentId));
     if (!item || !item.file_path) return;
-    window.open(item.file_path, "_blank", "noopener");
+    const iframe = document.getElementById("previewFrame");
+    const download = document.getElementById("downloadDocument");
+    if (iframe) iframe.src = item.file_path;
+    if (download) download.href = item.file_path;
+    openModal("previewModal");
 }
 
 function exportCSV() {
@@ -306,15 +335,61 @@ function initializeEvents() {
     document.getElementById("downloadPDF")?.addEventListener("click", () => window.print());
 
     document.getElementById("themeToggle")?.addEventListener("click", () => {
-        document.body.classList.toggle("dark-mode");
-        localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+        const isNowDark = document.body.classList.toggle("dark-mode");
+        document.documentElement.classList.toggle("dark-mode", isNowDark);
+        localStorage.setItem("docuflow-theme", isNowDark ? "dark" : "light");
+        localStorage.setItem("theme", isNowDark ? "dark" : "light");
+
+        const themeIcon = document.getElementById("themeToggle")?.querySelector("i");
+        if (themeIcon) {
+            themeIcon.classList.toggle("fa-moon", !isNowDark);
+            themeIcon.classList.toggle("fa-sun", isNowDark);
+        }
+
         updateChartsForTheme();
     });
 }
 
 function applyStoredTheme() {
-    if (localStorage.getItem("theme") === "dark") {
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = themeToggle?.querySelector("i");
+    const isDark = localStorage.getItem("docuflow-theme") === "dark" || localStorage.getItem("theme") === "dark";
+
+    if (isDark) {
+        document.documentElement.classList.add("dark-mode");
         document.body.classList.add("dark-mode");
+        if (themeIcon) {
+            themeIcon.classList.remove("fa-moon");
+            themeIcon.classList.add("fa-sun");
+        }
+    } else {
+        document.documentElement.classList.remove("dark-mode");
+        document.body.classList.remove("dark-mode");
+        if (themeIcon) {
+            themeIcon.classList.remove("fa-sun");
+            themeIcon.classList.add("fa-moon");
+        }
+    }
+}
+
+async function loadProfile() {
+    try {
+        const response = await fetch(API.profile);
+        if (!response.ok) return;
+        const profile = await response.json();
+        if (!profile) return;
+
+        const profileName = document.getElementById("profileName");
+        const profileEmail = document.getElementById("profileEmail");
+        const profileOffice = document.getElementById("profileOffice");
+        const profileRole = document.getElementById("profileRole");
+
+        if (profileName) profileName.textContent = profile.full_name || "N/A";
+        if (profileEmail) profileEmail.textContent = profile.email || "N/A";
+        if (profileOffice) profileOffice.textContent = profile.office_name || "Unassigned";
+        if (profileRole) profileRole.textContent = profile.role_name || "Member";
+    } catch (error) {
+        console.error("Load profile error:", error);
     }
 }
 

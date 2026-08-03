@@ -4,16 +4,24 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../config/connections.php';
-require_once __DIR__ . '/../models/documentType.php';
-require_once __DIR__ . '/../models/office.php';
+require_once __DIR__ . "/../config/connections.php";
+require_once __DIR__ . "/../models/documentType.php";
+require_once __DIR__ . "/../models/office.php";
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['role_id'] != 1) {
-    if (isset($_POST['action'])) {
-        header('Content-Type: application/json');
-        echo json_encode(['error' => 'Unauthorized']);
+/*
+|--------------------------------------------------------------------------
+| AUTHENTICATION CHECK
+|--------------------------------------------------------------------------
+*/
+
+if (!isset($_SESSION["logged_in"]) || $_SESSION["role_id"] != 1) {
+
+    if (isset($_POST["action"])) {
+        header("Content-Type: application/json");
+        echo json_encode(["error" => "Unauthorized"]);
         exit;
     }
+
     header("Location: ../views/login.php?error=unauthorized");
     exit;
 }
@@ -21,27 +29,44 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['role_id'] != 1) {
 $documentTypeModel = new DocumentType();
 $officeModel = new Office();
 
-// Cache offices for name->id mapping
+/*
+|--------------------------------------------------------------------------
+| OFFICE MAPPING CACHE
+|--------------------------------------------------------------------------
+*/
+
 $officesList = $officeModel->getAllOffices();
 $officeNameToId = [];
+
 foreach ($officesList as $off) {
-    $officeNameToId[$off['name']] = $off['id'];
+    $officeNameToId[$off["name"]] = $off["id"];
 }
 
-// Action Handlers
-if (isset($_POST['action'])) {
-    header('Content-Type: application/json');
-    $action = $_POST['action'];
+/*
+|--------------------------------------------------------------------------
+| ACTION HANDLERS (AJAX)
+|--------------------------------------------------------------------------
+*/
+
+if (isset($_POST["action"])) {
+
+    header("Content-Type: application/json");
+
+    $action = $_POST["action"];
 
     try {
-        if ($action === 'create') {
-            $name = $_POST['name'] ?? '';
-            $offices = isset($_POST['offices']) ? json_decode($_POST['offices'], true) : [];
-            
-            if (empty($name)) throw new Exception("Document Type name is required.");
 
-            // Convert office names to IDs
+        if ($action === "create") {
+
+            $name = $_POST["name"] ?? "";
+            $offices = isset($_POST["offices"]) ? json_decode($_POST["offices"], true) : [];
+
+            if (empty($name)) {
+                throw new Exception("Document Type name is required.");
+            }
+
             $officeIds = [];
+
             foreach ($offices as $officeName) {
                 if (isset($officeNameToId[$officeName])) {
                     $officeIds[] = $officeNameToId[$officeName];
@@ -49,17 +74,22 @@ if (isset($_POST['action'])) {
             }
 
             $documentTypeModel->createWithOffices($name, $officeIds, 1);
-            echo json_encode(['success' => true]);
-        } 
-        elseif ($action === 'update') {
-            $id = $_POST['id'] ?? 0;
-            $name = $_POST['name'] ?? '';
-            $offices = isset($_POST['offices']) ? json_decode($_POST['offices'], true) : [];
-            
-            if (empty($id) || empty($name)) throw new Exception("ID and Document Type name are required.");
 
-            // Convert office names to IDs
+            echo json_encode(["success" => true]);
+            exit;
+
+        } elseif ($action === "update") {
+
+            $id = $_POST["id"] ?? 0;
+            $name = $_POST["name"] ?? "";
+            $offices = isset($_POST["offices"]) ? json_decode($_POST["offices"], true) : [];
+
+            if (empty($id) || empty($name)) {
+                throw new Exception("ID and Document Type name are required.");
+            }
+
             $officeIds = [];
+
             foreach ($offices as $officeName) {
                 if (isset($officeNameToId[$officeName])) {
                     $officeIds[] = $officeNameToId[$officeName];
@@ -67,35 +97,54 @@ if (isset($_POST['action'])) {
             }
 
             $documentTypeModel->updateWithOffices($id, $name, $officeIds, 1);
-            echo json_encode(['success' => true]);
-        } 
-        elseif ($action === 'delete') {
-            $id = $_POST['id'] ?? 0;
-            if (empty($id)) throw new Exception("ID is required.");
+
+            echo json_encode(["success" => true]);
+            exit;
+
+        } elseif ($action === "delete") {
+
+            $id = $_POST["id"] ?? 0;
+
+            if (empty($id)) {
+                throw new Exception("ID is required.");
+            }
 
             $documentTypeModel->deleteType($id);
-            echo json_encode(['success' => true]);
-        } 
-        else {
-            echo json_encode(['error' => 'Invalid action']);
+
+            echo json_encode(["success" => true]);
+            exit;
+
+        } else {
+
+            echo json_encode(["error" => "Invalid action"]);
+            exit;
+
         }
+
     } catch (Exception $e) {
-        echo json_encode(['error' => $e->getMessage()]);
+
+        echo json_encode(["error" => $e->getMessage()]);
+        exit;
+
     }
-    exit;
+
 }
 
-// Fetch document types
-$docTypesRaw = $documentTypeModel->getAllWithOffices();
+/*
+|--------------------------------------------------------------------------
+| DATA RETRIEVAL FOR VIEW
+|--------------------------------------------------------------------------
+*/
 
-// The raw results have offices as a comma-separated string 'Office A, Office B'.
-// The view expects $type['offices'] to be an array of names.
+$docTypesRaw = $documentTypeModel->getAllWithOffices();
 $docTypes = [];
+
 foreach ($docTypesRaw as $type) {
     $docTypes[] = [
-        'id' => $type['id'],
-        'name' => $type['name'],
-        'offices' => !empty($type['offices']) ? explode(', ', $type['offices']) : []
+        "id"      => $type["id"],
+        "name"    => $type["name"],
+        "offices" => !empty($type["offices"]) ? explode(", ", $type["offices"]) : []
     ];
 }
+
 ?>

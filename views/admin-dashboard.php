@@ -1,182 +1,781 @@
-<?php require_once '../controllers/AdminDashboardController.php'; ?>
-<!doctype html>
+<?php
+
+require_once "../controllers/AdminDashboardController.php";
+
+?>
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Docuflow - Admin</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <link rel="stylesheet" href="../css/admin-dashboard.css" />
+
+    <meta charset="UTF-8">
+
+    <script>
+        (function () {
+            const theme = localStorage.getItem("docuflow-theme") || localStorage.getItem("theme");
+            if (theme === "dark") {
+                document.documentElement.classList.add("dark-mode");
+                document.documentElement.style.backgroundColor = "#111827";
+            }
+        })();
+    </script>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>DocuFlow - Admin Dashboard</title>
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link
+        rel="stylesheet"
+        href="../css/admin-dashboard.css?v=<?= time() ?>">
+
 </head>
 
 <body class="admin-body">
-  <div class="admin-layout">
-    <main class="admin-main">
-      <header class="admin-header" style="position: sticky; top: 0; z-index: 900;">
+
+<div class="admin-layout">
+
+    <!-- ====================================== -->
+    <!-- NAVIGATION HEADER -->
+    <!-- ====================================== -->
+
+    <header class="admin-header">
+
         <div class="header-left">
-          <a href="admin-dashboard.php" class="logo-area">
-            <span class="web-logo">Docuflow</span>
-          </a>
-          <nav class="header-nav">
-            <a class="header-nav-item" href="admin-document-types.php">Document Types</a>
-            <a class="header-nav-item" href="admin-users.php">Manage Users</a>
-            <a class="header-nav-item" href="admin-offices.php">Manage Offices</a>
-          </nav>
+
+            <a href="admin-dashboard.php"
+               class="logo-area">
+
+                <span class="web-logo">
+                    DocuFlow
+                </span>
+
+            </a>
+
+            <nav class="header-nav">
+
+                <a href="admin-dashboard.php"
+                   class="header-nav-item active">
+
+                    Dashboard
+
+                </a>
+
+                <a href="admin-users.php"
+                   class="header-nav-item">
+
+                    Manage Users
+
+                </a>
+
+                <a href="admin-offices.php"
+                   class="header-nav-item">
+
+                    Manage Offices
+
+                </a>
+
+                <a href="admin-settings.php"
+                   class="header-nav-item">
+
+                    System Settings
+
+                </a>
+
+            </nav>
+
         </div>
 
         <div class="header-right">
-          <div class="user-info">
-            <span class="user-role">Admin</span>
-          </div>
-          <div class="header-actions">
-            <button class="icon-btn toggle-theme" id="themeToggle" aria-label="Toggle dark/light mode">
-              <i class="fas fa-moon"></i>
-            </button>
-            <a href="../controllers/LogoutController.php" class="icon-btn logout-btn" aria-label="Exit / Logout">
-              <i class="fas fa-sign-out-alt"></i>
-            </a>
-          </div>
-        </div>
-      </header>
 
-      <!-- stats and actions -->
-      <section class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-icon"><i class="fas fa-file-alt"></i></span>
-          <span class="stat-number"><?php echo $stats['total_docs']; ?></span>
-          <span class="stat-label">Total Documents</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-icon"><i class="fas fa-users"></i></span>
-          <span class="stat-number"><?php echo $stats['active_users']; ?></span>
-          <span class="stat-label">Active Users</span>
-        </div>
-        <a href="admin-pending-users.php" class="stat-card" style="text-decoration: none; color: inherit; cursor: pointer;">
-          <span class="stat-icon"><i class="fas fa-user-clock"></i></span>
-          <span class="stat-number"><?php echo $stats['pending_users']; ?></span>
-          <span class="stat-label">Pending Users</span>
-        </a>
-        <div class="stat-card">
-          <span class="stat-icon"><i class="fas fa-clock"></i></span>
-          <span class="stat-number"><?php echo $stats['pending_docs']; ?></span>
-          <span class="stat-label">Pending Documents</span>
-        </div>
-      </section>
+            <div class="user-info">
 
-      <!-- main system statistics -->
-      <section class="dashboard-2x2-grid">
-        <div class="admin-preview-panel">
-          <div class="preview-header">
-            <h2 class="section-title">Document Distribution</h2>
-            <p class="preview-description">Breakdown of documents by current status.</p>
-          </div>
-          <div class="admin-preview-content" id="doc-dist-content">
-            <canvas id="dynamicPieChart" style="max-height: 250px;"></canvas>
-            <script>
-              const docDistChartData = <?= $docDistJson ?>;
-            </script>
-          </div>
-        </div>
+                <span class="user-role">
+                    Admin
+                </span>
 
-        <div class="admin-preview-panel">
-          <div class="preview-header">
-            <h2 class="section-title">User Distribution</h2>
-            <p class="preview-description">Percentage of users by role.</p>
-          </div>
-          <div class="admin-preview-content" id="user-dist-content">
-            <div class="preview-layout">
-              <div class="pie-chart" style="background: conic-gradient(<?= $userDistGradient ?>)" aria-label="User Distribution">
-                <span><?= $userDistTotal ?></span>
-              </div>
-              <div class="preview-list">
-                <?php foreach($formattedUserDistRows as $row): ?>
-                  <div class="preview-row">
-                    <span class="preview-swatch" style="background: <?= $row['color'] ?>"></span>
-                    <span><?= htmlspecialchars($row['label']) ?></span>
-                    <strong><?= $row['value'] ?></strong>
-                  </div>
-                <?php endforeach; ?>
-              </div>
             </div>
-          </div>
+
+            <div class="header-actions">
+
+                <button
+                    id="profileBtn"
+                    class="icon-btn"
+                    type="button"
+                    title="My Profile"
+                    onclick="openModal('profileModal')">
+
+                    <i class="fas fa-user-circle"></i>
+
+                </button>
+
+                <button
+                    id="themeToggle"
+                    class="icon-btn toggle-theme"
+                    type="button"
+                    aria-label="Toggle dark/light mode"
+                    title="Toggle theme">
+
+                    <i class="fas fa-moon"></i>
+
+                </button>
+
+                <a
+                    href="../controllers/LogoutController.php"
+                    class="icon-btn logout-btn"
+                    aria-label="Exit / Logout"
+                    title="Logout">
+
+                    <i class="fas fa-sign-out-alt"></i>
+
+                </a>
+
+            </div>
+
         </div>
 
-        <div class="admin-preview-panel">
-          <div class="preview-header">
-            <h2 class="section-title">Office Directory</h2>
-            <p class="preview-description">Registered offices and assigned document load.</p>
-          </div>
-          <div class="admin-preview-content" id="offices-content" style="max-height: 250px; overflow-y: auto;">
-            <div class="office-grid">
-              <?php foreach($officeDirectory as $office): ?>
-                <div class="office-card">
-                  <strong><?= htmlspecialchars($office['name']) ?></strong>
-                  <span><?= htmlspecialchars($office['detail']) ?></span>
+    </header>
+
+    <main class="admin-main">
+
+        <!-- ====================================== -->
+        <!-- KPI CARDS GRID -->
+        <!-- ====================================== -->
+
+        <section class="dashboard-row kpi-grid">
+
+            <div class="kpi-card">
+
+                <div class="kpi-header">
+
+                    <span class="kpi-badge badge-warning-subtle">
+                        Pending
+                    </span>
+
                 </div>
-              <?php endforeach; ?>
-            </div>
-          </div>
-        </div>
 
-        <div class="admin-preview-panel">
-          <div class="preview-header">
-            <h2 class="section-title">Pending Documents</h2>
-            <p class="preview-description">Documents waiting for action across offices.</p>
-          </div>
-          <div class="admin-preview-content" id="pending-content" style="max-height: 250px; overflow-y: auto;">
-            <div class="pending-list">
-              <?php foreach($pendingDocsList as $doc): ?>
-                <div class="pending-card">
-                  <div>
-                    <strong><?= htmlspecialchars($doc['title']) ?></strong>
-                    <span><?= htmlspecialchars($doc['id']) ?> - <?= htmlspecialchars($doc['office']) ?></span>
-                  </div>
-                  <span class="pending-status">Pending</span>
+                <div class="kpi-body">
+
+                    <span
+                        id="kpi-pending-actions"
+                        class="kpi-value">
+
+                        <?= number_format($kpi_data["pending_actions"]) ?>
+
+                    </span>
+
+                    <span class="kpi-label">
+                        Pending Actions
+                    </span>
+
                 </div>
-              <?php endforeach; ?>
+
             </div>
-          </div>
-        </div>
-        <a class="report-card" href="admin-chart-bottlenecks.php">
-          <div class="report-card-header">
-            <strong>Office Bottlenecks</strong>
-            <span><?php echo htmlspecialchars($stats['bottleneck_text']); ?></span>
-          </div>
-          <div class="report-chart-container">
-            <canvas id="miniBottleneckChart"></canvas>
-          </div>
-        </a>
-        <a class="report-card" href="admin-chart-trends.php">
-          <div class="report-card-header">
-            <strong>Volume Trends</strong>
-            <span><?php echo htmlspecialchars($stats['trend_text']); ?></span>
-          </div>
-          <div class="report-chart-container">
-            <canvas id="miniTrendsChart"></canvas>
-          </div>
-        </a>
-        <a class="report-card" href="admin-chart-types.php">
-          <div class="report-card-header">
-            <strong>Doc Types</strong>
-            <span><?php echo htmlspecialchars($stats['types_text']); ?></span>
-          </div>
-          <div class="report-chart-container">
-            <canvas id="miniTypesChart"></canvas>
-          </div>
-        </a>
-      </section>
+
+            <div class="kpi-card">
+
+                <div class="kpi-header">
+
+                    <span class="kpi-badge badge-danger-subtle">
+                        Delayed
+                    </span>
+
+                </div>
+
+                <div class="kpi-body">
+
+                    <span
+                        id="kpi-stalled-docs"
+                        class="kpi-value">
+
+                        <?= number_format($kpi_data["stalled_docs"]) ?>
+
+                    </span>
+
+                    <span class="kpi-label">
+                        Stalled Documents
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="kpi-card">
+
+                <div class="kpi-header">
+
+                    <span class="kpi-badge badge-success-subtle">
+                        Active
+                    </span>
+
+                </div>
+
+                <div class="kpi-body">
+
+                    <span class="kpi-value">
+
+                        <?= number_format($kpi_data["active_users"]) ?>
+
+                    </span>
+
+                    <span class="kpi-label">
+                        Active Users
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="kpi-card">
+
+                <div class="kpi-header">
+
+                    <span class="kpi-badge badge-info-subtle">
+                        Total
+                    </span>
+
+                </div>
+
+                <div class="kpi-body">
+
+                    <span class="kpi-value">
+
+                        <?= number_format($kpi_data["total_docs"]) ?>
+
+                    </span>
+
+                    <span class="kpi-label">
+                        Total Documents
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ====================================== -->
+        <!-- ACTION CENTERS GRID -->
+        <!-- ====================================== -->
+
+        <section class="dashboard-row action-centers-grid">
+
+            <!-- Pending Registrations Panel -->
+            <div class="card action-card-panel">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h2 class="card-title">
+                            Pending Registrations
+                        </h2>
+
+                        <p class="card-subtitle">
+                            Review and authorize new user registration requests
+                        </p>
+
+                    </div>
+
+                    <span
+                        id="pending-users-count"
+                        class="count-pill">
+
+                        <?= count($pending_users) ?>
+
+                    </span>
+
+                </div>
+
+                <div
+                    id="pending-users-list"
+                    class="card-content">
+
+                    <?php if (!empty($pending_users)): ?>
+
+                        <?php foreach ($pending_users as $user): ?>
+
+                            <div
+                                class="user-row"
+                                data-id="<?= $user["id"] ?>">
+
+                                <div class="user-details">
+
+                                    <strong class="user-name">
+                                        <?= htmlspecialchars($user["name"]) ?>
+                                    </strong>
+
+                                    <span class="user-email">
+                                        <?= htmlspecialchars($user["email"]) ?>
+                                    </span>
+
+                                    <div class="user-tags">
+
+                                        <span class="tag tag-role">
+                                            <?= htmlspecialchars($user["role"]) ?>
+                                        </span>
+
+                                        <span class="tag tag-office">
+                                            <?= htmlspecialchars($user["office"]) ?>
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="user-actions">
+
+                                    <button
+                                        type="button"
+                                        class="btn-action btn-approve"
+                                        data-id="<?= $user["id"] ?>"
+                                        title="Approve Registration">
+
+                                        Approve
+
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn-action btn-reject"
+                                        data-id="<?= $user["id"] ?>"
+                                        title="Reject Registration">
+
+                                        Reject
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <div class="empty-state-success">
+
+                            <p>No pending registrations.</p>
+
+                        </div>
+
+                    <?php endif; ?>
+
+                </div>
+
+            </div>
+
+            <!-- Stalled Documents Panel -->
+            <div class="card action-card-panel">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h2 class="card-title">
+                            Stalled Documents
+                        </h2>
+
+                        <p class="card-subtitle">
+                            Documents delayed in routing for more than 48 hours
+                        </p>
+
+                    </div>
+
+                    <span class="count-pill pill-danger">
+                        <?= count($stalled_docs) ?>
+                    </span>
+
+                </div>
+
+                <div class="card-content">
+
+                    <?php if (!empty($stalled_docs)): ?>
+
+                        <div class="stalled-list">
+
+                            <?php foreach ($stalled_docs as $doc): ?>
+
+                                <div class="stalled-row">
+
+                                    <div class="stalled-details">
+
+                                        <strong class="stalled-title">
+                                            <?= htmlspecialchars($doc["title"]) ?>
+                                        </strong>
+
+                                        <span class="stalled-office">
+                                            Current: <?= htmlspecialchars($doc["current_office"]) ?>
+                                        </span>
+
+                                    </div>
+
+                                    <span class="warning-badge">
+
+                                        <?= (int) $doc["days_stalled"] ?> days stalled
+
+                                    </span>
+
+                                </div>
+
+                            <?php endforeach; ?>
+
+                        </div>
+
+                    <?php else: ?>
+
+                        <div class="empty-state-success">
+
+                            <p>No stalled documents.</p>
+
+                        </div>
+
+                    <?php endif; ?>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ====================================== -->
+        <!-- ANALYTICS GRID -->
+        <!-- ====================================== -->
+
+        <section class="dashboard-row analytics-grid">
+
+            <!-- Office Bottlenecks Card -->
+            <div class="card analytics-card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h2 class="card-title">
+                            Office Bottlenecks
+                        </h2>
+
+                        <p class="card-subtitle">
+                            Pending document workload distribution by office
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="card-content">
+
+                    <div class="chart-canvas-container">
+
+                        <canvas id="bottlenecksChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Processing Volume Card -->
+            <div class="card analytics-card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h2 class="card-title">
+                            Processing Volume
+                        </h2>
+
+                        <p class="card-subtitle">
+                            30-day trend of document creation and routing throughput
+                        </p>
+
+                    </div>
+
+                    <span class="trend-summary-pill">
+                        <?= number_format($total_30_days) ?> Total (30d)
+                    </span>
+
+                </div>
+
+                <div class="card-content">
+
+                    <div class="chart-canvas-container">
+
+                        <canvas id="volumeChart"></canvas>
+
+                    </div>
+
+                    <div class="trend-stats-row">
+
+                        <div class="trend-stat-box">
+
+                            <span class="trend-stat-num">
+                                <?= number_format($total_30_days) ?>
+                            </span>
+
+                            <span class="trend-stat-lbl">
+                                30-Day Volume
+                            </span>
+
+                        </div>
+
+                        <div class="trend-stat-box">
+
+                            <span class="trend-stat-num">
+                                <?= number_format($max_daily) ?>
+                            </span>
+
+                            <span class="trend-stat-lbl">
+                                Daily Peak
+                            </span>
+
+                        </div>
+
+                        <div class="trend-stat-box">
+
+                            <span class="trend-stat-num">
+                                <?= round($total_30_days / 30, 1) ?>
+                            </span>
+
+                            <span class="trend-stat-lbl">
+                                Avg / Day
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Average Office Turnaround Time Card -->
+            <div class="card analytics-card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h2 class="card-title">
+                            Average Office Turnaround Time
+                        </h2>
+
+                        <p class="card-subtitle">
+                            Average document processing duration per office (in hours)
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="card-content">
+
+                    <div class="chart-canvas-container">
+
+                        <canvas id="avgTimeChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Document Breakdown by Type Card -->
+            <div class="card analytics-card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h2 class="card-title">
+                            Document Breakdown by Type
+                        </h2>
+
+                        <p class="card-subtitle">
+                            Volume of active and processed documents per category
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="card-content">
+
+                    <div class="chart-canvas-container chart-doughnut-container">
+
+                        <canvas id="typesChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Document Status Distribution Card -->
+            <div class="card analytics-card full-width-analytics">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h2 class="card-title">
+                            Document Status Distribution
+                        </h2>
+
+                        <p class="card-subtitle">
+                            Breakdown of documents by current lifecycle status
+                        </p>
+
+                    </div>
+
+                    <span class="count-pill">
+                        <?= number_format($total_status_docs) ?> Total Documents
+                    </span>
+
+                </div>
+
+                <div class="card-content">
+
+                    <div class="chart-canvas-container chart-doughnut-container">
+
+                        <canvas id="statusChart"></canvas>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
 
     </main>
-  </div>
 
-  <script>
-    const bottleneckChartData = <?= $bottleneckChartJson ?>;
-    const trendsChartData = <?= $trendsChartJson ?>;
-    const typesChartData = <?= $typesChartJson ?>;
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../js/admin-dashboard.js?v=<?= time() ?>"></script>
+</div>
+
+<!-- ====================================== -->
+<!-- MY PROFILE MODAL -->
+<!-- ====================================== -->
+
+<div
+    id="profileModal"
+    class="modal-overlay">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h3
+                class="card-title"
+                style="margin:0;">
+
+                My Profile
+
+            </h3>
+
+            <button
+                class="close-btn icon-btn"
+                type="button"
+                onclick="closeModal('profileModal')">
+
+                <i class="fas fa-times"></i>
+
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <div style="display: grid; gap: 12px;">
+
+                <div class="admin-field">
+
+                    <span>Name</span>
+
+                    <div id="profileName" style="padding: 8px 12px; background: var(--gray-100); border-radius: var(--radius-sm); font-weight: 500;">
+                        Administrator
+                    </div>
+
+                </div>
+
+                <div class="admin-field">
+
+                    <span>Email</span>
+
+                    <div id="profileEmail" style="padding: 8px 12px; background: var(--gray-100); border-radius: var(--radius-sm); font-weight: 500;">
+                        admin@docuflow.com
+                    </div>
+
+                </div>
+
+                <div class="admin-field">
+
+                    <span>Office</span>
+
+                    <div id="profileOffice" style="padding: 8px 12px; background: var(--gray-100); border-radius: var(--radius-sm); font-weight: 500;">
+                        System Administration
+                    </div>
+
+                </div>
+
+                <div class="admin-field">
+
+                    <span>Role</span>
+
+                    <div id="profileRole" style="padding: 8px 12px; background: var(--gray-100); border-radius: var(--radius-sm); font-weight: 500;">
+                        Administrator
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div
+            class="modal-footer"
+            style="display: flex; justify-content: flex-end; margin-top: 16px;">
+
+            <button
+                class="btn-small cancel-btn"
+                type="button"
+                onclick="closeModal('profileModal')">
+
+                Close
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- JAVASCRIPT LIBRARIES & SCRIPTS -->
+<!-- ====================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    window.docuflowCharts = {
+        bottlenecks: <?= $bottlenecksChartJson ?>,
+        volume: <?= $volumeChartJson ?>,
+        status: <?= $statusChartJson ?>,
+        avgTime: <?= $avgTimeChartJson ?>,
+        types: <?= $typesChartJson ?>
+    };
+</script>
+
+<script src="../js/admin-dashboard.js?v=<?= time() ?>"></script>
+
 </body>
 
 </html>

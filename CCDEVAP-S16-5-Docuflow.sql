@@ -330,7 +330,21 @@ SELECT
   `u`.`full_name` AS `secretary_name`,
   `u`.`email` AS `secretary_email`
 FROM `office_secretaries` `os`
-JOIN `offices` `o` ON `os`.`office_id` = `o`.`office_id`
 JOIN `users` `u` ON `os`.`secretary_user_id` = `u`.`user_id`;
 
+--
+-- Table structure for table `system_settings`
+--
+DROP TABLE IF EXISTS `system_settings`;
+CREATE TABLE IF NOT EXISTS `system_settings` (
+  `setting_key` VARCHAR(100) NOT NULL PRIMARY KEY,
+  `setting_value` VARCHAR(255) NOT NULL,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
+('require_admin_approval', '1');
+
 SET FOREIGN_KEY_CHECKS = 1;
+
+
