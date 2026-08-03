@@ -411,7 +411,7 @@ require_once "../controllers/SecretaryDashboardController.php";
                             </td>
 
                             <td>
-                                <?= htmlspecialchars(date("M d, Y h:i A", strtotime($doc["created_at"]))) ?>
+                                <?= htmlspecialchars(!empty($doc["created_at"]) ? date("M d, Y h:i A", strtotime($doc["created_at"])) : "N/A") ?>
                             </td>
 
                             <td>

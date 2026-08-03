@@ -22,6 +22,8 @@ class Document
                    d.title,
                    d.status,
                    d.file_path,
+                   d.created_at,
+                   d.updated_at,
                    dt.type_name,
                    u.full_name AS creator_name,
                    o.office_name AS current_office_name,

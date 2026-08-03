@@ -521,7 +521,7 @@ require_once "../controllers/MemberDashboardController.php";
 
                         <td>
 
-                            <?= date("M d, Y h:i A", strtotime($row["created_at"])) ?>
+                            <?= !empty($row["created_at"]) ? date("M d, Y h:i A", strtotime($row["created_at"])) : "N/A" ?>
 
                         </td>
 
