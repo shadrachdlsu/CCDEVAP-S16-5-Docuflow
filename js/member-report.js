@@ -165,8 +165,19 @@ function createStatusBadge(status) {
     return `<span class="status-badge status-${css}">${escapeHtml(status)}</span>`;
 }
 
+function formatFilePath(filePath) {
+    if (!filePath) return "#";
+    let cleanPath = String(filePath).trim();
+    cleanPath = cleanPath.replace(/^\/?CCDEVAP-MP1\//i, "");
+    cleanPath = cleanPath.replace(/^\/+/, "");
+    if (cleanPath.startsWith("pdfs/") || cleanPath.startsWith("uploads/")) {
+        return "../" + cleanPath;
+    }
+    return cleanPath;
+}
+
 function createActionButtons(item) {
-    const safePath = encodeURI(item.file_path || "#");
+    const safePath = encodeURI(formatFilePath(item.file_path));
     return `
         <div class="action-buttons">
             <button class="btn-small previewBtn" type="button"
@@ -294,10 +305,11 @@ function filterReports() {
 function previewDocument(documentId) {
     const item = reportData.find(row => Number(row.document_id) === Number(documentId));
     if (!item || !item.file_path) return;
+    const safePath = formatFilePath(item.file_path);
     const iframe = document.getElementById("previewFrame");
     const download = document.getElementById("downloadDocument");
-    if (iframe) iframe.src = item.file_path;
-    if (download) download.href = item.file_path;
+    if (iframe) iframe.src = safePath;
+    if (download) download.href = safePath;
     openModal("previewModal");
 }
 

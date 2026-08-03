@@ -128,7 +128,11 @@ $(document).ready(function () {
     $(document).on("click", ".btn-view", function () {
         const file = $(this).data("file");
         if (file) {
-            window.open(file, "_blank");
+            let clean = String(file).trim().replace(/^\/?CCDEVAP-MP1\//i, "").replace(/^\/+/, "");
+            if (clean.startsWith("pdfs/") || clean.startsWith("uploads/")) {
+                clean = "../" + clean;
+            }
+            window.open(clean, "_blank");
         }
     });
 

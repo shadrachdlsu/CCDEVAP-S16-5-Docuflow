@@ -236,7 +236,7 @@ function initializeEvents()
         previewBtn.addEventListener("click", function()
         {
             const file =
-                this.dataset.file;
+                formatFilePath(this.dataset.file);
 
             document.getElementById("previewFrame").src = file;
             document.getElementById("downloadPreview").href = file;
@@ -387,11 +387,40 @@ function createStatusBadge(status)
 }
 
 /* ==========================================
+/* ==========================================
+   FORMAT FILE PATH
+========================================== */
+
+function formatFilePath(filePath)
+{
+    if (!filePath)
+    {
+        return "#";
+    }
+
+    let cleanPath = String(filePath).trim();
+
+    cleanPath = cleanPath.replace(/^\/?CCDEVAP-MP1\//i, "");
+    cleanPath = cleanPath.replace(/^\/+/, "");
+
+    if (
+        cleanPath.startsWith("pdfs/") ||
+        cleanPath.startsWith("uploads/")
+    ) {
+        return "../" + cleanPath;
+    }
+
+    return cleanPath;
+}
+
+/* ==========================================
    ACTION BUTTONS
 ========================================== */
 
 function createActionButtons(document)
 {
+    let filePath = formatFilePath(document.file_path);
+
     let buttons = `
         <div class="action-buttons">
 
@@ -403,7 +432,7 @@ function createActionButtons(document)
             </button>
 
             <a
-                href="${document.file_path}"
+                href="${filePath}"
                 class="btn-small action-btn"
                 download
                 title="Download"
@@ -472,11 +501,11 @@ function previewDocument(documentId)
         return;
     }
 
-    document.getElementById("previewFrame").src =
-        currentDocument.file_path;
+    const filePath = formatFilePath(currentDocument.file_path);
 
-    document.getElementById("downloadPreview").href =
-        currentDocument.file_path;
+    document.getElementById("previewFrame").src = filePath;
+
+    document.getElementById("downloadPreview").href = filePath;
 
     openModal("previewModal");
 }

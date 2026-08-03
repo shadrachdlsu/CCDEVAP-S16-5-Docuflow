@@ -56,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $destination = $uploadDir . $filename;
 
         if (move_uploaded_file($_FILES["document_file"]["tmp_name"], $destination)) {
-            $filePath = "/uploads/" . $filename;
+            $filePath = "uploads/" . $filename;
         } else {
             $_SESSION["error"] = "File upload failed.";
             header("Location: ../views/secretary-dashboard.php");

@@ -369,6 +369,24 @@ require_once "../controllers/MemberDashboardController.php";
 
                     <?php foreach($documents as $doc): ?>
 
+                    <?php
+                        $formattedPath = "#";
+
+                        if(!empty($doc["file_path"]))
+                        {
+                            $cleanPath = ltrim(preg_replace('#^/?CCDEVAP-MP1/#i', '', $doc["file_path"]), '/');
+
+                            if(str_starts_with($cleanPath, 'pdfs/') || str_starts_with($cleanPath, 'uploads/'))
+                            {
+                                $formattedPath = '../' . $cleanPath;
+                            }
+                            else
+                            {
+                                $formattedPath = $cleanPath;
+                            }
+                        }
+                    ?>
+
                     <tr>
 
                         <td>
@@ -412,7 +430,9 @@ require_once "../controllers/MemberDashboardController.php";
                                 <button
                                     class="btn-small previewBtn"
                                     type="button"
-                                    data-file="<?= htmlspecialchars($doc["file_path"]) ?>">
+                                    onclick="previewDocument(<?= $doc["document_id"] ?>)"
+                                    data-file="<?= htmlspecialchars($formattedPath) ?>"
+                                    title="Preview">
 
                                     Preview
 
@@ -420,8 +440,9 @@ require_once "../controllers/MemberDashboardController.php";
 
                                 <a
                                     class="btn-small action-btn"
-                                    href="<?= htmlspecialchars($doc["file_path"]) ?>"
+                                    href="<?= htmlspecialchars($formattedPath) ?>"
                                     download
+                                    title="Download"
                                     style="text-decoration: none;">
 
                                     Download
