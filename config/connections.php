@@ -3,7 +3,7 @@
 $host = 'localhost';
 $dbname = 'docuflow_db';
 $username = 'root';
-$password = '';     // leave empty unless configured
+$password = 'admin';     // leave empty unless configured
 
 try {
     $dsn = "mysql:host=$host;dbname=$dbname;charset=utf8mb4";

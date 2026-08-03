@@ -99,10 +99,191 @@ class User
         }
     }
 
+    public function approveUser(int $user_id): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE users 
+            SET is_active = 1, registration_status = 'Approved' 
+            WHERE user_id = :id
+        ");
+        $stmt->execute([':id' => $user_id]);
+    }
+
+    public function deactivateUser(int $user_id): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE users 
+            SET is_active = 0, registration_status = 'Pending' 
+            WHERE user_id = :id
+        ");
+        $stmt->execute([':id' => $user_id]);
+    }
+
+    public function bulkApprove(array $user_ids): void
+    {
+        if (empty($user_ids)) return;
+        $in = implode(',', array_fill(0, count($user_ids), '?'));
+        $stmt = $this->pdo->prepare("
+            UPDATE users 
+            SET is_active = 1, registration_status = 'Approved' 
+            WHERE user_id IN ($in)
+        ");
+        $stmt->execute(array_values($user_ids));
+    }
+
+    public function bulkUpdateStatus(array $user_ids, string $status): void
+    {
+        if (empty($user_ids)) return;
+        $isActive = ($status === 'Active') ? 1 : 0;
+        $regStatus = ($status === 'Active') ? 'Approved' : 'Pending';
+        $in = implode(',', array_fill(0, count($user_ids), '?'));
+        $params = array_merge([$isActive, $regStatus], array_values($user_ids));
+        $stmt = $this->pdo->prepare("
+            UPDATE users 
+            SET is_active = ?, registration_status = ? 
+            WHERE user_id IN ($in)
+        ");
+        $stmt->execute($params);
+    }
+
+    public function bulkReassignOffice(array $user_ids, ?int $office_id): void
+    {
+        if (empty($user_ids)) return;
+        $in = implode(',', array_fill(0, count($user_ids), '?'));
+        $params = array_merge([$office_id], array_values($user_ids));
+        $stmt = $this->pdo->prepare("
+            UPDATE users 
+            SET office_id = ? 
+            WHERE user_id IN ($in)
+        ");
+        $stmt->execute($params);
+    }
+
     public function delete(int $user_id): void
     {
         $stmt = $this->pdo->prepare("DELETE FROM users WHERE user_id = :id");
         $stmt->execute([':id' => $user_id]);
+    }
+
+    public function getActiveWorkflowsCount(int $user_id): array
+    {
+        $stmtAssigned = $this->pdo->prepare("SELECT COUNT(*) FROM document_assignments WHERE assigned_to_user_id = ? AND status = 'Pending'");
+        $stmtAssigned->execute([$user_id]);
+        $assignmentsCount = (int)$stmtAssigned->fetchColumn();
+
+        $stmtRoutes = $this->pdo->prepare("SELECT COUNT(*) FROM document_routes WHERE signatory_user_id = ? AND status IN ('Waiting', 'Received', 'For Signature')");
+        $stmtRoutes->execute([$user_id]);
+        $routesCount = (int)$stmtRoutes->fetchColumn();
+
+        $stmtSecretary = $this->pdo->prepare("SELECT COUNT(*) FROM office_secretaries WHERE secretary_user_id = ?");
+        $stmtSecretary->execute([$user_id]);
+        $secretaryCount = (int)$stmtSecretary->fetchColumn();
+
+        $stmtCreated = $this->pdo->prepare("SELECT COUNT(*) FROM documents WHERE creator_id = ? AND status NOT IN ('Completed', 'Rejected', 'Recalled')");
+        $stmtCreated->execute([$user_id]);
+        $createdCount = (int)$stmtCreated->fetchColumn();
+
+        $total = $assignmentsCount + $routesCount + $secretaryCount + $createdCount;
+
+        return [
+            'total' => $total,
+            'assignments' => $assignmentsCount,
+            'routes' => $routesCount,
+            'secretary' => $secretaryCount,
+            'created' => $createdCount
+        ];
+    }
+
+    public function reassignUserWorkflows(int $from_user_id, int $to_user_id): void
+    {
+        $stmtAssigned = $this->pdo->prepare("UPDATE document_assignments SET assigned_to_user_id = ? WHERE assigned_to_user_id = ? AND status = 'Pending'");
+        $stmtAssigned->execute([$to_user_id, $from_user_id]);
+
+        $stmtRoutes = $this->pdo->prepare("UPDATE document_routes SET signatory_user_id = ? WHERE signatory_user_id = ? AND status IN ('Waiting', 'Received', 'For Signature')");
+        $stmtRoutes->execute([$to_user_id, $from_user_id]);
+
+        $stmtSecretary = $this->pdo->prepare("UPDATE office_secretaries SET secretary_user_id = ? WHERE secretary_user_id = ?");
+        $stmtSecretary->execute([$to_user_id, $from_user_id]);
+
+        $stmtCreated = $this->pdo->prepare("UPDATE documents SET creator_id = ? WHERE creator_id = ? AND status NOT IN ('Completed', 'Rejected', 'Recalled')");
+        $stmtCreated->execute([$to_user_id, $from_user_id]);
+    }
+
+    public function resetPassword(int $user_id, string $new_password): void
+    {
+        $password_hash = password_hash($new_password, PASSWORD_DEFAULT);
+        $stmt = $this->pdo->prepare("UPDATE users SET password_hash = :hash WHERE user_id = :id");
+        $stmt->execute([':hash' => $password_hash, ':id' => $user_id]);
+    }
+
+    public function getUserProfileAndActivity(int $user_id): ?array
+    {
+        $stmtUser = $this->pdo->prepare("
+            SELECT 
+                u.user_id,
+                u.full_name,
+                u.email,
+                u.is_active,
+                u.registration_status,
+                u.created_at,
+                r.role_name,
+                o.office_name
+            FROM users u
+            JOIN roles r ON u.role_id = r.role_id
+            LEFT JOIN offices o ON u.office_id = o.office_id
+            WHERE u.user_id = ?
+            LIMIT 1
+        ");
+        $stmtUser->execute([$user_id]);
+        $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) return null;
+
+        $workflows = $this->getActiveWorkflowsCount($user_id);
+
+        $stmtTotalCreated = $this->pdo->prepare("SELECT COUNT(*) FROM documents WHERE creator_id = ?");
+        $stmtTotalCreated->execute([$user_id]);
+        $totalCreatedCount = (int)$stmtTotalCreated->fetchColumn();
+
+        $stmtCreatedDocs = $this->pdo->prepare("
+            SELECT document_id, tracking_code, title, status, created_at
+            FROM documents
+            WHERE creator_id = ?
+            ORDER BY created_at DESC
+            LIMIT 10
+        ");
+        $stmtCreatedDocs->execute([$user_id]);
+        $recentCreated = $stmtCreatedDocs->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmtAssignments = $this->pdo->prepare("
+            SELECT da.assignment_id, da.status as assignment_status, da.assigned_at, d.tracking_code, d.title
+            FROM document_assignments da
+            JOIN documents d ON da.document_id = d.document_id
+            WHERE da.assigned_to_user_id = ?
+            ORDER BY da.assigned_at DESC
+            LIMIT 10
+        ");
+        $stmtAssignments->execute([$user_id]);
+        $recentAssignments = $stmtAssignments->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'profile' => [
+                'id' => $user['user_id'],
+                'name' => $user['full_name'],
+                'email' => $user['email'],
+                'role' => $user['role_name'],
+                'office' => $user['office_name'] ?? 'Unassigned',
+                'status' => $user['is_active'] == 1 ? 'Active' : 'Inactive',
+                'created_at' => date('M d, Y', strtotime($user['created_at']))
+            ],
+            'stats' => [
+                'total_created' => $totalCreatedCount,
+                'pending_assignments' => $workflows['assignments'],
+                'routes' => $workflows['routes']
+            ],
+            'created_documents' => $recentCreated,
+            'recent_assignments' => $recentAssignments
+        ];
     }
 
     public function getAllWithRolesAndOffices(): array
@@ -183,6 +364,11 @@ class User
     public function countActiveUsers(): int
     {
         return (int)$this->pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 1")->fetchColumn();
+    }
+
+    public function countPendingUsers(): int
+    {
+        return (int)$this->pdo->query("SELECT COUNT(*) FROM users WHERE registration_status = 'Pending'")->fetchColumn();
     }
 
     /**

@@ -57,6 +57,30 @@ let paperTrailTable = null;
 let reportChart = null;
 
 /* ==========================================
+   MODAL CONTROLLERS
+========================================== */
+
+window.openModal = function (modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add("active");
+    }
+};
+
+window.closeModal = function (modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove("active");
+    }
+};
+
+document.addEventListener("click", function (e) {
+    if (e.target.classList.contains("modal-overlay")) {
+        e.target.classList.remove("active");
+    }
+});
+
+/* ==========================================
    PAGE LOAD
 ========================================== */
 
@@ -71,8 +95,6 @@ document.addEventListener(
 
 async function initializeDashboard()
 {
-
-    // Your other initialization functions
     initializeTables();
     initializeEvents();
 
@@ -81,9 +103,9 @@ async function initializeDashboard()
     await loadPaperTrail();
     await loadProfile();
 
-    await loadStatistics();
     loadChart();
 }
+
 /* ==========================================
    INITIALIZE DATATABLES
 ========================================== */
@@ -199,17 +221,56 @@ function initializeEvents()
 
         deleteRequest(button.dataset.id);
     });
+
+    const previewBtn =
+        document.querySelector(".previewBtn");
+
+    const signBtn =
+        document.querySelector(".signBtn");
+
+    const rejectBtn =
+        document.querySelector(".rejectBtn");
+
+    if(previewBtn)
+    {
+        previewBtn.addEventListener("click", function()
+        {
+            const file =
+                formatFilePath(this.dataset.file);
+
+            document.getElementById("previewFrame").src = file;
+            document.getElementById("downloadPreview").href = file;
+
+            openModal("previewModal");
+        });
+    }
+
+    if(signBtn)
+    {
+        signBtn.addEventListener("click", function()
+        {
+            openSignModal(this.dataset.id);
+        });
+    }
+
+    if(rejectBtn)
+    {
+        rejectBtn.addEventListener("click", function()
+        {
+            openRejectModal(this.dataset.id);
+        });
+    }
 }
 
 /* ==========================================
-   LOAD DASHBOARD STATISTICS
+   LOAD STATISTICS
 ========================================== */
 
 async function loadStatistics()
 {
     let response = null;
 
-    let data = null;
+    let statistics = null;
 
     try
     {
@@ -218,39 +279,35 @@ async function loadStatistics()
 
         if(!response.ok)
         {
-            throw new Error(
-                "Unable to load dashboard statistics."
-            );
+            throw new Error("Unable to load statistics.");
         }
 
-        data =
+        statistics =
             await response.json();
 
         document.getElementById("pending-count").textContent =
-            data.pending;
+            statistics.pending ?? 0;
 
         document.getElementById("signed-count").textContent =
-            data.signed;
+            statistics.signed ?? 0;
 
         document.getElementById("finished-count").textContent =
-            data.finished;
+            statistics.finished ?? 0;
 
         document.getElementById("request-count").textContent =
-            data.requests;
+            statistics.requests ?? 0;
     }
 
     catch(error)
     {
         console.error(error);
 
-        alert(
-            "Unable to load dashboard statistics."
-        );
+        alert("Unable to load statistics.");
     }
 }
 
 /* ==========================================
-   LOAD MEMBER DOCUMENTS
+   LOAD DOCUMENTS
 ========================================== */
 
 async function loadDocuments()
@@ -264,9 +321,7 @@ async function loadDocuments()
 
         if(!response.ok)
         {
-            throw new Error(
-                "Unable to load documents."
-            );
+            throw new Error("Unable to load documents.");
         }
 
         documents =
@@ -274,25 +329,21 @@ async function loadDocuments()
 
         documentTable.clear();
 
-        documents.forEach(function(document)
+        documents.forEach(function(doc)
         {
             documentTable.row.add(
             [
-                document.tracking_code,
+                doc.tracking_code,
 
-                document.title,
+                doc.title,
 
-                document.type_name,
+                doc.type_name,
 
-                document.office_name,
+                doc.office_name,
 
-                createStatusBadge(
-                    document.status
-                ),
+                createStatusBadge(doc.status),
 
-                createActionButtons(
-                    document
-                )
+                createActionButtons(doc)
             ]);
         });
 
@@ -303,14 +354,12 @@ async function loadDocuments()
     {
         console.error(error);
 
-        alert(
-            "Unable to load documents."
-        );
+        alert("Unable to load documents.");
     }
 }
 
 /* ==========================================
-   STATUS BADGE
+   STATUS BADGE CREATOR
 ========================================== */
 
 function createStatusBadge(status)
@@ -333,8 +382,35 @@ function createStatusBadge(status)
             return '<span class="status-badge status-rejected">Rejected</span>';
 
         default:
-            return `<span class="badge bg-secondary">${status ?? "Unknown"}</span>`;
+            return `<span class="status-badge status-pending">${status ?? "Unknown"}</span>`;
     }
+}
+
+/* ==========================================
+/* ==========================================
+   FORMAT FILE PATH
+========================================== */
+
+function formatFilePath(filePath)
+{
+    if (!filePath)
+    {
+        return "#";
+    }
+
+    let cleanPath = String(filePath).trim();
+
+    cleanPath = cleanPath.replace(/^\/?CCDEVAP-MP1\//i, "");
+    cleanPath = cleanPath.replace(/^\/+/, "");
+
+    if (
+        cleanPath.startsWith("pdfs/") ||
+        cleanPath.startsWith("uploads/")
+    ) {
+        return "../" + cleanPath;
+    }
+
+    return cleanPath;
 }
 
 /* ==========================================
@@ -343,22 +419,25 @@ function createStatusBadge(status)
 
 function createActionButtons(document)
 {
+    let filePath = formatFilePath(document.file_path);
+
     let buttons = `
-        <div class="d-flex gap-2 justify-content-center">
+        <div class="action-buttons">
 
             <button
-                class="btn btn-primary btn-sm"
+                class="btn-small previewBtn"
                 onclick="previewDocument(${document.document_id})"
                 title="Preview">
-                <i class="fas fa-eye"></i>
+                Preview
             </button>
 
             <a
-                href="${document.file_path}"
-                class="btn btn-secondary btn-sm"
+                href="${filePath}"
+                class="btn-small action-btn"
                 download
-                title="Download">
-                <i class="fas fa-download"></i>
+                title="Download"
+                style="text-decoration: none;">
+                Download
             </a>
     `;
 
@@ -369,24 +448,24 @@ function createActionButtons(document)
 
         buttons += `
             <button
-                class="btn btn-success btn-sm"
+                class="btn-small signBtn"
                 onclick="openSignModal(${document.document_id})"
                 title="Sign">
-                <i class="fas fa-signature"></i>
+                Sign
             </button>
 
             <button
-                class="btn btn-danger btn-sm"
+                class="btn-small rejectBtn"
                 onclick="openRejectModal(${document.document_id})"
                 title="Reject">
-                <i class="fas fa-times"></i>
+                Reject
             </button>
 
             <button
-                class="btn btn-warning btn-sm"
+                class="btn-small action-btn"
                 onclick="openUploadModal(${document.document_id})"
                 title="Upload Signed">
-                <i class="fas fa-upload"></i>
+                Upload
             </button>
         `;
     }
@@ -422,20 +501,16 @@ function previewDocument(documentId)
         return;
     }
 
-    document.getElementById("previewFrame").src =
-        currentDocument.file_path;
+    const filePath = formatFilePath(currentDocument.file_path);
 
-    document.getElementById("downloadPreview").href =
-        currentDocument.file_path;
+    document.getElementById("previewFrame").src = filePath;
 
-    const modal = new bootstrap.Modal(
-        document.getElementById("previewModal")
-    );
+    document.getElementById("downloadPreview").href = filePath;
 
-    modal.show();
+    openModal("previewModal");
 }
 
-/*==========================================
+/* ==========================================
    OPEN SIGN MODAL
 ========================================== */
 
@@ -453,12 +528,7 @@ function openSignModal(documentId)
 
     document.getElementById("signRemarks").value = "";
 
-    const modal =
-        new bootstrap.Modal(
-            document.getElementById("signModal")
-        );
-
-    modal.show();
+    openModal("signModal");
 }
 
 /* ==========================================
@@ -479,12 +549,7 @@ function openRejectModal(documentId)
 
     document.getElementById("rejectReason").value = "";
 
-    const modal =
-        new bootstrap.Modal(
-            document.getElementById("rejectModal")
-        );
-
-    modal.show();
+    openModal("rejectModal");
 }
 
 /* ==========================================
@@ -509,12 +574,7 @@ function openUploadModal(documentId)
         fileInput.value = "";
     }
 
-    const modal =
-        new bootstrap.Modal(
-            document.getElementById("uploadModal")
-        );
-
-    modal.show();
+    openModal("uploadModal");
 }
 
 /* ==========================================
@@ -594,49 +654,73 @@ function formatDate(date)
 
 async function loadProfile()
 {
-    let response = null;
-
-    let profile = null;
-
     try
     {
-        response =
+        const response =
             await fetch(API.profile);
 
         if(!response.ok)
         {
-            throw new Error(
-                "Unable to load profile."
-            );
+            return;
         }
 
-        profile =
+        const profile =
             await response.json();
 
-        document.getElementById("profileName").textContent =
-            profile.full_name;
+        if(!profile)
+        {
+            return;
+        }
 
-        document.getElementById("profileEmail").textContent =
-            profile.email;
+        const profileName =
+            document.getElementById("profileName");
 
-        document.getElementById("profileOffice").textContent =
-            profile.office_name;
+        const profileEmail =
+            document.getElementById("profileEmail");
+
+        const profileOffice =
+            document.getElementById("profileOffice");
+
+        const profileRole =
+            document.getElementById("profileRole");
 
         const memberEmail =
             document.getElementById("memberEmail");
 
+        if(profileName)
+        {
+            profileName.textContent =
+                profile.full_name || "N/A";
+        }
+
+        if(profileEmail)
+        {
+            profileEmail.textContent =
+                profile.email || "N/A";
+        }
+
+        if(profileOffice)
+        {
+            profileOffice.textContent =
+                profile.office_name || "Unassigned";
+        }
+
+        if(profileRole)
+        {
+            profileRole.textContent =
+                profile.role_name || "Member";
+        }
+
         if(memberEmail)
         {
             memberEmail.textContent =
-                profile.email;
+                profile.email || "";
         }
     }
 
     catch(error)
     {
-        console.error(error);
-
-        alert("Unable to load profile.");
+        console.error("Load profile error:", error);
     }
 }
 
@@ -686,11 +770,6 @@ async function submitRequest(event)
         const responseText =
             await response.text();
 
-        console.log(
-            "Server response:",
-            responseText
-        );
-
         let result;
 
         try
@@ -716,20 +795,7 @@ async function submitRequest(event)
 
         alert(result.message);
 
-        const modalElement =
-            document.getElementById(
-                "submitRequestModal"
-            );
-
-        const modal =
-            bootstrap.Modal.getInstance(
-                modalElement
-            );
-
-        if(modal)
-        {
-            modal.hide();
-        }
+        closeModal("submitRequestModal");
 
         document
             .getElementById("requestForm")
@@ -852,11 +918,7 @@ async function signDocument()
 
         if(result.success)
         {
-            bootstrap.Modal
-            .getInstance(
-                document.getElementById("signModal")
-            )
-            .hide();
+            closeModal("signModal");
 
             await loadDocuments();
 
@@ -919,11 +981,7 @@ async function rejectDocument()
 
         if(result.success)
         {
-            bootstrap.Modal
-            .getInstance(
-                document.getElementById("rejectModal")
-            )
-            .hide();
+            closeModal("rejectModal");
 
             await loadDocuments();
 
@@ -1006,16 +1064,7 @@ async function uploadSignedDocument()
 
         alert(message);
 
-        const modalElement =
-            document.getElementById("uploadModal");
-
-        const modal =
-            bootstrap.Modal.getInstance(modalElement);
-
-        if(modal)
-        {
-            modal.hide();
-        }
+        closeModal("uploadModal");
 
         input.value = "";
 
@@ -1039,7 +1088,7 @@ async function uploadSignedDocument()
 function loadChart()
 {
     const canvas =
-        document.getElementById("reportChart");
+        document.getElementById("documentChart");
 
     if(canvas == null)
     {
@@ -1077,9 +1126,9 @@ function loadChart()
 
                         backgroundColor:
                         [
-                            "#ffc107",
-                            "#198754",
-                            "#0d6efd"
+                            "#d97706",
+                            "#16a34a",
+                            "#2563eb"
                         ]
                     }
                 ]
@@ -1104,7 +1153,6 @@ document.addEventListener("DOMContentLoaded", function ()
 
     if (!themeToggle)
     {
-        console.error("Theme toggle button not found.");
         return;
     }
 
@@ -1114,26 +1162,30 @@ document.addEventListener("DOMContentLoaded", function ()
     const savedTheme =
         localStorage.getItem("docuflow-theme");
 
-    if (savedTheme === "dark")
+    if (savedTheme === "dark" || localStorage.getItem("theme") === "dark")
     {
+        document.documentElement.classList.add("dark-mode");
         document.body.classList.add("dark-mode");
         updateThemeIcon(true);
     }
     else
     {
+        document.documentElement.classList.remove("dark-mode");
         document.body.classList.remove("dark-mode");
         updateThemeIcon(false);
     }
 
     themeToggle.addEventListener("click", function ()
     {
-        document.body.classList.toggle("dark-mode");
-
-        const isDark =
-            document.body.classList.contains("dark-mode");
+        const isDark = document.body.classList.toggle("dark-mode");
+        document.documentElement.classList.toggle("dark-mode", isDark);
 
         localStorage.setItem(
             "docuflow-theme",
+            isDark ? "dark" : "light"
+        );
+        localStorage.setItem(
+            "theme",
             isDark ? "dark" : "light"
         );
 

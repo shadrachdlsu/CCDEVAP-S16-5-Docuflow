@@ -38,8 +38,9 @@ $officesList = $officeModel->getAllOffices();
           <?php
             if ($_GET['msg'] == 'mismatch') echo "Passwords do not match.";
             elseif ($_GET['msg'] == 'exists') echo "Email is already registered.";
-            elseif ($_GET['msg'] == 'success') echo "Account created! You can now log in.";
-            else echo "An error occured.";
+            elseif ($_GET['msg'] == 'pending') echo "Registration submitted! Your account is pending admin approval before logging in.";
+            elseif ($_GET['msg'] == 'success') echo "Account created and approved! You can now log in.";
+            else echo "An error occurred.";
             ?>
         </div>
       <?php endif; ?>

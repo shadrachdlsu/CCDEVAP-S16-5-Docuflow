@@ -74,7 +74,7 @@ if (!move_uploaded_file(
 }
 
 $filePath =
-    "/CCDEVAP-MP1/pdfs/" . $filename;
+    "pdfs/" . $filename;
 
 try {
     global $pdo;

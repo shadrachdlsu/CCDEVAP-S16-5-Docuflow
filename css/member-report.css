@@ -184,29 +184,6 @@ body.member-body{
 
 }
 
-.logout-btn{
-
-    border:none;
-
-    border-radius:10px;
-
-    padding:11px 18px;
-
-    background:var(--danger);
-
-    color:#fff;
-
-    cursor:pointer;
-
-    transition:.25s;
-
-}
-
-.logout-btn:hover{
-
-    background:#bb2d3b;
-
-}
 
 .action-btn{
 
@@ -263,36 +240,23 @@ body.member-body{
 
 }
 
-.stat-card{
-
-    background:var(--white);
-
-    border:1px solid var(--gray-200);
-
-    border-radius:18px;
-
-    padding:28px;
-
-    box-shadow:var(--shadow);
-
-    transition:all .3s ease;
-
-    cursor:pointer;
-
-    text-align:left;
-
-    overflow:hidden;
-
-    position:relative;
-
+.stat-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: default;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.stat-card:hover{
-
-    transform:translateY(-8px);
-
-    box-shadow:0 8px 20px rgba(92,74,228,.18);
-
+body.dark-mode .stat-card {
+    background: var(--gray-800);
+    border-color: var(--gray-700);
 }
 
 .stat-card::before{
