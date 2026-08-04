@@ -33,7 +33,8 @@ class DocumentType
      */
     public function getAll(): array
     {
-        $stmt = $this->pdo->query("SELECT type_id, type_name, is_active FROM document_types ORDER BY type_name");
+        $stmt = $this->pdo->prepare("SELECT type_id, type_name, is_active FROM document_types ORDER BY type_name");
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -50,7 +51,9 @@ class DocumentType
             WHERE is_active=1
             ORDER BY type_name
         ";
-        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -68,7 +71,7 @@ class DocumentType
      */
     public function getAllWithOffices(): array
     {
-        $stmt = $this->pdo->query("
+        $stmt = $this->pdo->prepare("
             SELECT dt.type_id as id, dt.type_name as name, 
                    IF(dt.is_active = 1, 'Active', 'Inactive') as status,
                    GROUP_CONCAT(o.office_name SEPARATOR ', ') as offices
@@ -78,6 +81,25 @@ class DocumentType
             GROUP BY dt.type_id
             ORDER BY dt.type_name
         ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get document count breakdown by document type for Admin Dashboard.
+     */
+    public function getTypeBreakdown(): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                dt.type_name AS type_name,
+                COUNT(d.document_id) AS count
+            FROM document_types dt
+            LEFT JOIN documents d ON dt.type_id = d.type_id
+            GROUP BY dt.type_id, dt.type_name
+            ORDER BY count DESC
+        ");
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

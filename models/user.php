@@ -288,7 +288,7 @@ class User
 
     public function getAllWithRolesAndOffices(): array
     {
-        $stmt = $this->pdo->query("
+        $stmt = $this->pdo->prepare("
             SELECT 
                 u.user_id as id, 
                 u.full_name as name, 
@@ -303,6 +303,7 @@ class User
             LEFT JOIN offices o ON u.office_id = o.office_id
             ORDER BY u.full_name
         ");
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -363,12 +364,16 @@ class User
 
     public function countActiveUsers(): int
     {
-        return (int)$this->pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 1")->fetchColumn();
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE is_active = 1");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 
     public function countPendingUsers(): int
     {
-        return (int)$this->pdo->query("SELECT COUNT(*) FROM users WHERE registration_status = 'Pending'")->fetchColumn();
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE registration_status = 'Pending'");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 
     /**
@@ -376,18 +381,24 @@ class User
      */
     public function getUserDistribution(): array
     {
-        $totalUsers = $this->pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+        $stmtTotal = $this->pdo->prepare("SELECT COUNT(*) FROM users");
+        $stmtTotal->execute();
+        $totalUsers = $stmtTotal->fetchColumn();
         if ($totalUsers == 0) $totalUsers = 1;
 
-        $userDistRows = $this->pdo->query("
+        $stmtRoles = $this->pdo->prepare("
             SELECT r.role_name as label, COUNT(u.user_id) as value
             FROM roles r
             LEFT JOIN users u ON r.role_id = u.role_id AND u.is_active = 1
             GROUP BY r.role_name
             ORDER BY value DESC
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        ");
+        $stmtRoles->execute();
+        $userDistRows = $stmtRoles->fetchAll(PDO::FETCH_ASSOC);
 
-        $inactiveUsers = $this->pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 0")->fetchColumn();
+        $stmtInactive = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE is_active = 0");
+        $stmtInactive->execute();
+        $inactiveUsers = $stmtInactive->fetchColumn();
         $userDistRows[] = ['label' => 'Inactive', 'value' => $inactiveUsers];
 
         $colors = [
@@ -428,6 +439,29 @@ class User
             'rows' => $formattedUserDistRows,
             'gradient' => $userDistGradient
         ];
+    }
+
+    /**
+     * Get list of non-admin users with pending registration or inactive status for Admin Dashboard.
+     */
+    public function getPendingRegistrationUsers(): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                u.user_id AS id,
+                u.full_name AS name,
+                u.email,
+                COALESCE(o.office_name, 'Unassigned') AS office,
+                r.role_name AS role
+            FROM users u
+            JOIN roles r ON u.role_id = r.role_id
+            LEFT JOIN offices o ON u.office_id = o.office_id
+            WHERE (u.registration_status = 'Pending' OR u.is_active = 0)
+              AND u.role_id != 1
+            ORDER BY u.user_id DESC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>

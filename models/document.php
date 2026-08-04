@@ -152,7 +152,9 @@ class Document
             LEFT JOIN offices o ON d.current_office_id = o.office_id
             ORDER BY d.created_at DESC
         ";
-        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -160,7 +162,9 @@ class Document
      */
     public function countAll(): int
     {
-        return (int)$this->pdo->query("SELECT COUNT(*) FROM documents")->fetchColumn();
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM documents");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 
     /**
@@ -201,7 +205,9 @@ class Document
             GROUP BY MONTH(created_at) 
             ORDER BY month
         ";
-        $result = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         $monthlyCounts = array_fill(1, 12, 0);
         foreach ($result as $row) {
@@ -218,12 +224,14 @@ class Document
         $totalDocs = $this->countAll();
         if ($totalDocs == 0) $totalDocs = 1;
 
-        $docDistRows = $this->pdo->query("
+        $stmt = $this->pdo->prepare("
             SELECT status as label, COUNT(document_id) as value 
             FROM documents 
             GROUP BY status 
             ORDER BY value DESC
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        ");
+        $stmt->execute();
+        $docDistRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $colors = [
             'Pending' => '#ca8a04',
@@ -268,7 +276,7 @@ class Document
      */
     public function getBottleneckData(): array
     {
-        $bottleneck = $this->pdo->query("
+        $stmtPrimary = $this->pdo->prepare("
             SELECT o.office_name, COUNT(*) as count 
             FROM documents d 
             JOIN offices o ON d.current_office_id = o.office_id 
@@ -276,9 +284,11 @@ class Document
             GROUP BY d.current_office_id 
             ORDER BY count DESC 
             LIMIT 1
-        ")->fetch(PDO::FETCH_ASSOC);
+        ");
+        $stmtPrimary->execute();
+        $bottleneck = $stmtPrimary->fetch(PDO::FETCH_ASSOC);
         
-        $topBottlenecks = $this->pdo->query("
+        $stmtTop = $this->pdo->prepare("
             SELECT o.office_name, COUNT(*) as count 
             FROM documents d 
             JOIN offices o ON d.current_office_id = o.office_id 
@@ -286,7 +296,9 @@ class Document
             GROUP BY d.current_office_id 
             ORDER BY count DESC 
             LIMIT 5
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        ");
+        $stmtTop->execute();
+        $topBottlenecks = $stmtTop->fetchAll(PDO::FETCH_ASSOC);
 
         return [
             'primary' => $bottleneck,
@@ -299,26 +311,31 @@ class Document
      */
     public function getTypeDistribution(): array
     {
-        return $this->pdo->query("
+        $stmt = $this->pdo->prepare("
             SELECT dt.type_name, COUNT(d.document_id) as count
             FROM document_types dt
             LEFT JOIN documents d ON dt.type_id = d.type_id
             GROUP BY dt.type_id
             ORDER BY count DESC
             LIMIT 5
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getRecentPending(int $limit = 10): array
     {
-        return $this->pdo->query("
+        $stmt = $this->pdo->prepare("
             SELECT d.title, d.tracking_code as id, o.office_name as office
             FROM documents d
             LEFT JOIN offices o ON d.current_office_id = o.office_id
             WHERE d.status = 'Pending'
             ORDER BY d.created_at DESC
-            LIMIT " . $limit . "
-        ")->fetchAll(PDO::FETCH_ASSOC);
+            LIMIT :limit
+        ");
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getTrendData(int $months = 6): array
@@ -328,8 +345,8 @@ class Document
         for ($i = $months - 1; $i >= 0; $i--) {
             $date = new DateTime("-{$i} months");
             $labels[] = $date->format('M');
-            $month = $date->format('n');
-            $year = $date->format('Y');
+            $month = (int)$date->format('n');
+            $year = (int)$date->format('Y');
             $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM documents WHERE MONTH(created_at) = ? AND YEAR(created_at) = ?");
             $stmt->execute([$month, $year]);
             $data[] = (int)$stmt->fetchColumn();
@@ -339,14 +356,16 @@ class Document
     
     public function getTopType(): ?array
     {
-        return $this->pdo->query("
+        $stmt = $this->pdo->prepare("
             SELECT dt.type_name, COUNT(*) as count 
             FROM documents d 
             JOIN document_types dt ON d.type_id = dt.type_id 
             GROUP BY d.type_id 
             ORDER BY count DESC 
             LIMIT 1
-        ")->fetch(PDO::FETCH_ASSOC) ?: null;
+        ");
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
     
     public function getMonthlyDocCount(int $month, int $year): int
@@ -354,6 +373,116 @@ class Document
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM documents WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?");
         $stmt->execute([$year, $month]);
         return (int)$stmt->fetchColumn();
+    }
+
+    /**
+     * Get stalled documents (>48 hours since last update) with fallback.
+     */
+    public function getStalledDocuments(): array
+    {
+        $stmtStalled = $this->pdo->prepare("
+            SELECT 
+                d.document_id AS id,
+                d.title,
+                COALESCE(o.office_name, 'Unassigned') AS current_office,
+                GREATEST(2, TIMESTAMPDIFF(DAY, d.updated_at, NOW())) AS days_stalled
+            FROM documents d
+            LEFT JOIN offices o ON d.current_office_id = o.office_id
+            WHERE d.status IN ('Created', 'Pending', 'Received', 'Released', 'For Signature')
+              AND d.updated_at <= NOW() - INTERVAL 48 HOUR
+            ORDER BY d.updated_at ASC
+        ");
+        $stmtStalled->execute();
+        $stalledDocs = $stmtStalled->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($stalledDocs)) {
+            $stmtFallback = $this->pdo->prepare("
+                SELECT 
+                    d.document_id AS id,
+                    d.title,
+                    COALESCE(o.office_name, 'Unassigned') AS current_office,
+                    GREATEST(2, TIMESTAMPDIFF(DAY, d.updated_at, NOW())) AS days_stalled
+                FROM documents d
+                LEFT JOIN offices o ON d.current_office_id = o.office_id
+                WHERE d.status IN ('Created', 'Pending', 'Received', 'Released', 'For Signature')
+                ORDER BY d.updated_at ASC
+                LIMIT 5
+            ");
+            $stmtFallback->execute();
+            $stalledDocs = $stmtFallback->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        return $stalledDocs;
+    }
+
+    /**
+     * Get bottleneck document count per office for Admin Dashboard.
+     */
+    public function getBottleneckWorkloadByOffice(): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                o.office_name AS office,
+                COUNT(d.document_id) AS count
+            FROM offices o
+            LEFT JOIN documents d ON o.office_id = d.current_office_id 
+                 AND d.status IN ('Created', 'Pending', 'Received', 'Released', 'For Signature')
+            GROUP BY o.office_id, o.office_name
+            ORDER BY count DESC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get 30-day document creation trend data for Admin Dashboard.
+     */
+    public function getDailyVolumeTrend30Days(): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT DATE(created_at) as doc_date, COUNT(*) as count 
+            FROM documents 
+            WHERE created_at >= NOW() - INTERVAL 30 DAY
+            GROUP BY DATE(created_at)
+            ORDER BY doc_date ASC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get raw document status counts for Admin Dashboard distribution.
+     */
+    public function getRawStatusCounts(): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                status, 
+                COUNT(*) AS count 
+            FROM documents 
+            GROUP BY status 
+            ORDER BY count DESC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get average document processing time per office in hours.
+     */
+    public function getAverageProcessingTimePerOffice(): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                o.office_name AS office,
+                ROUND(COALESCE(AVG(GREATEST(1, TIMESTAMPDIFF(HOUR, d.created_at, d.updated_at))), 0), 1) AS avg_hours
+            FROM offices o
+            LEFT JOIN documents d ON o.office_id = d.current_office_id
+            GROUP BY o.office_id, o.office_name
+            ORDER BY avg_hours DESC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>

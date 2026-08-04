@@ -17,7 +17,8 @@ class Role
      */
     public function getAll(): array
     {
-        $stmt = $this->pdo->query("SELECT role_id, role_name FROM roles ORDER BY role_name");
+        $stmt = $this->pdo->prepare("SELECT role_id, role_name FROM roles ORDER BY role_name");
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

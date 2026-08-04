@@ -34,22 +34,7 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $stmtPendingUsers = $pdo->query("
-        SELECT 
-            u.user_id AS id,
-            u.full_name AS name,
-            u.email,
-            COALESCE(o.office_name, 'Unassigned') AS office,
-            r.role_name AS role
-        FROM users u
-        JOIN roles r ON u.role_id = r.role_id
-        LEFT JOIN offices o ON u.office_id = o.office_id
-        WHERE (u.registration_status = 'Pending' OR u.is_active = 0)
-          AND u.role_id != 1
-        ORDER BY u.user_id DESC
-    ");
-
-    $pending_users = $stmtPendingUsers->fetchAll(PDO::FETCH_ASSOC);
+    $pending_users = $userModel->getPendingRegistrationUsers();
 
     /*
     |--------------------------------------------------------------------------
@@ -57,37 +42,7 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $stmtStalled = $pdo->query("
-        SELECT 
-            d.document_id AS id,
-            d.title,
-            COALESCE(o.office_name, 'Unassigned') AS current_office,
-            GREATEST(2, TIMESTAMPDIFF(DAY, d.updated_at, NOW())) AS days_stalled
-        FROM documents d
-        LEFT JOIN offices o ON d.current_office_id = o.office_id
-        WHERE d.status IN ('Created', 'Pending', 'Received', 'Released', 'For Signature')
-          AND d.updated_at <= NOW() - INTERVAL 48 HOUR
-        ORDER BY d.updated_at ASC
-    ");
-
-    $stalled_docs = $stmtStalled->fetchAll(PDO::FETCH_ASSOC);
-
-    // Fallback if no documents are strictly > 48 hours old
-    if (empty($stalled_docs)) {
-        $stmtStalledFallback = $pdo->query("
-            SELECT 
-                d.document_id AS id,
-                d.title,
-                COALESCE(o.office_name, 'Unassigned') AS current_office,
-                GREATEST(2, TIMESTAMPDIFF(DAY, d.updated_at, NOW())) AS days_stalled
-            FROM documents d
-            LEFT JOIN offices o ON d.current_office_id = o.office_id
-            WHERE d.status IN ('Created', 'Pending', 'Received', 'Released', 'For Signature')
-            ORDER BY d.updated_at ASC
-            LIMIT 5
-        ");
-        $stalled_docs = $stmtStalledFallback->fetchAll(PDO::FETCH_ASSOC);
-    }
+    $stalled_docs = $documentModel->getStalledDocuments();
 
     /*
     |--------------------------------------------------------------------------
@@ -112,18 +67,7 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $stmtBottleneck = $pdo->query("
-        SELECT 
-            o.office_name AS office,
-            COUNT(d.document_id) AS count
-        FROM offices o
-        LEFT JOIN documents d ON o.office_id = d.current_office_id 
-             AND d.status IN ('Created', 'Pending', 'Received', 'Released', 'For Signature')
-        GROUP BY o.office_id, o.office_name
-        ORDER BY count DESC
-    ");
-
-    $bottleneck_data = $stmtBottleneck->fetchAll(PDO::FETCH_ASSOC);
+    $bottleneck_data = $documentModel->getBottleneckWorkloadByOffice();
 
     $maxBottleneck = 1;
 
@@ -149,17 +93,11 @@ try {
     $max_daily = 1;
     $total_30_days = 0;
 
-    $stmtTrend = $pdo->query("
-        SELECT DATE(created_at) as doc_date, COUNT(*) as count 
-        FROM documents 
-        WHERE created_at >= NOW() - INTERVAL 30 DAY
-        GROUP BY DATE(created_at)
-        ORDER BY doc_date ASC
-    ");
+    $trendRows = $documentModel->getDailyVolumeTrend30Days();
 
     $trendMap = [];
 
-    foreach ($stmtTrend->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    foreach ($trendRows as $row) {
         $trendMap[$row["doc_date"]] = (int) $row["count"];
     }
 
@@ -187,16 +125,7 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $stmtStatus = $pdo->query("
-        SELECT 
-            status, 
-            COUNT(*) AS count 
-        FROM documents 
-        GROUP BY status 
-        ORDER BY count DESC
-    ");
-
-    $raw_status_data = $stmtStatus->fetchAll(PDO::FETCH_ASSOC);
+    $raw_status_data = $documentModel->getRawStatusCounts();
 
     $total_status_docs = 0;
 
@@ -237,17 +166,7 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $stmtAvgTime = $pdo->query("
-        SELECT 
-            o.office_name AS office,
-            ROUND(COALESCE(AVG(GREATEST(1, TIMESTAMPDIFF(HOUR, d.created_at, d.updated_at))), 0), 1) AS avg_hours
-        FROM offices o
-        LEFT JOIN documents d ON o.office_id = d.current_office_id
-        GROUP BY o.office_id, o.office_name
-        ORDER BY avg_hours DESC
-    ");
-
-    $avg_time_data = $stmtAvgTime->fetchAll(PDO::FETCH_ASSOC);
+    $avg_time_data = $documentModel->getAverageProcessingTimePerOffice();
 
     /*
     |--------------------------------------------------------------------------
@@ -255,17 +174,7 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $stmtTypeBreakdown = $pdo->query("
-        SELECT 
-            dt.type_name AS type_name,
-            COUNT(d.document_id) AS count
-        FROM document_types dt
-        LEFT JOIN documents d ON dt.type_id = d.type_id
-        GROUP BY dt.type_id, dt.type_name
-        ORDER BY count DESC
-    ");
-
-    $type_breakdown_data = $stmtTypeBreakdown->fetchAll(PDO::FETCH_ASSOC);
+    $type_breakdown_data = $documentTypeModel->getTypeBreakdown();
 
     /*
     |--------------------------------------------------------------------------

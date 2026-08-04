@@ -218,7 +218,7 @@ require_once "../controllers/AdminPendingUsersController.php";
                                         type="button"
                                         style="background: #e0e7ff; color: #3730a3;"
                                         title="Approve User"
-                                        data-id="<?= $user["id"] ?>">
+                                        data-id="<?= (int) $user["id"] ?>">
 
                                         Approve
 

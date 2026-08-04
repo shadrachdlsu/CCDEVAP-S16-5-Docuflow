@@ -244,22 +244,22 @@ require_once "../controllers/SecretaryDashboardController.php";
 
             <div class="stat-card">
                 <h3 class="card-subtitle">Total Documents</h3>
-                <p class="kpi-value" style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 8px;"><?= $stats["total"] ?></p>
+                <p class="kpi-value" style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 8px;"><?= (int) $stats["total"] ?></p>
             </div>
 
             <div class="stat-card">
                 <h3 class="card-subtitle">Pending / In Progress</h3>
-                <p class="kpi-value" style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 8px;"><?= $stats["pending"] ?></p>
+                <p class="kpi-value" style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 8px;"><?= (int) $stats["pending"] ?></p>
             </div>
 
             <div class="stat-card">
                 <h3 class="card-subtitle">Signed</h3>
-                <p class="kpi-value" style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 8px;"><?= $stats["signed"] ?></p>
+                <p class="kpi-value" style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 8px;"><?= (int) $stats["signed"] ?></p>
             </div>
 
             <div class="stat-card">
                 <h3 class="card-subtitle">Finished</h3>
-                <p class="kpi-value" style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 8px;"><?= $stats["finished"] ?></p>
+                <p class="kpi-value" style="font-size: 2rem; font-weight: 700; color: var(--primary); margin-top: 8px;"><?= (int) $stats["finished"] ?></p>
             </div>
 
         </div>

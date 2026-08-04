@@ -33,7 +33,7 @@ $officesList = $officeModel->getAllOffices();
       </div>
 
       <?php if (isset($_GET['msg'])): ?>
-        <div class="message <?php echo $_GET['type'] === 'success' ? 'success' : 'error'; ?>"
+        <div class="message <?= (isset($_GET['type']) && $_GET['type'] === 'success') ? 'success' : 'error' ?>"
           style="font-weight: 700; text-align: center; margin-bottom: 15px;" >
           <?php
             if ($_GET['msg'] == 'mismatch') echo "Passwords do not match.";
@@ -96,7 +96,7 @@ $officesList = $officeModel->getAllOffices();
           <select id="office_id" name="office_id" required>
             <option value="" disabled selected>Select your office</option>
             <?php foreach($officesList as $office): ?>
-              <option value="<?= $office['id'] ?>"><?= htmlspecialchars($office['name']) ?></option>
+              <option value="<?= htmlspecialchars($office['id']) ?>"><?= htmlspecialchars($office['name']) ?></option>
             <?php endforeach; ?>
           </select>
         </div>

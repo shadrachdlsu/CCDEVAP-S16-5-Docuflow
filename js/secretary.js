@@ -1,5 +1,14 @@
 "use strict";
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 $(document).ready(function () {
 
     /*
@@ -200,12 +209,12 @@ $(document).ready(function () {
                 if (data.success && data.trail && data.trail.length > 0) {
                     data.trail.forEach(t => {
                         const li = $("<li></li>");
-                        let html = `<strong>${t.action}</strong> - ${t.remarks || ""}<br>`;
-                        html += `<small>${t.from_office || "System"} &rarr; ${t.to_office || "N/A"}</small><br>`;
-                        html += `<small class="timestamp">${t.action_date}</small>`;
+                        let html = `<strong>${escapeHtml(t.action)}</strong> - ${escapeHtml(t.remarks || "")}<br>`;
+                        html += `<small>${escapeHtml(t.from_office || "System")} &rarr; ${escapeHtml(t.to_office || "N/A")}</small><br>`;
+                        html += `<small class="timestamp">${escapeHtml(t.action_date)}</small>`;
 
                         if (t.action_by_name) {
-                            html += `<br><small>by ${t.action_by_name}</small>`;
+                            html += `<br><small>by ${escapeHtml(t.action_by_name)}</small>`;
                         }
 
                         li.html(html);

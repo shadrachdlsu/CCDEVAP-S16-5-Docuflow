@@ -201,7 +201,7 @@ require_once "../controllers/AdminDocumentsController.php";
 
                                 <td>
 
-                                    <span class="status-badge <?= strtolower(str_replace(" ", "-", $doc["status"])) ?>-status">
+                                    <span class="status-badge <?= htmlspecialchars(strtolower(str_replace(" ", "-", $doc["status"]))) ?>-status">
 
                                         <?= htmlspecialchars($doc["status"]) ?>
 

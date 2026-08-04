@@ -163,7 +163,7 @@ require_once "../controllers/AdminOfficesController.php";
                 </span>
 
                 <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--gray-900); margin-top: 8px;">
-                    <?= $totalOfficesCount ?>
+                    <?= (int) $totalOfficesCount ?>
                 </div>
 
                 <span class="stat-subtext" style="font-size: 0.8rem; color: var(--gray-500); margin-top: 4px; display: block;">
@@ -179,7 +179,7 @@ require_once "../controllers/AdminOfficesController.php";
                 </span>
 
                 <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--gray-900); margin-top: 8px;">
-                    <?= $activeOfficesCount ?>
+                    <?= (int) $activeOfficesCount ?>
                 </div>
 
                 <span class="stat-subtext" style="font-size: 0.8rem; color: var(--gray-500); margin-top: 4px; display: block;">
@@ -195,7 +195,7 @@ require_once "../controllers/AdminOfficesController.php";
                 </span>
 
                 <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--gray-900); margin-top: 8px;">
-                    <?= $assignedSecretariesCount ?>
+                    <?= (int) $assignedSecretariesCount ?>
                 </div>
 
                 <span class="stat-subtext" style="font-size: 0.8rem; color: var(--gray-500); margin-top: 4px; display: block;">
@@ -211,7 +211,7 @@ require_once "../controllers/AdminOfficesController.php";
                 </span>
 
                 <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--gray-900); margin-top: 8px;">
-                    <?= $totalActiveDocs ?>
+                    <?= (int) $totalActiveDocs ?>
                 </div>
 
                 <span class="stat-subtext" style="font-size: 0.8rem; color: var(--gray-500); margin-top: 4px; display: block;">
@@ -334,9 +334,9 @@ require_once "../controllers/AdminOfficesController.php";
                                                 type="button"
                                                 title="Reassign Secretary"
                                                 style="padding: 2px 8px; font-size: 0.75rem; background: var(--gray-200); color: var(--gray-700);"
-                                                data-id="<?= $office["id"] ?>"
+                                                data-id="<?= (int) $office["id"] ?>"
                                                 data-name="<?= htmlspecialchars($office["name"]) ?>"
-                                                data-secretary-id="<?= $office["secretary_id"] ?>">
+                                                data-secretary-id="<?= (int) $office["secretary_id"] ?>">
 
                                                 Reassign
 
@@ -350,7 +350,7 @@ require_once "../controllers/AdminOfficesController.php";
                                             class="btn-small reassign-btn"
                                             type="button"
                                             style="padding: 4px 10px; font-size: 0.8rem; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px dashed rgba(239, 68, 68, 0.3);"
-                                            data-id="<?= $office["id"] ?>"
+                                            data-id="<?= (int) $office["id"] ?>"
                                             data-name="<?= htmlspecialchars($office["name"]) ?>"
                                             data-secretary-id="">
 
@@ -423,12 +423,12 @@ require_once "../controllers/AdminOfficesController.php";
                                             class="btn-small edit-btn"
                                             type="button"
                                             title="Edit Office"
-                                            data-id="<?= $office["id"] ?>"
+                                            data-id="<?= (int) $office["id"] ?>"
                                             data-name="<?= htmlspecialchars($office["name"]) ?>"
                                             data-code="<?= htmlspecialchars($office["code"]) ?>"
                                             data-location="<?= htmlspecialchars($office["location"]) ?>"
                                             data-email="<?= htmlspecialchars($office["contact_email"]) ?>"
-                                            data-active="<?= $office["is_active"] ?>">
+                                            data-active="<?= (int) $office["is_active"] ?>">
 
                                             Edit
 
@@ -438,8 +438,8 @@ require_once "../controllers/AdminOfficesController.php";
                                             class="btn-small toggle-btn"
                                             type="button"
                                             title="<?= $office["is_active"] == 1 ? 'Deactivate Office' : 'Activate Office' ?>"
-                                            data-id="<?= $office["id"] ?>"
-                                            data-active="<?= $office["is_active"] ?>">
+                                            data-id="<?= (int) $office["id"] ?>"
+                                            data-active="<?= (int) $office["is_active"] ?>">
 
                                             <?= $office["is_active"] == 1 ? "Deactivate" : "Activate" ?>
 
@@ -449,7 +449,7 @@ require_once "../controllers/AdminOfficesController.php";
                                             class="btn-small delete-btn"
                                             type="button"
                                             title="Delete Office"
-                                            data-id="<?= $office["id"] ?>"
+                                            data-id="<?= (int) $office["id"] ?>"
                                             data-name="<?= htmlspecialchars($office["name"]) ?>">
 
                                             Delete
@@ -664,7 +664,7 @@ require_once "../controllers/AdminOfficesController.php";
 
                     <?php foreach ($availableSecretaries as $sec): ?>
 
-                        <option value="<?= $sec["user_id"] ?>">
+                        <option value="<?= htmlspecialchars($sec["user_id"]) ?>">
 
                             <?= htmlspecialchars($sec["full_name"]) ?> (<?= htmlspecialchars($sec["email"]) ?>)
 

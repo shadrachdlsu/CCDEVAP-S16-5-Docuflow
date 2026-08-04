@@ -5,6 +5,15 @@
 
 "use strict";
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 /* ==========================================
    API ENDPOINTS
 ========================================== */
@@ -382,7 +391,7 @@ function createStatusBadge(status)
             return '<span class="status-badge status-rejected">Rejected</span>';
 
         default:
-            return `<span class="status-badge status-pending">${status ?? "Unknown"}</span>`;
+            return `<span class="status-badge status-pending">${escapeHtml(status ?? "Unknown")}</span>`;
     }
 }
 
@@ -426,13 +435,13 @@ function createActionButtons(document)
 
             <button
                 class="btn-small previewBtn"
-                onclick="previewDocument(${document.document_id})"
+                onclick="previewDocument(${Number(document.document_id)})"
                 title="Preview">
                 Preview
             </button>
 
             <a
-                href="${filePath}"
+                href="${escapeHtml(filePath)}"
                 class="btn-small action-btn"
                 download
                 title="Download"
@@ -449,21 +458,21 @@ function createActionButtons(document)
         buttons += `
             <button
                 class="btn-small signBtn"
-                onclick="openSignModal(${document.document_id})"
+                onclick="openSignModal(${Number(document.document_id)})"
                 title="Sign">
                 Sign
             </button>
 
             <button
                 class="btn-small rejectBtn"
-                onclick="openRejectModal(${document.document_id})"
+                onclick="openRejectModal(${Number(document.document_id)})"
                 title="Reject">
                 Reject
             </button>
 
             <button
                 class="btn-small action-btn"
-                onclick="openUploadModal(${document.document_id})"
+                onclick="openUploadModal(${Number(document.document_id)})"
                 title="Upload Signed">
                 Upload
             </button>

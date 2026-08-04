@@ -349,7 +349,7 @@ require_once "../controllers/AdminSettingsController.php";
                                         class="btn-small edit-btn"
                                         type="button"
                                         title="Edit Document Type"
-                                        data-id="<?= $type["id"] ?>"
+                                        data-id="<?= (int) $type["id"] ?>"
                                         data-name="<?= htmlspecialchars($type["name"]) ?>"
                                         data-offices="<?= htmlspecialchars(json_encode($type["offices"])) ?>">
 
@@ -361,7 +361,7 @@ require_once "../controllers/AdminSettingsController.php";
                                         class="btn-small delete-btn"
                                         type="button"
                                         title="Delete Document Type"
-                                        data-id="<?= $type["id"] ?>">
+                                        data-id="<?= (int) $type["id"] ?>">
 
                                         Delete
 

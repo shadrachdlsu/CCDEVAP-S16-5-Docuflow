@@ -1,5 +1,14 @@
 "use strict";
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const themeToggle = document.getElementById("themeToggle");
@@ -245,10 +254,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         createdUl.innerHTML = createdDocs.map(doc => `
                             <li class="drawer-doc-item">
                                 <div class="drawer-doc-info">
-                                    <span class="drawer-doc-code">${doc.tracking_code}</span>
-                                    <span class="drawer-doc-title" title="${doc.title}">${doc.title}</span>
+                                    <span class="drawer-doc-code">${escapeHtml(doc.tracking_code)}</span>
+                                    <span class="drawer-doc-title" title="${escapeHtml(doc.title)}">${escapeHtml(doc.title)}</span>
                                 </div>
-                                <span class="status-badge status-active">${doc.status}</span>
+                                <span class="status-badge status-active">${escapeHtml(doc.status)}</span>
                             </li>
                         `).join("");
                     } else {
@@ -260,10 +269,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         assignedUl.innerHTML = assignedDocs.map(doc => `
                             <li class="drawer-doc-item">
                                 <div class="drawer-doc-info">
-                                    <span class="drawer-doc-code">${doc.tracking_code}</span>
-                                    <span class="drawer-doc-title" title="${doc.title}">${doc.title}</span>
+                                    <span class="drawer-doc-code">${escapeHtml(doc.tracking_code)}</span>
+                                    <span class="drawer-doc-title" title="${escapeHtml(doc.title)}">${escapeHtml(doc.title)}</span>
                                 </div>
-                                <span class="status-badge status-active">${doc.assignment_status}</span>
+                                <span class="status-badge status-active">${escapeHtml(doc.assignment_status)}</span>
                             </li>
                         `).join("");
                     } else {

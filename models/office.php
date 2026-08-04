@@ -33,7 +33,9 @@ class Office
     public function ensureSchemaUpdated(): void
     {
         try {
-            $columns = $this->pdo->query("SHOW COLUMNS FROM offices")->fetchAll(PDO::FETCH_COLUMN);
+            $stmt = $this->pdo->prepare("SHOW COLUMNS FROM offices");
+            $stmt->execute();
+            $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
             if (!in_array("office_code", $columns)) {
                 $this->pdo->exec("ALTER TABLE offices ADD COLUMN office_code VARCHAR(20) DEFAULT NULL AFTER office_name");
@@ -72,7 +74,8 @@ class Office
      */
     public function getAllOffices(): array
     {
-        $stmt = $this->pdo->query("SELECT office_id as id, office_name as name FROM offices ORDER BY office_name");
+        $stmt = $this->pdo->prepare("SELECT office_id as id, office_name as name FROM offices ORDER BY office_name");
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -81,7 +84,9 @@ class Office
      */
     public function countAllOffices(): int
     {
-        return (int)$this->pdo->query("SELECT COUNT(*) FROM offices")->fetchColumn();
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM offices");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 
     /**
@@ -108,7 +113,9 @@ class Office
             ORDER BY o.office_name ASC
         ";
 
-        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -129,7 +136,9 @@ class Office
             ORDER BY u.full_name ASC
         ";
 
-        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -137,11 +146,13 @@ class Office
      */
     public function getTotalActiveDocuments(): int
     {
-        return (int)$this->pdo->query("
+        $stmt = $this->pdo->prepare("
             SELECT COUNT(*) 
             FROM documents 
             WHERE status NOT IN ('Approved', 'Completed', 'Archived')
-        ")->fetchColumn();
+        ");
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 
     /**
@@ -149,13 +160,15 @@ class Office
      */
     public function getOfficesWithDocCounts(): array
     {
-        $officeDirectoryRaw = $this->pdo->query("
+        $stmt = $this->pdo->prepare("
             SELECT o.office_name as name, COUNT(d.document_id) as doc_count
             FROM offices o
             LEFT JOIN documents d ON o.office_id = d.current_office_id
             GROUP BY o.office_name
             ORDER BY o.office_name
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        ");
+        $stmt->execute();
+        $officeDirectoryRaw = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_map(function ($o) {
             return [
@@ -292,8 +305,13 @@ class Office
      */
     public function checkDependencies(int $id): array
     {
-        $userCount = (int)$this->pdo->query("SELECT COUNT(*) FROM users WHERE office_id = {$id}")->fetchColumn();
-        $docCount = (int)$this->pdo->query("SELECT COUNT(*) FROM documents WHERE current_office_id = {$id}")->fetchColumn();
+        $stmtUser = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE office_id = :id");
+        $stmtUser->execute([":id" => $id]);
+        $userCount = (int)$stmtUser->fetchColumn();
+
+        $stmtDoc = $this->pdo->prepare("SELECT COUNT(*) FROM documents WHERE current_office_id = :id");
+        $stmtDoc->execute([":id" => $id]);
+        $docCount = (int)$stmtDoc->fetchColumn();
 
         return [
             "user_count" => $userCount,

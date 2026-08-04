@@ -209,7 +209,7 @@ exit;
                                         class="btn-small edit-btn"
                                         type="button"
                                         title="Edit Document Type"
-                                        data-id="<?= $type["id"] ?>"
+                                        data-id="<?= (int) $type["id"] ?>"
                                         data-name="<?= htmlspecialchars($type["name"]) ?>"
                                         data-offices="<?= htmlspecialchars(json_encode($type["offices"])) ?>">
 
@@ -221,7 +221,7 @@ exit;
                                         class="btn-small delete-btn"
                                         type="button"
                                         title="Delete Document Type"
-                                        data-id="<?= $type["id"] ?>">
+                                        data-id="<?= (int) $type["id"] ?>">
 
                                         Delete
 

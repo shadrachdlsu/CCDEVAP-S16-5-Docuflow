@@ -158,7 +158,7 @@ require_once "../controllers/MemberDashboardController.php";
                     class="stat-number"
                     id="pending-count">
 
-                    <?= $pending ?>
+                    <?= (int) $pending ?>
 
                 </span>
 
@@ -176,7 +176,7 @@ require_once "../controllers/MemberDashboardController.php";
                     class="stat-number"
                     id="signed-count">
 
-                    <?= $signed ?>
+                    <?= (int) $signed ?>
 
                 </span>
 
@@ -194,7 +194,7 @@ require_once "../controllers/MemberDashboardController.php";
                     class="stat-number"
                     id="finished-count">
 
-                    <?= $finished ?>
+                    <?= (int) $finished ?>
 
                 </span>
 
@@ -212,7 +212,7 @@ require_once "../controllers/MemberDashboardController.php";
                     class="stat-number"
                     id="request-count">
 
-                    <?= $requests ?>
+                    <?= (int) $requests ?>
 
                 </span>
 
@@ -430,7 +430,7 @@ require_once "../controllers/MemberDashboardController.php";
                                 <button
                                     class="btn-small previewBtn"
                                     type="button"
-                                    onclick="previewDocument(<?= $doc["document_id"] ?>)"
+                                    onclick="previewDocument(<?= (int) $doc["document_id"] ?>)"
                                     data-file="<?= htmlspecialchars($formattedPath) ?>"
                                     title="Preview">
 
@@ -452,7 +452,7 @@ require_once "../controllers/MemberDashboardController.php";
                                 <button
                                     class="btn-small signBtn"
                                     type="button"
-                                    data-id="<?= $doc["document_id"] ?>">
+                                    data-id="<?= htmlspecialchars($doc["document_id"]) ?>">
 
                                     Sign
 
@@ -461,7 +461,7 @@ require_once "../controllers/MemberDashboardController.php";
                                 <button
                                     class="btn-small rejectBtn"
                                     type="button"
-                                    data-id="<?= $doc["document_id"] ?>">
+                                    data-id="<?= htmlspecialchars($doc["document_id"]) ?>">
 
                                     Reject
 
@@ -542,7 +542,7 @@ require_once "../controllers/MemberDashboardController.php";
 
                         <td>
 
-                            <?= !empty($row["created_at"]) ? date("M d, Y h:i A", strtotime($row["created_at"])) : "N/A" ?>
+                            <?= htmlspecialchars(!empty($row["created_at"]) ? date("M d, Y h:i A", strtotime($row["created_at"])) : "N/A") ?>
 
                         </td>
 
@@ -584,7 +584,7 @@ require_once "../controllers/MemberDashboardController.php";
 
                             ?>
 
-                            <span class="status-badge <?= $statusClass ?>">
+                            <span class="status-badge <?= htmlspecialchars($statusClass) ?>">
 
                                 <?= htmlspecialchars($row["status"]) ?>
 
@@ -1070,7 +1070,7 @@ require_once "../controllers/MemberDashboardController.php";
 
                         <?php foreach ($types as $type): ?>
 
-                            <option value="<?= $type["type_id"] ?>">
+                            <option value="<?= htmlspecialchars($type["type_id"]) ?>">
                                 <?= htmlspecialchars($type["type_name"]) ?>
                             </option>
 

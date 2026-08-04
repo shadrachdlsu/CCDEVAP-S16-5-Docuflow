@@ -286,7 +286,7 @@ require_once "../controllers/AdminUsersController.php";
                                     <input
                                         type="checkbox"
                                         class="user-select-cb"
-                                        value="<?= $user["id"] ?>">
+                                        value="<?= (int) $user["id"] ?>">
 
                                 </td>
 
@@ -295,7 +295,7 @@ require_once "../controllers/AdminUsersController.php";
                                     <a
                                         href="#"
                                         class="user-profile-link"
-                                        data-id="<?= $user["id"] ?>"
+                                        data-id="<?= (int) $user["id"] ?>"
                                         style="font-weight:600; color:var(--primary); text-decoration:none;">
 
                                         <?= htmlspecialchars($user["name"]) ?>
@@ -340,11 +340,11 @@ require_once "../controllers/AdminUsersController.php";
                                             class="btn-small edit-btn"
                                             title="Edit User"
                                             type="button"
-                                            data-id="<?= $user["id"] ?>"
+                                            data-id="<?= (int) $user["id"] ?>"
                                             data-name="<?= htmlspecialchars($user["name"]) ?>"
                                             data-email="<?= htmlspecialchars($user["email"]) ?>"
-                                            data-role="<?= $user["role_id"] ?>"
-                                            data-office="<?= $user["office_id"] ?>"
+                                            data-role="<?= (int) $user["role_id"] ?>"
+                                            data-office="<?= (int) $user["office_id"] ?>"
                                             data-status="<?= htmlspecialchars($user["status"]) ?>">
 
                                             Edit
@@ -367,7 +367,7 @@ require_once "../controllers/AdminUsersController.php";
                                                 <button
                                                     type="button"
                                                     class="dropdown-item view-profile-btn"
-                                                    data-id="<?= $user["id"] ?>">
+                                                    data-id="<?= (int) $user["id"] ?>">
 
                                                     View Profile & Activity
 
@@ -378,7 +378,7 @@ require_once "../controllers/AdminUsersController.php";
                                                     <button
                                                         type="button"
                                                         class="dropdown-item deactivate-btn"
-                                                        data-id="<?= $user["id"] ?>"
+                                                        data-id="<?= (int) $user["id"] ?>"
                                                         data-name="<?= htmlspecialchars($user["name"]) ?>">
 
                                                         Deactivate
@@ -390,7 +390,7 @@ require_once "../controllers/AdminUsersController.php";
                                                     <button
                                                         type="button"
                                                         class="dropdown-item approve-btn"
-                                                        data-id="<?= $user["id"] ?>">
+                                                        data-id="<?= (int) $user["id"] ?>">
 
                                                         Approve
 
@@ -401,7 +401,7 @@ require_once "../controllers/AdminUsersController.php";
                                                 <button
                                                     type="button"
                                                     class="dropdown-item reset-pwd-btn"
-                                                    data-id="<?= $user["id"] ?>"
+                                                    data-id="<?= (int) $user["id"] ?>"
                                                     data-name="<?= htmlspecialchars($user["name"]) ?>">
 
                                                     Reset Password
@@ -413,7 +413,7 @@ require_once "../controllers/AdminUsersController.php";
                                                 <button
                                                     type="button"
                                                     class="dropdown-item delete-btn text-danger"
-                                                    data-id="<?= $user["id"] ?>"
+                                                    data-id="<?= (int) $user["id"] ?>"
                                                     data-name="<?= htmlspecialchars($user["name"]) ?>">
 
                                                     Delete User
@@ -539,7 +539,7 @@ require_once "../controllers/AdminUsersController.php";
 
                     <?php foreach ($roles as $role): ?>
 
-                        <option value="<?= $role["role_id"] ?>">
+                        <option value="<?= htmlspecialchars($role["role_id"]) ?>">
                             <?= htmlspecialchars($role["role_name"]) ?>
                         </option>
 
@@ -562,7 +562,7 @@ require_once "../controllers/AdminUsersController.php";
 
                     <?php foreach ($offices as $office): ?>
 
-                        <option value="<?= $office["id"] ?>">
+                        <option value="<?= htmlspecialchars($office["id"]) ?>">
                             <?= htmlspecialchars($office["name"]) ?>
                         </option>
 
@@ -675,7 +675,7 @@ require_once "../controllers/AdminUsersController.php";
 
                     <?php foreach ($offices as $office): ?>
 
-                        <option value="<?= $office["id"] ?>">
+                        <option value="<?= htmlspecialchars($office["id"]) ?>">
                             <?= htmlspecialchars($office["name"]) ?>
                         </option>
 
@@ -793,8 +793,8 @@ require_once "../controllers/AdminUsersController.php";
 
                             <option
                                 class="handover-opt"
-                                value="<?= $u["id"] ?>"
-                                data-id="<?= $u["id"] ?>">
+                                value="<?= (int) $u["id"] ?>"
+                                data-id="<?= (int) $u["id"] ?>">
 
                                 <?= htmlspecialchars($u["name"]) ?>
                                 (<?= htmlspecialchars($u["role"]) ?> - <?= htmlspecialchars($u["office"] ?? "No Office") ?>)

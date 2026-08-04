@@ -72,10 +72,13 @@ class DocumentTrail
             INNER JOIN documents d
                 ON dt.document_id = d.document_id
             ORDER BY dt.created_at DESC
-            LIMIT " . (int)$limit . "
+            LIMIT :limit
         ";
 
-        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>
