@@ -1,14 +1,5 @@
 <?php
-
-require_once __DIR__ . "/../config/connections.php";
-
-/*
-|--------------------------------------------------------------------------
-| OFFICE MODEL
-|--------------------------------------------------------------------------
-| Handles all database operations for office departments, secretary
-| assignments, member rosters, and document workload tracking.
-*/
+require_once __DIR__ . '/../config/connections.php';
 
 class Office
 {
@@ -18,305 +9,214 @@ class Office
     {
         global $pdo;
         $this->pdo = $pdo;
-        $this->ensureSchemaUpdated();
+        $this->ensureStatusColumn();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | SCHEMA MIGRATION / INITIALIZATION
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Automatically ensures missing columns exist on the offices table.
-     */
-    public function ensureSchemaUpdated(): void
+    private function ensureStatusColumn(): void
     {
-        try {
-            $stmt = $this->pdo->prepare("SHOW COLUMNS FROM offices");
-            $stmt->execute();
-            $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $statement = $this->pdo->prepare(
+            'SELECT COUNT(*)
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?
+               AND COLUMN_NAME = ?'
+        );
+        $statement->execute(['offices', 'is_active']);
 
-            if (!in_array("office_code", $columns)) {
-                $this->pdo->exec("ALTER TABLE offices ADD COLUMN office_code VARCHAR(20) DEFAULT NULL AFTER office_name");
-            }
-
-            if (!in_array("location", $columns)) {
-                $this->pdo->exec("ALTER TABLE offices ADD COLUMN location VARCHAR(150) DEFAULT NULL AFTER office_code");
-            }
-
-            if (!in_array("contact_email", $columns)) {
-                $this->pdo->exec("ALTER TABLE offices ADD COLUMN contact_email VARCHAR(100) DEFAULT NULL AFTER location");
-            }
-
-            if (!in_array("is_active", $columns)) {
-                $this->pdo->exec("ALTER TABLE offices ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1 AFTER contact_email");
-            }
-
-            // Populate default office codes if missing
-            $this->pdo->exec("UPDATE offices SET office_code = 'REG' WHERE office_name LIKE '%Registrar%' AND (office_code IS NULL OR office_code = '')");
-            $this->pdo->exec("UPDATE offices SET office_code = 'FIN' WHERE office_name LIKE '%Finance%' AND (office_code IS NULL OR office_code = '')");
-            $this->pdo->exec("UPDATE offices SET office_code = 'DEAN' WHERE office_name LIKE '%Dean%' AND (office_code IS NULL OR office_code = '')");
-            $this->pdo->exec("UPDATE offices SET office_code = 'ITS' WHERE (office_name LIKE '%IT%' OR office_name LIKE '%Tech%') AND (office_code IS NULL OR office_code = '')");
-        } catch (Exception $e) {
-            // Silently swallow schema check error if table issues exist
+        if (!(bool) $statement->fetchColumn()) {
+            $this->pdo->exec(
+                'ALTER TABLE offices
+                 ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1'
+            );
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | DATA RETRIEVAL METHODS
-    |--------------------------------------------------------------------------
-    */
-
     /**
-     * Get basic office list (legacy compatibility).
+     * Get all offices.
+     * @return array
      */
     public function getAllOffices(): array
     {
-        $stmt = $this->pdo->prepare("SELECT office_id as id, office_name as name FROM offices ORDER BY office_name");
-        $stmt->execute();
+        $stmt = $this->pdo->query("SELECT office_id as id, office_name as name FROM offices ORDER BY office_name");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Get count of total offices.
-     */
+    public function getAll(): array
+    {
+        return $this->pdo->query(
+            'SELECT office_id, office_name, is_active
+             FROM offices
+             ORDER BY office_name'
+        )->fetchAll();
+    }
+
+    public function getActive(): array
+    {
+        return $this->pdo->query(
+            'SELECT office_id, office_name
+             FROM offices
+             WHERE is_active = 1
+             ORDER BY office_name'
+        )->fetchAll();
+    }
+
+    public function getAdminDirectory(): array
+    {
+        return $this->pdo->query(
+            'SELECT office.office_id, office.office_name, office.is_active,
+                    secretary.full_name AS secretary_name,
+                    COUNT(DISTINCT office_user.user_id) AS user_count,
+                    COUNT(DISTINCT document_routes.route_id) AS route_count
+             FROM offices AS office
+             LEFT JOIN office_secretaries AS office_secretary ON office_secretary.office_id = office.office_id
+             LEFT JOIN users AS secretary ON secretary.user_id = office_secretary.secretary_user_id
+             LEFT JOIN users AS office_user ON office_user.office_id = office.office_id
+             LEFT JOIN document_routes ON document_routes.office_id = office.office_id
+             GROUP BY office.office_id, office.office_name, office.is_active, secretary.full_name
+             ORDER BY office.office_name'
+        )->fetchAll();
+    }
+
+    public function getAdminOffice(int $officeId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT office.office_id, office.office_name, office.is_active,
+                    office_secretary.secretary_user_id,
+                    COUNT(DISTINCT office_user.user_id) AS user_count,
+                    COUNT(DISTINCT document_routes.route_id) AS route_count
+             FROM offices AS office
+             LEFT JOIN office_secretaries AS office_secretary ON office_secretary.office_id = office.office_id
+             LEFT JOIN users AS office_user ON office_user.office_id = office.office_id
+             LEFT JOIN document_routes ON document_routes.office_id = office.office_id
+             WHERE office.office_id = ?
+             GROUP BY office.office_id, office.office_name, office.is_active,
+                      office_secretary.secretary_user_id
+             LIMIT 1'
+        );
+        $statement->execute([$officeId]);
+        return $statement->fetch() ?: null;
+    }
+
+    public function getSecretaryContext(int $officeId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT offices.office_name, office_secretaries.secretary_user_id
+             FROM offices
+             LEFT JOIN office_secretaries ON office_secretaries.office_id = offices.office_id
+             WHERE offices.office_id = ?
+             LIMIT 1'
+        );
+        $statement->execute([$officeId]);
+        return $statement->fetch() ?: null;
+    }
+
+    public function getManagedSecretaryOffice(int $officeId, int $secretaryUserId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT offices.office_name
+             FROM office_secretaries
+             INNER JOIN offices ON offices.office_id = office_secretaries.office_id
+             WHERE office_secretaries.office_id = ?
+               AND office_secretaries.secretary_user_id = ?
+             LIMIT 1'
+        );
+        $statement->execute([$officeId, $secretaryUserId]);
+        return $statement->fetch() ?: null;
+    }
+
+    public function saveWithSecretary(int $officeId, string $officeName, int $secretaryUserId): int
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            if ($officeId > 0) {
+                $officeStatement = $this->pdo->prepare(
+                    'SELECT office_id FROM offices WHERE office_id = ? LIMIT 1'
+                );
+                $officeStatement->execute([$officeId]);
+
+                if (!$officeStatement->fetchColumn()) {
+                    throw new DomainException('The office could not be found.');
+                }
+
+                if ($secretaryUserId > 0) {
+                    $secretaryStatement = $this->pdo->prepare(
+                        "SELECT users.user_id
+                         FROM users
+                         INNER JOIN roles ON roles.role_id = users.role_id
+                         WHERE users.user_id = ?
+                           AND users.office_id = ?
+                           AND roles.role_name = 'Secretary'
+                           AND users.is_active = 1
+                           AND users.registration_status = 'Approved'
+                         LIMIT 1"
+                    );
+                    $secretaryStatement->execute([$secretaryUserId, $officeId]);
+
+                    if (!$secretaryStatement->fetchColumn()) {
+                        throw new DomainException('Select an active Secretary account from this office.');
+                    }
+                }
+
+                $statement = $this->pdo->prepare(
+                    'UPDATE offices SET office_name = ? WHERE office_id = ?'
+                );
+                $statement->execute([$officeName, $officeId]);
+
+                if ($secretaryUserId > 0) {
+                    $assignmentStatement = $this->pdo->prepare(
+                        'INSERT INTO office_secretaries (office_id, secretary_user_id)
+                         VALUES (?, ?)
+                         ON DUPLICATE KEY UPDATE
+                           secretary_user_id = VALUES(secretary_user_id),
+                           assigned_at = CURRENT_TIMESTAMP'
+                    );
+                    $assignmentStatement->execute([$officeId, $secretaryUserId]);
+                } else {
+                    $assignmentStatement = $this->pdo->prepare(
+                        'DELETE FROM office_secretaries WHERE office_id = ?'
+                    );
+                    $assignmentStatement->execute([$officeId]);
+                }
+            } else {
+                $statement = $this->pdo->prepare(
+                    'INSERT INTO offices (office_name) VALUES (?)'
+                );
+                $statement->execute([$officeName]);
+                $officeId = (int) $this->pdo->lastInsertId();
+            }
+
+            $this->pdo->commit();
+            return $officeId;
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
+        }
+    }
+
     public function countAllOffices(): int
     {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM offices");
-        $stmt->execute();
-        return (int)$stmt->fetchColumn();
+        return (int)$this->pdo->query("SELECT COUNT(*) FROM offices")->fetchColumn();
     }
 
     /**
-     * Get all offices with comprehensive metadata, secretary info, and live metrics.
-     */
-    public function getAllOfficesDetailed(): array
-    {
-        $sql = "
-            SELECT 
-                o.office_id as id,
-                o.office_name as name,
-                COALESCE(o.office_code, UPPER(LEFT(o.office_name, 4))) as code,
-                COALESCE(o.location, 'Main Campus') as location,
-                COALESCE(o.contact_email, 'N/A') as contact_email,
-                COALESCE(o.is_active, 1) as is_active,
-                u.user_id as secretary_id,
-                u.full_name as secretary_name,
-                u.email as secretary_email,
-                (SELECT COUNT(*) FROM users u2 WHERE u2.office_id = o.office_id AND u2.is_active = 1) as member_count,
-                (SELECT COUNT(*) FROM documents d WHERE d.current_office_id = o.office_id AND d.status NOT IN ('Approved', 'Completed', 'Archived')) as active_doc_count
-            FROM offices o
-            LEFT JOIN office_secretaries os ON o.office_id = os.office_id
-            LEFT JOIN users u ON os.secretary_user_id = u.user_id
-            ORDER BY o.office_name ASC
-        ";
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Get list of users with Secretary role (role_id = 2) for assignment options.
-     */
-    public function getAvailableSecretaries(): array
-    {
-        $sql = "
-            SELECT 
-                u.user_id, 
-                u.full_name, 
-                u.email,
-                o.office_name as current_office
-            FROM users u
-            LEFT JOIN office_secretaries os ON u.user_id = os.secretary_user_id
-            LEFT JOIN offices o ON os.office_id = o.office_id
-            WHERE u.role_id = 2 AND u.is_active = 1
-            ORDER BY u.full_name ASC
-        ";
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Get active document count summary across all offices.
-     */
-    public function getTotalActiveDocuments(): int
-    {
-        $stmt = $this->pdo->prepare("
-            SELECT COUNT(*) 
-            FROM documents 
-            WHERE status NOT IN ('Approved', 'Completed', 'Archived')
-        ");
-        $stmt->execute();
-        return (int)$stmt->fetchColumn();
-    }
-
-    /**
-     * Legacy method for dashboard card metrics.
-     */
-    public function getOfficesWithDocCounts(): array
-    {
-        $stmt = $this->pdo->prepare("
-            SELECT o.office_name as name, COUNT(d.document_id) as doc_count
-            FROM offices o
-            LEFT JOIN documents d ON o.office_id = d.current_office_id
-            GROUP BY o.office_name
-            ORDER BY o.office_name
-        ");
-        $stmt->execute();
-        $officeDirectoryRaw = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return array_map(function ($o) {
-            return [
-                "name" => $o["name"],
-                "detail" => $o["doc_count"] . " Active Documents"
-            ];
-        }, $officeDirectoryRaw);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | WRITE / MUTATION METHODS
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Create a new office record.
-     */
-    public function createOffice(
-        string $name,
-        ?string $code = null,
-        ?string $location = null,
-        ?string $contactEmail = null,
-        int $isActive = 1
-    ): void {
-        if (empty($code)) {
-            $code = strtoupper(substr(preg_replace("/[^A-Za-z0-9]/", "", $name), 0, 4));
-        }
-
-        $stmt = $this->pdo->prepare("
-            INSERT INTO offices (office_name, office_code, location, contact_email, is_active)
-            VALUES (:name, :code, :location, :email, :is_active)
-        ");
-
-        $stmt->execute([
-            ":name" => $name,
-            ":code" => strtoupper($code),
-            ":location" => $location,
-            ":email" => $contactEmail,
-            ":is_active" => $isActive
-        ]);
-    }
-
-    /**
-     * Legacy create compatibility.
+     * Create a new office.
      */
     public function create(string $name): void
     {
-        $this->createOffice($name);
+        $stmt = $this->pdo->prepare("INSERT INTO offices (office_name) VALUES (:name)");
+        $stmt->execute([':name' => $name]);
     }
 
     /**
-     * Update existing office record.
-     */
-    public function updateOffice(
-        int $id,
-        string $name,
-        ?string $code = null,
-        ?string $location = null,
-        ?string $contactEmail = null,
-        int $isActive = 1
-    ): void {
-        if (empty($code)) {
-            $code = strtoupper(substr(preg_replace("/[^A-Za-z0-9]/", "", $name), 0, 4));
-        }
-
-        $stmt = $this->pdo->prepare("
-            UPDATE offices 
-            SET office_name = :name,
-                office_code = :code,
-                location = :location,
-                contact_email = :email,
-                is_active = :is_active
-            WHERE office_id = :id
-        ");
-
-        $stmt->execute([
-            ":name" => $name,
-            ":code" => strtoupper($code),
-            ":location" => $location,
-            ":email" => $contactEmail,
-            ":is_active" => $isActive,
-            ":id" => $id
-        ]);
-    }
-
-    /**
-     * Legacy update compatibility.
+     * Update an office.
      */
     public function update(int $id, string $name): void
     {
         $stmt = $this->pdo->prepare("UPDATE offices SET office_name = :name WHERE office_id = :id");
-        $stmt->execute([":name" => $name, ":id" => $id]);
-    }
-
-    /**
-     * Toggle active/inactive status of an office.
-     */
-    public function toggleStatus(int $id, int $isActive): void
-    {
-        $stmt = $this->pdo->prepare("UPDATE offices SET is_active = :status WHERE office_id = :id");
-        $stmt->execute([":status" => $isActive, ":id" => $id]);
-    }
-
-    /**
-     * Assign or reassign a primary secretary to an office.
-     */
-    public function assignSecretary(int $officeId, int $secretaryUserId): void
-    {
-        // First remove existing secretary link for this office if any
-        $stmtDel = $this->pdo->prepare("DELETE FROM office_secretaries WHERE office_id = :office_id OR secretary_user_id = :user_id");
-        $stmtDel->execute([
-            ":office_id" => $officeId,
-            ":user_id" => $secretaryUserId
-        ]);
-
-        // Insert new secretary link
-        $stmtIns = $this->pdo->prepare("INSERT INTO office_secretaries (office_id, secretary_user_id) VALUES (:office_id, :user_id)");
-        $stmtIns->execute([
-            ":office_id" => $officeId,
-            ":user_id" => $secretaryUserId
-        ]);
-
-        // Also sync the user's office_id field in users table
-        $stmtUser = $this->pdo->prepare("UPDATE users SET office_id = :office_id WHERE user_id = :user_id");
-        $stmtUser->execute([
-            ":office_id" => $officeId,
-            ":user_id" => $secretaryUserId
-        ]);
-    }
-
-    /**
-     * Check dependency counts (users & documents) before deletion.
-     */
-    public function checkDependencies(int $id): array
-    {
-        $stmtUser = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE office_id = :id");
-        $stmtUser->execute([":id" => $id]);
-        $userCount = (int)$stmtUser->fetchColumn();
-
-        $stmtDoc = $this->pdo->prepare("SELECT COUNT(*) FROM documents WHERE current_office_id = :id");
-        $stmtDoc->execute([":id" => $id]);
-        $docCount = (int)$stmtDoc->fetchColumn();
-
-        return [
-            "user_count" => $userCount,
-            "doc_count" => $docCount
-        ];
+        $stmt->execute([':name' => $name, ':id' => $id]);
     }
 
     /**
@@ -325,7 +225,131 @@ class Office
     public function delete(int $id): void
     {
         $stmt = $this->pdo->prepare("DELETE FROM offices WHERE office_id = :id");
-        $stmt->execute([":id" => $id]);
+        $stmt->execute([':id' => $id]);
+    }
+
+    public function setActive(int $officeId, bool $isActive): void
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE offices SET is_active = ? WHERE office_id = ?'
+        );
+        $statement->execute([$isActive ? 1 : 0, $officeId]);
+
+        if ($statement->rowCount() === 0) {
+            $existsStatement = $this->pdo->prepare(
+                'SELECT office_id FROM offices WHERE office_id = ? LIMIT 1'
+            );
+            $existsStatement->execute([$officeId]);
+
+            if (!$existsStatement->fetchColumn()) {
+                throw new DomainException('The office could not be found.');
+            }
+        }
+    }
+
+    public function getDeletionDependencies(int $officeId): array
+    {
+        $references = [
+            'users' => ['users', 'office_id'],
+            'current_documents' => ['documents', 'current_office_id'],
+            'document_routes' => ['document_routes', 'office_id'],
+            'document_requests' => ['document_requests', 'office_id'],
+            'assignment_records' => ['document_assignments', 'office_id'],
+            'history_from_office' => ['document_trails', 'from_office_id'],
+            'history_to_office' => ['document_trails', 'to_office_id'],
+            'document_types' => ['document_type_offices', 'office_id'],
+            'secretary_assignments' => ['office_secretaries', 'office_id'],
+        ];
+        $dependencies = [];
+
+        foreach ($references as $key => [$table, $column]) {
+            $dependencies[$key] = $this->countReferences($table, $column, $officeId);
+        }
+
+        $dependencies['total'] = array_sum($dependencies);
+
+        return $dependencies;
+    }
+
+    public function deleteSafely(int $officeId): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $lockStatement = $this->pdo->prepare(
+                'SELECT office_id FROM offices WHERE office_id = ? FOR UPDATE'
+            );
+            $lockStatement->execute([$officeId]);
+
+            if (!$lockStatement->fetchColumn()) {
+                throw new DomainException('The office could not be found.');
+            }
+
+            $dependencies = $this->getDeletionDependencies($officeId);
+
+            if ($dependencies['total'] > 0) {
+                throw new DomainException(
+                    'This office is used by users, documents, routes, or history and cannot be deleted. Deactivate it instead.'
+                );
+            }
+
+            $statement = $this->pdo->prepare(
+                'DELETE FROM offices WHERE office_id = ?'
+            );
+            $statement->execute([$officeId]);
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
+        }
+    }
+
+    private function countReferences(
+        string $table,
+        string $column,
+        int $officeId
+    ): int {
+        $tableStatement = $this->pdo->prepare(
+            'SELECT COUNT(*)
+             FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?'
+        );
+        $tableStatement->execute([$table]);
+
+        if (!(bool) $tableStatement->fetchColumn()) {
+            return 0;
+        }
+
+        $statement = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM `{$table}` WHERE `{$column}` = ?"
+        );
+        $statement->execute([$officeId]);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    /**
+     * Get offices with their active document counts.
+     */
+    public function getOfficesWithDocCounts(): array
+    {
+        $officeDirectoryRaw = $this->pdo->query("
+            SELECT o.office_name as name, COUNT(d.document_id) as doc_count
+            FROM offices o
+            LEFT JOIN documents d ON o.office_id = d.current_office_id
+            GROUP BY o.office_name
+            ORDER BY o.office_name
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(function($o) {
+            return [
+                'name' => $o['name'],
+                'detail' => $o['doc_count'] . ' Active Documents'
+            ];
+        }, $officeDirectoryRaw);
     }
 }
 ?>

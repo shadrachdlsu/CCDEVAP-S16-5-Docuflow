@@ -1,249 +1,314 @@
-"use strict";
+document.addEventListener("DOMContentLoaded", () => {
+  //  DOM ELEMENTS
+  const btnCreate = document.getElementById("show-create");
+  const btnReceive = document.getElementById("show-receive");
+  const btnPending = document.getElementById("show-pending");
+  const statCards = document.querySelectorAll(".stat-card");
+  const statCreated = document.getElementById("stat-created");
+  const statReceived = document.getElementById("stat-received");
+  const statReleased = document.getElementById("stat-released");
+  const panelCreate = document.getElementById("create-panel");
+  const panelReceive = document.getElementById("receive-panel");
+  const panelPending = document.getElementById("pending-panel");
+  const panelReport = document.getElementById("report-panel");
+  const actionContent = document.getElementById("action-content");
+  const reportTitle = document.getElementById("report-title");
+  const reportDescription = document.getElementById("report-description");
+  const diagramPreview = document.getElementById("diagram-preview");
+  const uploadArea = document.getElementById("upload-area");
+  const btnDashboard = document.getElementById("view-dashboard");
+  const btnToggleTheme = document.querySelector(".toggle-theme");
+  const btnLogout = document.querySelector(".logout-btn");
+  const btnRouteDocument = document.querySelector(".btn-route-document");
+  const receiveDocumentCards = document.querySelectorAll(
+    "#receive-panel .document-card",
+  );
+  const documentFileCards = document.querySelectorAll(
+    ".document-card[data-document-file]",
+  );
 
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
+  // HELPERS
+  function hideAllPanels() {
+    panelCreate.style.display = "none";
+    panelReceive.style.display = "none";
+    panelPending.style.display = "none";
+    panelReport.style.display = "none";
+  }
 
-$(document).ready(function () {
+  function removeActiveFromActionButtons() {
+    btnCreate.classList.remove("active");
+    btnReceive.classList.remove("active");
+    btnPending.classList.remove("active");
+  }
 
-    /*
-    |--------------------------------------------------------------------------
-    | THEME TOGGLE & INITIALIZATION
-    |--------------------------------------------------------------------------
-    */
+  function removeActiveFromStats() {
+    statCards.forEach((card) => card.classList.remove("active"));
+  }
 
-    function updateThemeIcon(isDark) {
-        const icon = $("#themeToggle i");
-        if (icon.length) {
-            icon.toggleClass("fa-moon", !isDark);
-            icon.toggleClass("fa-sun", isDark);
-        }
+  // PANEL TOGGLE
+  function showPanel(panelToShow, activeBtn) {
+    hideAllPanels();
+    removeActiveFromActionButtons();
+    removeActiveFromStats();
+    actionContent.style.display = "block";
+    panelToShow.style.display = "block";
+    activeBtn.classList.add("active");
+  }
+
+  function showDiagram(config, activeCard) {
+    hideAllPanels();
+    removeActiveFromActionButtons();
+    removeActiveFromStats();
+    actionContent.style.display = "none";
+    panelReport.style.display = "block";
+    activeCard.classList.add("active");
+    reportTitle.textContent = config.title;
+    reportDescription.textContent = config.description;
+
+    diagramPreview.innerHTML = `
+      <div class="pie-preview-card">
+        <div
+          class="pie-chart"
+          style="background: conic-gradient(${config.gradient})"
+          aria-label="${config.title}"
+        >
+          <span>${config.total}</span>
+        </div>
+        <div class="pie-details">
+          ${config.items
+            .map(
+              (item) => `
+                <div class="pie-row">
+                  <span class="pie-swatch" style="background: ${item.color}"></span>
+                  <span>${item.label}</span>
+                  <strong>${item.value}</strong>
+                </div>
+              `,
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  const diagramData = {
+    created: {
+      title: "Documents routed today",
+      description: "Highest today: Finance",
+      total: "23",
+      gradient:
+        "#4c1d95 0 39%, #2563eb 39% 65%, #059669 65% 83%, #f59e0b 83% 100%",
+      items: [
+        { label: "Finance", value: "9", color: "#4c1d95" },
+        { label: "HR", value: "6", color: "#2563eb" },
+        { label: "Admin", value: "4", color: "#059669" },
+        { label: "Legal", value: "4", color: "#f59e0b" },
+      ],
+    },
+    received: {
+      title: "Received Today",
+      description: "Highest today: Finance",
+      total: "42",
+      gradient:
+        "#4c1d95 0 33%, #0f766e 33% 57%, #dc2626 57% 76%, #64748b 76% 100%",
+      items: [
+        { label: "Finance", value: "14", color: "#4c1d95" },
+        { label: "Records Office", value: "10", color: "#0f766e" },
+        { label: "HR", value: "8", color: "#dc2626" },
+        { label: "Admin", value: "10", color: "#64748b" },
+      ],
+    },
+    released: {
+      title: "Returned Today",
+      description: "Highest today: HR",
+      total: "18",
+      gradient:
+        "#4c1d95 0 44%, #2563eb 44% 67%, #059669 67% 83%, #f59e0b 83% 100%",
+      items: [
+        { label: "HR", value: "8", color: "#4c1d95" },
+        { label: "Admin", value: "4", color: "#2563eb" },
+        { label: "Finance", value: "3", color: "#059669" },
+        { label: "Legal", value: "3", color: "#f59e0b" },
+      ],
+    },
+  };
+
+  if (btnCreate) {
+    btnCreate.addEventListener("click", () => {
+      showPanel(panelCreate, btnCreate);
+    });
+  }
+
+  if (btnReceive) {
+    btnReceive.addEventListener("click", () => {
+      showPanel(panelReceive, btnReceive);
+    });
+  }
+
+  if (btnPending) {
+    btnPending.addEventListener("click", () => {
+      showPanel(panelPending, btnPending);
+    });
+  }
+
+  if (statCreated) {
+    statCreated.addEventListener("click", () => {
+      showDiagram(diagramData.created, statCreated);
+    });
+  }
+
+  if (statReceived) {
+    statReceived.addEventListener("click", () => {
+      showDiagram(diagramData.received, statReceived);
+    });
+  }
+
+  if (statReleased) {
+    statReleased.addEventListener("click", () => {
+      showDiagram(diagramData.released, statReleased);
+    });
+  }
+
+  documentFileCards.forEach((card) => {
+    const documentIcon = card.querySelector(".doc-icon");
+
+    if (documentIcon) {
+      documentIcon.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.open(card.dataset.documentFile, "_blank");
+      });
     }
+  });
 
-    const savedTheme = localStorage.getItem("docuflow-theme") || localStorage.getItem("theme");
-    const isDarkTheme = savedTheme === "dark";
+  receiveDocumentCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      receiveDocumentCards.forEach((otherCard) => {
+        if (otherCard !== card) {
+          otherCard.classList.remove("expanded");
+        }
+      });
+      card.classList.toggle("expanded");
+    });
 
-    if (isDarkTheme) {
-        document.documentElement.classList.add("dark-mode");
-        document.body.classList.add("dark-mode");
-        updateThemeIcon(true);
-    } else {
-        document.documentElement.classList.remove("dark-mode");
-        document.body.classList.remove("dark-mode");
-        updateThemeIcon(false);
+    const sendButton = card.querySelector(".btn-send-document");
+    const recipientInput = card.querySelector(".recipient-input");
+
+    if (sendButton && recipientInput) {
+      sendButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const recipient = recipientInput.value.trim();
+
+        if (!recipient) {
+          recipientInput.focus();
+          return;
+        }
+
+        const status = card.querySelector(".doc-status");
+        const office = card.querySelector(".doc-office");
+
+        status.textContent = "Sent";
+        status.classList.remove("status-pending");
+        status.classList.add("status-sent");
+        office.textContent = recipient;
+        sendButton.textContent = "Sent";
+        sendButton.disabled = true;
+        recipientInput.disabled = true;
+        card.classList.remove("expanded");
+      });
+
+      recipientInput.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
     }
+  });
 
-    $("#themeToggle").on("click", function () {
-        const isDark = document.body.classList.toggle("dark-mode");
-        document.documentElement.classList.toggle("dark-mode", isDark);
+  // UPLOAD AREA
+  if (uploadArea) {
+    // Create hidden file input
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".pdf";
+    fileInput.style.display = "none";
+    document.body.appendChild(fileInput);
 
-        localStorage.setItem("docuflow-theme", isDark ? "dark" : "light");
-        localStorage.setItem("theme", isDark ? "dark" : "light");
-
-        updateThemeIcon(isDark);
+    uploadArea.addEventListener("click", () => {
+      fileInput.click();
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | MODAL HELPERS & PROFILE LOADER
-    |--------------------------------------------------------------------------
-    */
-
-    window.openModal = function (modalId) {
-        $("#" + modalId).addClass("active");
-        if (modalId === "profileModal") {
-            loadProfile();
-        }
-    };
-
-    window.closeModal = function (modalId) {
-        $("#" + modalId).removeClass("active");
-    };
-
-    async function loadProfile() {
-        try {
-            const res = await fetch("../controllers/SecretaryDashboardController.php?action=profile");
-            if (!res.ok) return;
-            const profile = await res.json();
-            if (!profile) return;
-
-            $("#profileName").text(profile.full_name || "N/A");
-            $("#profileEmail").text(profile.email || "N/A");
-            $("#profileOffice").text(profile.office_name || "Unassigned");
-            $("#profileRole").text(profile.role_name || "Secretary");
-        } catch (err) {
-            console.error("Load profile error:", err);
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | TAB NAVIGATION & PERSISTENCE
-    |--------------------------------------------------------------------------
-    */
-
-    $(document).on("click", ".header-nav-item, .nav-link", function (e) {
-        e.preventDefault();
-
-        $(".header-nav-item, .nav-link").removeClass("active");
-        $(".page").removeClass("active");
-
-        const target = $(this).data("target");
-        if (!target) return;
-
-        $(`.header-nav-item[data-target="${target}"], .nav-link[data-target="${target}"]`).addClass("active");
-        $("#page-" + target).addClass("active");
-
-        localStorage.setItem("secretaryActiveTab", target);
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length > 0) {
+        // For now just show an alert
+        alert(`File selected: ${fileInput.files[0].name}`);
+      }
     });
 
-    const activeTab = localStorage.getItem("secretaryActiveTab");
-
-    if (activeTab && $("#page-" + activeTab).length) {
-        $(".header-nav-item, .nav-link").removeClass("active");
-        $(".page").removeClass("active");
-        $(`.header-nav-item[data-target="${activeTab}"], .nav-link[data-target="${activeTab}"]`).addClass("active");
-        $("#page-" + activeTab).addClass("active");
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATATABLE INITIALIZATIONS
-    |--------------------------------------------------------------------------
-    */
-
-    const dataTableOptions = {
-        responsive: true,
-        order: [[3, "desc"]]
-    };
-
-    if ($("#table-all-documents").length) $("#table-all-documents").DataTable(dataTableOptions);
-    if ($("#table-receive").length) $("#table-receive").DataTable({ responsive: true });
-    if ($("#table-pending").length) $("#table-pending").DataTable({ responsive: true });
-    if ($("#table-release").length) $("#table-release").DataTable({ responsive: true });
-    if ($("#table-types").length) $("#table-types").DataTable({ responsive: true });
-
-    /*
-    |--------------------------------------------------------------------------
-    | DOCUMENT VIEW HANDLER
-    |--------------------------------------------------------------------------
-    */
-
-    $(document).on("click", ".btn-view", function () {
-        const file = $(this).data("file");
-        if (file) {
-            let clean = String(file).trim().replace(/^\/?CCDEVAP-MP1\//i, "").replace(/^\/+/, "");
-            if (clean.startsWith("pdfs/") || clean.startsWith("uploads/")) {
-                clean = "../" + clean;
-            }
-            window.open(clean, "_blank");
-        }
+    // Drag & drop
+    uploadArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = "var(--primary)";
+      uploadArea.style.borderStyle = "dashed";
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | MODALS (ASSIGN, FORWARD, DOCUMENT TYPES)
-    |--------------------------------------------------------------------------
-    */
-
-    $(document).on("click", ".btn-assign", function () {
-        const docId = $(this).data("id");
-        const title = $(this).data("title");
-
-        $("#assign-doc-id").val(docId);
-        $("#assign-doc-title").text(title);
-        openModal("modal-assign");
+    uploadArea.addEventListener("dragleave", () => {
+      uploadArea.style.borderColor = "";
+      uploadArea.style.borderStyle = "";
     });
 
-    $(document).on("click", ".btn-forward", function () {
-        const docId = $(this).data("id");
-        const title = $(this).data("title");
-
-        $("#forward-doc-id").val(docId);
-        $("#forward-doc-title").text(title);
-        openModal("modal-forward");
+    uploadArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadArea.style.borderColor = "";
+      uploadArea.style.borderStyle = "";
+      if (e.dataTransfer.files.length > 0) {
+        // Assign files to hidden input
+        alert(`File dropped: ${e.dataTransfer.files[0].name}`);
+      }
     });
+  }
 
-    $(document).on("click", "#btn-add-type", function () {
-        $("#type-action").val("add");
-        $("#type-id").val("");
-        $("#type-name").val("");
-        $("#type-modal-title").text("Add Document Type");
-        openModal("modal-type");
+  // DARK / LIGHT MODE TOGGLE
+  if (btnToggleTheme) {
+    btnToggleTheme.addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      // Toggle icon between moon and sun
+      const icon = btnToggleTheme.querySelector("i");
+      if (document.body.classList.contains("dark-mode")) {
+        icon.classList.remove("fa-moon");
+        icon.classList.add("fa-sun");
+      } else {
+        icon.classList.remove("fa-sun");
+        icon.classList.add("fa-moon");
+      }
     });
+  }
 
-    $(document).on("click", ".btn-edit-type", function () {
-        const id = $(this).data("id");
-        const name = $(this).data("name");
-
-        $("#type-action").val("edit");
-        $("#type-id").val(id);
-        $("#type-name").val(name);
-        $("#type-modal-title").text("Edit Document Type");
-        openModal("modal-type");
+  // VIEW DASHBOARD opens an external reporting site
+  if (btnDashboard) {
+    btnDashboard.addEventListener("click", () => {
+      hideAllPanels();
+      actionContent.style.display = "none";
+      btnCreate.classList.remove("active");
+      btnReceive.classList.remove("active");
+      btnPending.classList.remove("active");
+      removeActiveFromStats();
     });
+  }
 
-    /*
-    |--------------------------------------------------------------------------
-    | PAPER TRAIL HANDLER (AJAX)
-    |--------------------------------------------------------------------------
-    */
-
-    $(document).on("click", ".btn-trail", function () {
-        const docId = $(this).data("id");
-
-        openModal("modal-trail");
-        $("#trail-list").html('<li style="text-align:center;">Loading trail...</li>');
-
-        fetch(`../controllers/SecretaryDashboardController.php?action=trail&document_id=${docId}`)
-            .then(res => res.json())
-            .then(data => {
-                const ul = $("#trail-list");
-                ul.empty();
-
-                if (data.success && data.trail && data.trail.length > 0) {
-                    data.trail.forEach(t => {
-                        const li = $("<li></li>");
-                        let html = `<strong>${escapeHtml(t.action)}</strong> - ${escapeHtml(t.remarks || "")}<br>`;
-                        html += `<small>${escapeHtml(t.from_office || "System")} &rarr; ${escapeHtml(t.to_office || "N/A")}</small><br>`;
-                        html += `<small class="timestamp">${escapeHtml(t.action_date)}</small>`;
-
-                        if (t.action_by_name) {
-                            html += `<br><small>by ${escapeHtml(t.action_by_name)}</small>`;
-                        }
-
-                        li.html(html);
-                        ul.append(li);
-                    });
-                } else {
-                    ul.html("<li>No trail data found.</li>");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                $("#trail-list").html('<li style="color:red;">Error loading trail data.</li>');
-            });
+  // LOGOUT
+  if (btnLogout) {
+    btnLogout.addEventListener("click", () => {
+      const confirmed = confirm("Are you sure you want to logout?");
+      if (confirmed) {
+        alert("Logged out successfully.");
+        window.location.href = "login.php";
+      }
     });
+  }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MODAL CLOSE HANDLERS
-    |--------------------------------------------------------------------------
-    */
-
-    $(document).on("click", ".modal-close, [data-close]", function () {
-        $(this).closest(".modal-overlay").removeClass("active");
+  // CREATE & ROUTE DOCUMENT
+  if (btnRouteDocument) {
+    btnRouteDocument.addEventListener("click", (e) => {
+      e.preventDefault();
+      alert("Document created and routing initiated.");
     });
-
-    $(document).on("click", ".modal-overlay", function (e) {
-        if (e.target === this) {
-            $(this).removeClass("active");
-        }
-    });
-
+  }
 });

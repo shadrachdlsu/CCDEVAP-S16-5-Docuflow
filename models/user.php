@@ -35,6 +35,240 @@ class User
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
+    public function findLoginAccount(string $email): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT u.user_id, u.full_name, u.email, u.password_hash, u.office_id,
+                    u.is_active, u.registration_status, r.role_name
+             FROM users AS u
+             INNER JOIN roles AS r ON r.role_id = u.role_id
+             WHERE u.email = ?
+             LIMIT 1'
+        );
+        $statement->execute([$email]);
+        return $statement->fetch() ?: null;
+    }
+
+    public function getAdminList(): array
+    {
+        return $this->pdo->query(
+            'SELECT u.user_id, u.full_name, u.email, u.is_active, u.registration_status, u.created_at,
+                    role.role_name, office.office_name
+             FROM users AS u
+             INNER JOIN roles AS role ON role.role_id = u.role_id
+             LEFT JOIN offices AS office ON office.office_id = u.office_id
+             ORDER BY u.full_name'
+        )->fetchAll();
+    }
+
+    public function getPendingRegistrations(int $limit = 8): array
+    {
+        $limit = max(1, min($limit, 50));
+
+        return $this->pdo->query(
+            'SELECT u.user_id, u.full_name, u.email, u.created_at,
+                    role.role_name,
+                    COALESCE(office.office_name, "Unassigned") AS office_name
+             FROM users AS u
+             INNER JOIN roles AS role ON role.role_id = u.role_id
+             LEFT JOIN offices AS office ON office.office_id = u.office_id
+             WHERE u.registration_status = "Pending"
+               AND role.role_name <> "Admin"
+             ORDER BY u.created_at ASC
+             LIMIT ' . $limit
+        )->fetchAll();
+    }
+
+    public function countPendingRegistrations(): int
+    {
+        return (int) $this->pdo->query(
+            'SELECT COUNT(*)
+             FROM users AS u
+             INNER JOIN roles AS role ON role.role_id = u.role_id
+             WHERE u.registration_status = "Pending"
+               AND role.role_name <> "Admin"'
+        )->fetchColumn();
+    }
+
+    public function decideRegistration(int $userId, string $decision): void
+    {
+        if (!in_array($decision, ['approve', 'reject'], true)) {
+            throw new InvalidArgumentException('The registration decision is invalid.');
+        }
+
+        $statement = $this->pdo->prepare(
+            'UPDATE users AS u
+             INNER JOIN roles AS role ON role.role_id = u.role_id
+             SET u.is_active = ?, u.registration_status = ?
+             WHERE u.user_id = ?
+               AND u.registration_status = "Pending"
+               AND role.role_name <> "Admin"'
+        );
+        $statement->execute([
+            $decision === 'approve' ? 1 : 0,
+            $decision === 'approve' ? 'Approved' : 'Rejected',
+            $userId,
+        ]);
+
+        if ($statement->rowCount() === 0) {
+            throw new DomainException('This registration is no longer pending.');
+        }
+    }
+
+    public function getAdminUser(int $userId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT user_id, full_name, email, role_id, office_id,
+                    is_active, registration_status, created_at
+             FROM users
+             WHERE user_id = ?
+             LIMIT 1'
+        );
+        $statement->execute([$userId]);
+        return $statement->fetch() ?: null;
+    }
+
+    public function getApprovedSecretariesByOffice(int $officeId): array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT users.user_id, users.full_name, users.email
+             FROM users
+             INNER JOIN roles ON roles.role_id = users.role_id
+             WHERE users.office_id = ?
+               AND roles.role_name = 'Secretary'
+               AND users.is_active = 1
+               AND users.registration_status = 'Approved'
+             ORDER BY users.full_name"
+        );
+        $statement->execute([$officeId]);
+        return $statement->fetchAll();
+    }
+
+    public function getAssignableOfficeMembers(int $officeId, int $secretaryUserId): array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT users.user_id, users.full_name, users.email
+             FROM users
+             INNER JOIN roles ON roles.role_id = users.role_id
+             WHERE users.office_id = ?
+               AND (roles.role_name = 'Member' OR users.user_id = ?)
+               AND users.is_active = 1
+               AND users.registration_status = 'Approved'
+             ORDER BY users.full_name"
+        );
+        $statement->execute([$officeId, $secretaryUserId]);
+        return $statement->fetchAll();
+    }
+
+    public function updateFromAdmin(
+        int $userId,
+        string $fullName,
+        string $email,
+        int $roleId,
+        ?int $officeId,
+        string $accountStatus
+    ): void {
+        $isActive = $accountStatus === 'Active' ? 1 : 0;
+        $registrationStatus = match ($accountStatus) {
+            'Pending' => 'Pending',
+            'Rejected' => 'Rejected',
+            default => 'Approved',
+        };
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $roleStatement = $this->pdo->prepare(
+                'SELECT role_name FROM roles WHERE role_id = ? LIMIT 1'
+            );
+            $roleStatement->execute([$roleId]);
+            $roleName = $roleStatement->fetchColumn();
+
+            if (!$roleName) {
+                throw new DomainException('The selected role could not be found.');
+            }
+
+            $statement = $this->pdo->prepare(
+                'UPDATE users
+                 SET full_name = ?, email = ?, role_id = ?, office_id = ?,
+                     is_active = ?, registration_status = ?
+                 WHERE user_id = ?'
+            );
+            $statement->execute([
+                $fullName,
+                $email,
+                $roleId,
+                $officeId,
+                $isActive,
+                $registrationStatus,
+                $userId,
+            ]);
+
+            $secretaryAssignmentIsValid = $roleName === 'Secretary'
+                && $officeId !== null
+                && $accountStatus === 'Active';
+
+            if ($secretaryAssignmentIsValid) {
+                $clearStatement = $this->pdo->prepare(
+                    'DELETE FROM office_secretaries
+                     WHERE secretary_user_id = ? AND office_id <> ?'
+                );
+                $clearStatement->execute([$userId, $officeId]);
+            } else {
+                $clearStatement = $this->pdo->prepare(
+                    'DELETE FROM office_secretaries WHERE secretary_user_id = ?'
+                );
+                $clearStatement->execute([$userId]);
+            }
+
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
+        }
+    }
+
+    public function setActiveFromAdmin(int $userId, bool $isActive): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $statement = $this->pdo->prepare(
+                "UPDATE users
+                 SET is_active = ?, registration_status = 'Approved'
+                 WHERE user_id = ?"
+            );
+            $statement->execute([$isActive ? 1 : 0, $userId]);
+
+            if ($statement->rowCount() === 0) {
+                $existsStatement = $this->pdo->prepare(
+                    'SELECT user_id FROM users WHERE user_id = ? LIMIT 1'
+                );
+                $existsStatement->execute([$userId]);
+
+                if (!$existsStatement->fetchColumn()) {
+                    throw new DomainException('The user account could not be found.');
+                }
+            }
+
+            if (!$isActive) {
+                $assignmentStatement = $this->pdo->prepare(
+                    'DELETE FROM office_secretaries WHERE secretary_user_id = ?'
+                );
+                $assignmentStatement->execute([$userId]);
+            }
+
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
+        }
+    }
+
     public function emailExists(string $email): bool
     {
         $stmt = $this->pdo->prepare("SELECT user_id FROM users WHERE email = :email");
@@ -57,6 +291,120 @@ class User
             'is_active' => $is_active,
             'registration_status' => $registration_status
         ]);
+    }
+
+    public function updatePasswordHash(int $userId, string $passwordHash): void
+    {
+        if ($passwordHash === '' || strlen($passwordHash) > 255) {
+            throw new InvalidArgumentException('The password hash is invalid.');
+        }
+
+        $statement = $this->pdo->prepare(
+            'UPDATE users SET password_hash = ? WHERE user_id = ?'
+        );
+        $statement->execute([$passwordHash, $userId]);
+    }
+
+    public function getDeletionDependencies(int $userId): array
+    {
+        $references = [
+            'created_documents' => ['documents', 'creator_id'],
+            'document_requests' => ['document_requests', 'requested_by_id'],
+            'route_assignments' => ['document_routes', 'signatory_user_id'],
+            'document_history' => ['document_trails', 'action_by_user_id'],
+            'secretary_assignments' => ['office_secretaries', 'secretary_user_id'],
+            'assignments_received' => ['document_assignments', 'assigned_to_user_id'],
+            'assignments_created' => ['document_assignments', 'assigned_by_user_id'],
+        ];
+        $dependencies = [];
+
+        foreach ($references as $key => [$table, $column]) {
+            $dependencies[$key] = $this->countReferences($table, $column, $userId);
+        }
+
+        $dependencies['total'] = array_sum($dependencies);
+
+        return $dependencies;
+    }
+
+    public function deleteSafely(int $userId): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $lockStatement = $this->pdo->prepare(
+                'SELECT users.user_id, users.is_active, roles.role_name
+                 FROM users
+                 INNER JOIN roles ON roles.role_id = users.role_id
+                 WHERE users.user_id = ?
+                 FOR UPDATE'
+            );
+            $lockStatement->execute([$userId]);
+            $targetUser = $lockStatement->fetch();
+
+            if (!$targetUser) {
+                throw new DomainException('The user account could not be found.');
+            }
+
+            if ($targetUser['role_name'] === 'Admin' && (bool) $targetUser['is_active']) {
+                $adminCount = (int) $this->pdo->query(
+                    'SELECT COUNT(*)
+                     FROM users
+                     INNER JOIN roles ON roles.role_id = users.role_id
+                     WHERE roles.role_name = "Admin"
+                       AND users.is_active = 1
+                       AND users.registration_status = "Approved"'
+                )->fetchColumn();
+
+                if ($adminCount <= 1) {
+                    throw new DomainException('The last active administrator account cannot be deleted.');
+                }
+            }
+
+            $dependencies = $this->getDeletionDependencies($userId);
+
+            if ($dependencies['total'] > 0) {
+                throw new DomainException(
+                    'This user has document or office activity and cannot be deleted. Deactivate the account instead.'
+                );
+            }
+
+            $statement = $this->pdo->prepare(
+                'DELETE FROM users WHERE user_id = ?'
+            );
+            $statement->execute([$userId]);
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
+        }
+    }
+
+    private function countReferences(
+        string $table,
+        string $column,
+        int $userId
+    ): int {
+        $tableStatement = $this->pdo->prepare(
+            'SELECT COUNT(*)
+             FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?'
+        );
+        $tableStatement->execute([$table]);
+
+        if (!(bool) $tableStatement->fetchColumn()) {
+            return 0;
+        }
+
+        $statement = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM `{$table}` WHERE `{$column}` = ?"
+        );
+        $statement->execute([$userId]);
+
+        return (int) $statement->fetchColumn();
     }
 
     public function update(int $user_id, int $role_id, ?int $office_id, string $full_name, string $email, ?string $password_hash, int $is_active): void
@@ -99,196 +447,15 @@ class User
         }
     }
 
-    public function approveUser(int $user_id): void
-    {
-        $stmt = $this->pdo->prepare("
-            UPDATE users 
-            SET is_active = 1, registration_status = 'Approved' 
-            WHERE user_id = :id
-        ");
-        $stmt->execute([':id' => $user_id]);
-    }
-
-    public function deactivateUser(int $user_id): void
-    {
-        $stmt = $this->pdo->prepare("
-            UPDATE users 
-            SET is_active = 0, registration_status = 'Pending' 
-            WHERE user_id = :id
-        ");
-        $stmt->execute([':id' => $user_id]);
-    }
-
-    public function bulkApprove(array $user_ids): void
-    {
-        if (empty($user_ids)) return;
-        $in = implode(',', array_fill(0, count($user_ids), '?'));
-        $stmt = $this->pdo->prepare("
-            UPDATE users 
-            SET is_active = 1, registration_status = 'Approved' 
-            WHERE user_id IN ($in)
-        ");
-        $stmt->execute(array_values($user_ids));
-    }
-
-    public function bulkUpdateStatus(array $user_ids, string $status): void
-    {
-        if (empty($user_ids)) return;
-        $isActive = ($status === 'Active') ? 1 : 0;
-        $regStatus = ($status === 'Active') ? 'Approved' : 'Pending';
-        $in = implode(',', array_fill(0, count($user_ids), '?'));
-        $params = array_merge([$isActive, $regStatus], array_values($user_ids));
-        $stmt = $this->pdo->prepare("
-            UPDATE users 
-            SET is_active = ?, registration_status = ? 
-            WHERE user_id IN ($in)
-        ");
-        $stmt->execute($params);
-    }
-
-    public function bulkReassignOffice(array $user_ids, ?int $office_id): void
-    {
-        if (empty($user_ids)) return;
-        $in = implode(',', array_fill(0, count($user_ids), '?'));
-        $params = array_merge([$office_id], array_values($user_ids));
-        $stmt = $this->pdo->prepare("
-            UPDATE users 
-            SET office_id = ? 
-            WHERE user_id IN ($in)
-        ");
-        $stmt->execute($params);
-    }
-
     public function delete(int $user_id): void
     {
         $stmt = $this->pdo->prepare("DELETE FROM users WHERE user_id = :id");
         $stmt->execute([':id' => $user_id]);
     }
 
-    public function getActiveWorkflowsCount(int $user_id): array
-    {
-        $stmtAssigned = $this->pdo->prepare("SELECT COUNT(*) FROM document_assignments WHERE assigned_to_user_id = ? AND status = 'Pending'");
-        $stmtAssigned->execute([$user_id]);
-        $assignmentsCount = (int)$stmtAssigned->fetchColumn();
-
-        $stmtRoutes = $this->pdo->prepare("SELECT COUNT(*) FROM document_routes WHERE signatory_user_id = ? AND status IN ('Waiting', 'Received', 'For Signature')");
-        $stmtRoutes->execute([$user_id]);
-        $routesCount = (int)$stmtRoutes->fetchColumn();
-
-        $stmtSecretary = $this->pdo->prepare("SELECT COUNT(*) FROM office_secretaries WHERE secretary_user_id = ?");
-        $stmtSecretary->execute([$user_id]);
-        $secretaryCount = (int)$stmtSecretary->fetchColumn();
-
-        $stmtCreated = $this->pdo->prepare("SELECT COUNT(*) FROM documents WHERE creator_id = ? AND status NOT IN ('Completed', 'Rejected', 'Recalled')");
-        $stmtCreated->execute([$user_id]);
-        $createdCount = (int)$stmtCreated->fetchColumn();
-
-        $total = $assignmentsCount + $routesCount + $secretaryCount + $createdCount;
-
-        return [
-            'total' => $total,
-            'assignments' => $assignmentsCount,
-            'routes' => $routesCount,
-            'secretary' => $secretaryCount,
-            'created' => $createdCount
-        ];
-    }
-
-    public function reassignUserWorkflows(int $from_user_id, int $to_user_id): void
-    {
-        $stmtAssigned = $this->pdo->prepare("UPDATE document_assignments SET assigned_to_user_id = ? WHERE assigned_to_user_id = ? AND status = 'Pending'");
-        $stmtAssigned->execute([$to_user_id, $from_user_id]);
-
-        $stmtRoutes = $this->pdo->prepare("UPDATE document_routes SET signatory_user_id = ? WHERE signatory_user_id = ? AND status IN ('Waiting', 'Received', 'For Signature')");
-        $stmtRoutes->execute([$to_user_id, $from_user_id]);
-
-        $stmtSecretary = $this->pdo->prepare("UPDATE office_secretaries SET secretary_user_id = ? WHERE secretary_user_id = ?");
-        $stmtSecretary->execute([$to_user_id, $from_user_id]);
-
-        $stmtCreated = $this->pdo->prepare("UPDATE documents SET creator_id = ? WHERE creator_id = ? AND status NOT IN ('Completed', 'Rejected', 'Recalled')");
-        $stmtCreated->execute([$to_user_id, $from_user_id]);
-    }
-
-    public function resetPassword(int $user_id, string $new_password): void
-    {
-        $password_hash = password_hash($new_password, PASSWORD_DEFAULT);
-        $stmt = $this->pdo->prepare("UPDATE users SET password_hash = :hash WHERE user_id = :id");
-        $stmt->execute([':hash' => $password_hash, ':id' => $user_id]);
-    }
-
-    public function getUserProfileAndActivity(int $user_id): ?array
-    {
-        $stmtUser = $this->pdo->prepare("
-            SELECT 
-                u.user_id,
-                u.full_name,
-                u.email,
-                u.is_active,
-                u.registration_status,
-                u.created_at,
-                r.role_name,
-                o.office_name
-            FROM users u
-            JOIN roles r ON u.role_id = r.role_id
-            LEFT JOIN offices o ON u.office_id = o.office_id
-            WHERE u.user_id = ?
-            LIMIT 1
-        ");
-        $stmtUser->execute([$user_id]);
-        $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
-
-        if (!$user) return null;
-
-        $workflows = $this->getActiveWorkflowsCount($user_id);
-
-        $stmtTotalCreated = $this->pdo->prepare("SELECT COUNT(*) FROM documents WHERE creator_id = ?");
-        $stmtTotalCreated->execute([$user_id]);
-        $totalCreatedCount = (int)$stmtTotalCreated->fetchColumn();
-
-        $stmtCreatedDocs = $this->pdo->prepare("
-            SELECT document_id, tracking_code, title, status, created_at
-            FROM documents
-            WHERE creator_id = ?
-            ORDER BY created_at DESC
-            LIMIT 10
-        ");
-        $stmtCreatedDocs->execute([$user_id]);
-        $recentCreated = $stmtCreatedDocs->fetchAll(PDO::FETCH_ASSOC);
-
-        $stmtAssignments = $this->pdo->prepare("
-            SELECT da.assignment_id, da.status as assignment_status, da.assigned_at, d.tracking_code, d.title
-            FROM document_assignments da
-            JOIN documents d ON da.document_id = d.document_id
-            WHERE da.assigned_to_user_id = ?
-            ORDER BY da.assigned_at DESC
-            LIMIT 10
-        ");
-        $stmtAssignments->execute([$user_id]);
-        $recentAssignments = $stmtAssignments->fetchAll(PDO::FETCH_ASSOC);
-
-        return [
-            'profile' => [
-                'id' => $user['user_id'],
-                'name' => $user['full_name'],
-                'email' => $user['email'],
-                'role' => $user['role_name'],
-                'office' => $user['office_name'] ?? 'Unassigned',
-                'status' => $user['is_active'] == 1 ? 'Active' : 'Inactive',
-                'created_at' => date('M d, Y', strtotime($user['created_at']))
-            ],
-            'stats' => [
-                'total_created' => $totalCreatedCount,
-                'pending_assignments' => $workflows['assignments'],
-                'routes' => $workflows['routes']
-            ],
-            'created_documents' => $recentCreated,
-            'recent_assignments' => $recentAssignments
-        ];
-    }
-
     public function getAllWithRolesAndOffices(): array
     {
-        $stmt = $this->pdo->prepare("
+        $stmt = $this->pdo->query("
             SELECT 
                 u.user_id as id, 
                 u.full_name as name, 
@@ -303,7 +470,6 @@ class User
             LEFT JOIN offices o ON u.office_id = o.office_id
             ORDER BY u.full_name
         ");
-        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -364,16 +530,7 @@ class User
 
     public function countActiveUsers(): int
     {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE is_active = 1");
-        $stmt->execute();
-        return (int)$stmt->fetchColumn();
-    }
-
-    public function countPendingUsers(): int
-    {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE registration_status = 'Pending'");
-        $stmt->execute();
-        return (int)$stmt->fetchColumn();
+        return (int)$this->pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 1")->fetchColumn();
     }
 
     /**
@@ -381,24 +538,18 @@ class User
      */
     public function getUserDistribution(): array
     {
-        $stmtTotal = $this->pdo->prepare("SELECT COUNT(*) FROM users");
-        $stmtTotal->execute();
-        $totalUsers = $stmtTotal->fetchColumn();
+        $totalUsers = $this->pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
         if ($totalUsers == 0) $totalUsers = 1;
 
-        $stmtRoles = $this->pdo->prepare("
+        $userDistRows = $this->pdo->query("
             SELECT r.role_name as label, COUNT(u.user_id) as value
             FROM roles r
             LEFT JOIN users u ON r.role_id = u.role_id AND u.is_active = 1
             GROUP BY r.role_name
             ORDER BY value DESC
-        ");
-        $stmtRoles->execute();
-        $userDistRows = $stmtRoles->fetchAll(PDO::FETCH_ASSOC);
+        ")->fetchAll(PDO::FETCH_ASSOC);
 
-        $stmtInactive = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE is_active = 0");
-        $stmtInactive->execute();
-        $inactiveUsers = $stmtInactive->fetchColumn();
+        $inactiveUsers = $this->pdo->query("SELECT COUNT(*) FROM users WHERE is_active = 0")->fetchColumn();
         $userDistRows[] = ['label' => 'Inactive', 'value' => $inactiveUsers];
 
         $colors = [
@@ -439,53 +590,6 @@ class User
             'rows' => $formattedUserDistRows,
             'gradient' => $userDistGradient
         ];
-    }
-
-    /**
-     * Get list of non-admin users with pending registration or inactive status for Admin Dashboard.
-     */
-    public function getPendingRegistrationUsers(): array
-    {
-        $stmt = $this->pdo->prepare("
-            SELECT 
-                u.user_id AS id,
-                u.full_name AS name,
-                u.email,
-                COALESCE(o.office_name, 'Unassigned') AS office,
-                r.role_name AS role
-            FROM users u
-            JOIN roles r ON u.role_id = r.role_id
-            LEFT JOIN offices o ON u.office_id = o.office_id
-            WHERE (u.registration_status = 'Pending' OR u.is_active = 0)
-              AND u.role_id != 1
-            ORDER BY u.user_id DESC
-        ");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Validate password complexity requirements.
-     * Returns an error message string if invalid, or null if valid.
-     */
-    public static function validatePasswordComplexity(string $password): ?string
-    {
-        if (strlen($password) < 8) {
-            return "Password must be at least 8 characters long.";
-        }
-        if (!preg_match("/[A-Z]/", $password)) {
-            return "Password must contain at least one uppercase letter.";
-        }
-        if (!preg_match("/[a-z]/", $password)) {
-            return "Password must contain at least one lowercase letter.";
-        }
-        if (!preg_match("/[0-9]/", $password)) {
-            return "Password must contain at least one number.";
-        }
-        if (!preg_match("/[\W_]/", $password)) {
-            return "Password must contain at least one special character.";
-        }
-        return null;
     }
 }
 ?>
