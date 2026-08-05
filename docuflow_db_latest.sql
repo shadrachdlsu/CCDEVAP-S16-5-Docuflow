@@ -109,7 +109,28 @@ INSERT INTO `documents` (`document_id`, `tracking_code`, `title`, `file_path`, `
 (61, 'DOC-2026-ADM-01', 'International Student Eligibility Clearance', 'pdfs/dummy-doc-011.pdf', 2, 1, 16, 6, 'Pending', '2026-08-01 15:00:00', '2026-08-01 15:00:00'),
 (62, 'DOC-2026-ADM-02', 'Academic Scholarship Grant Recommendation', 'pdfs/dummy-doc-012.pdf', 1, 1, 16, 6, 'Completed', '2026-08-02 08:30:00', '2026-08-03 10:00:00'),
 (63, 'DOC-2026-RND-01', 'AI & Quantum Computing Research Grant Proposal', 'pdfs/dummy-doc-013.pdf', 1, 1, 17, 7, 'Pending', '2026-08-01 16:00:00', '2026-08-01 16:00:00'),
-(64, 'DOC-2026-RND-02', 'Publication Ethics & Integrity Directive', 'pdfs/dummy-doc-014.pdf', 6, 1, 17, 7, 'Signed', '2026-08-03 13:00:00', '2026-08-03 15:45:00');
+(64, 'DOC-2026-RND-02', 'Publication Ethics & Integrity Directive', 'pdfs/dummy-doc-014.pdf', 6, 1, 17, 7, 'Signed', '2026-08-03 13:00:00', '2026-08-03 15:45:00'),
+(65, 'DOC-2026-SEC-R01', 'Registrar Internal Policy Memo', 'pdfs/dummy-doc-001.pdf', 3, 1, 2, 2, 'Pending', '2026-07-20 08:00:00', '2026-07-20 08:00:00'),
+(66, 'DOC-2026-SEC-R02', 'Student Enrollment Verification Request', 'pdfs/dummy-doc-002.pdf', 2, 1, 6, 1, 'Pending', '2026-07-21 09:00:00', '2026-07-21 09:00:00'),
+(67, 'DOC-2026-SEC-R03', 'Diploma Release Endorsement', 'pdfs/dummy-doc-003.pdf', 2, 1, 11, 1, 'Signed', '2026-07-22 10:00:00', '2026-07-22 12:00:00'),
+(68, 'DOC-2026-SEC-F01', 'Financial Compliance Review Memo', 'pdfs/dummy-doc-004.pdf', 4, 1, 3, 4, 'Pending', '2026-07-20 08:30:00', '2026-07-20 08:30:00'),
+(69, 'DOC-2026-SEC-F02', 'Tuition Fee Adjustment Request', 'pdfs/dummy-doc-005.pdf', 2, 1, 7, 2, 'Pending', '2026-07-21 09:30:00', '2026-07-21 09:30:00'),
+(70, 'DOC-2026-SEC-F03', 'Budget Reconciliation Certificate', 'pdfs/dummy-doc-006.pdf', 4, 1, 14, 2, 'Signed', '2026-07-22 10:30:00', '2026-07-22 12:30:00'),
+(71, 'DOC-2026-SEC-D01', 'Dean Office Operations Summary', 'pdfs/dummy-doc-007.pdf', 3, 1, 4, 1, 'Pending', '2026-07-20 09:00:00', '2026-07-20 09:00:00'),
+(72, 'DOC-2026-SEC-D02', 'Faculty Workload Redistribution Plan', 'pdfs/dummy-doc-008.pdf', 2, 1, 10, 3, 'Pending', '2026-07-21 10:00:00', '2026-07-21 10:00:00'),
+(73, 'DOC-2026-SEC-D03', 'Academic Calendar Amendment Approval', 'pdfs/dummy-doc-009.pdf', 3, 1, 15, 3, 'Signed', '2026-07-22 11:00:00', '2026-07-22 13:00:00'),
+(74, 'DOC-2026-SEC-I01', 'IT Infrastructure Quarterly Review', 'pdfs/dummy-doc-010.pdf', 4, 1, 5, 2, 'Pending', '2026-07-20 09:30:00', '2026-07-20 09:30:00'),
+(75, 'DOC-2026-SEC-I02', 'Cybersecurity Incident Escalation Form', 'pdfs/dummy-doc-011.pdf', 4, 1, 12, 4, 'Pending', '2026-07-21 10:30:00', '2026-07-21 10:30:00'),
+(76, 'DOC-2026-SEC-I03', 'Software License Audit Clearance', 'pdfs/dummy-doc-012.pdf', 5, 1, 18, 4, 'Signed', '2026-07-22 11:30:00', '2026-07-22 13:30:00'),
+(77, 'DOC-2026-SEC-H01', 'HR Annual Compliance Certification', 'pdfs/dummy-doc-013.pdf', 6, 1, 9, 4, 'Pending', '2026-07-20 10:00:00', '2026-07-20 10:00:00'),
+(78, 'DOC-2026-SEC-H02', 'Employee Grievance Resolution Form', 'pdfs/dummy-doc-014.pdf', 2, 1, 13, 5, 'Pending', '2026-07-21 11:00:00', '2026-07-21 11:00:00'),
+(79, 'DOC-2026-SEC-H03', 'Workplace Safety Compliance Report', 'pdfs/dummy-doc-001.pdf', 4, 1, 13, 5, 'Signed', '2026-07-22 12:00:00', '2026-07-22 14:00:00'),
+(80, 'DOC-2026-SEC-A01', 'Admissions Enrollment Projections Report', 'pdfs/dummy-doc-002.pdf', 4, 1, 19, 4, 'Pending', '2026-07-20 10:30:00', '2026-07-20 10:30:00'),
+(81, 'DOC-2026-SEC-A02', 'Transfer Student Credential Assessment', 'pdfs/dummy-doc-003.pdf', 2, 1, 16, 6, 'Pending', '2026-07-21 11:30:00', '2026-07-21 11:30:00'),
+(82, 'DOC-2026-SEC-A03', 'Freshmen Orientation Program Approval', 'pdfs/dummy-doc-004.pdf', 2, 1, 16, 6, 'Signed', '2026-07-22 12:30:00', '2026-07-22 14:30:00'),
+(83, 'DOC-2026-SEC-N01', 'R&D Grant Utilization Summary', 'pdfs/dummy-doc-005.pdf', 1, 1, 20, 4, 'Pending', '2026-07-20 11:00:00', '2026-07-20 11:00:00'),
+(84, 'DOC-2026-SEC-N02', 'Research Paper Submission Clearance', 'pdfs/dummy-doc-006.pdf', 1, 1, 17, 7, 'Pending', '2026-07-21 12:00:00', '2026-07-21 12:00:00'),
+(85, 'DOC-2026-SEC-N03', 'Lab Equipment Procurement Endorsement', 'pdfs/dummy-doc-007.pdf', 5, 1, 17, 7, 'Signed', '2026-07-22 13:00:00', '2026-07-22 15:00:00');
 
 
 -- --------------------------------------------------------
@@ -182,7 +203,21 @@ INSERT INTO `document_assignments` (`assignment_id`, `document_id`, `assigned_to
 (44, 58, 18, 5, 4, 'Pending', 'Network audit assigned to Liam Wilson', NULL, '2026-08-02 15:10:00', NULL),
 (45, 60, 13, 9, 5, 'Signed', 'Onboarding policy assigned to Elena Gomez', NULL, '2026-08-03 11:30:00', '2026-08-03 14:20:00'),
 (46, 62, 16, 19, 6, 'Signed', 'Scholarship recommendation assigned to Robert Taylor', NULL, '2026-08-02 09:00:00', '2026-08-03 10:00:00'),
-(47, 64, 17, 20, 7, 'Signed', 'Ethics directive assigned to Sophia Martinez', NULL, '2026-08-03 13:30:00', '2026-08-03 15:45:00');
+(47, 64, 17, 20, 7, 'Signed', 'Ethics directive assigned to Sophia Martinez', NULL, '2026-08-03 13:30:00', '2026-08-03 15:45:00'),
+(48, 66, 2, 2, 1, 'Pending', 'Enrollment verification assigned to Registrar Secretary', NULL, '2026-07-21 09:15:00', NULL),
+(49, 67, 2, 2, 1, 'Signed', 'Diploma release signed by Registrar Secretary', NULL, '2026-07-22 10:15:00', '2026-07-22 12:00:00'),
+(50, 69, 3, 3, 2, 'Pending', 'Tuition adjustment assigned to Finance Secretary', NULL, '2026-07-21 09:45:00', NULL),
+(51, 70, 3, 3, 2, 'Signed', 'Budget reconciliation signed by Finance Secretary', NULL, '2026-07-22 10:45:00', '2026-07-22 12:30:00'),
+(52, 72, 4, 4, 3, 'Pending', 'Workload plan assigned to Dean Secretary', NULL, '2026-07-21 10:15:00', NULL),
+(53, 73, 4, 4, 3, 'Signed', 'Calendar amendment signed by Dean Secretary', NULL, '2026-07-22 11:15:00', '2026-07-22 13:00:00'),
+(54, 75, 5, 5, 4, 'Pending', 'Cyber incident form assigned to IT Secretary', NULL, '2026-07-21 10:45:00', NULL),
+(55, 76, 5, 5, 4, 'Signed', 'License audit signed by IT Secretary', NULL, '2026-07-22 11:45:00', '2026-07-22 13:30:00'),
+(56, 78, 9, 9, 5, 'Pending', 'Grievance form assigned to HR Secretary', NULL, '2026-07-21 11:15:00', NULL),
+(57, 79, 9, 9, 5, 'Signed', 'Safety report signed by HR Secretary', NULL, '2026-07-22 12:15:00', '2026-07-22 14:00:00'),
+(58, 81, 19, 19, 6, 'Pending', 'Transfer assessment assigned to Admissions Secretary', NULL, '2026-07-21 11:45:00', NULL),
+(59, 82, 19, 19, 6, 'Signed', 'Orientation program signed by Admissions Secretary', NULL, '2026-07-22 12:45:00', '2026-07-22 14:30:00'),
+(60, 84, 20, 20, 7, 'Pending', 'Research clearance assigned to R&D Secretary', NULL, '2026-07-21 12:15:00', NULL),
+(61, 85, 20, 20, 7, 'Signed', 'Lab procurement signed by R&D Secretary', NULL, '2026-07-22 13:15:00', '2026-07-22 15:00:00');
 
 
 -- --------------------------------------------------------
@@ -271,7 +306,28 @@ INSERT INTO `document_routes` (`route_id`, `document_id`, `step_no`, `office_id`
 (61, 61, 1, 6, 'Office', NULL, 'Waiting', 'Routed to Admissions Office queue', NULL),
 (62, 62, 1, 6, 'Individual', 16, 'Completed', 'Completed by Admissions Office', '2026-08-03 10:00:00'),
 (63, 63, 1, 7, 'Office', NULL, 'Waiting', 'Routed to R&D Office queue', NULL),
-(64, 64, 1, 7, 'Individual', 17, 'Signed', 'Signed by R&D Secretary', '2026-08-03 15:45:00');
+(64, 64, 1, 7, 'Individual', 17, 'Signed', 'Signed by R&D Secretary', '2026-08-03 15:45:00'),
+(65, 65, 1, 2, 'Individual', 7, 'Waiting', 'Registrar Secretary created and routed to Finance', NULL),
+(66, 66, 1, 1, 'Individual', 2, 'Waiting', 'Enrollment verification routed to Registrar Secretary', NULL),
+(67, 67, 1, 1, 'Individual', 2, 'Signed', 'Diploma release signed by Registrar Secretary', '2026-07-22 12:00:00'),
+(68, 68, 1, 4, 'Individual', 12, 'Waiting', 'Finance Secretary created and routed to IT', NULL),
+(69, 69, 1, 2, 'Individual', 3, 'Waiting', 'Tuition adjustment routed to Finance Secretary', NULL),
+(70, 70, 1, 2, 'Individual', 3, 'Signed', 'Budget reconciliation signed by Finance Secretary', '2026-07-22 12:30:00'),
+(71, 71, 1, 1, 'Individual', 6, 'Waiting', 'Dean Secretary created and routed to Registrar', NULL),
+(72, 72, 1, 3, 'Individual', 4, 'Waiting', 'Workload plan routed to Dean Secretary', NULL),
+(73, 73, 1, 3, 'Individual', 4, 'Signed', 'Calendar amendment signed by Dean Secretary', '2026-07-22 13:00:00'),
+(74, 74, 1, 2, 'Individual', 14, 'Waiting', 'IT Secretary created and routed to Finance', NULL),
+(75, 75, 1, 4, 'Individual', 5, 'Waiting', 'Cyber incident form routed to IT Secretary', NULL),
+(76, 76, 1, 4, 'Individual', 5, 'Signed', 'License audit signed by IT Secretary', '2026-07-22 13:30:00'),
+(77, 77, 1, 4, 'Individual', 18, 'Waiting', 'HR Secretary created and routed to IT', NULL),
+(78, 78, 1, 5, 'Individual', 9, 'Waiting', 'Grievance form routed to HR Secretary', NULL),
+(79, 79, 1, 5, 'Individual', 9, 'Signed', 'Safety report signed by HR Secretary', '2026-07-22 14:00:00'),
+(80, 80, 1, 4, 'Individual', 12, 'Waiting', 'Admissions Secretary created and routed to IT', NULL),
+(81, 81, 1, 6, 'Individual', 19, 'Waiting', 'Transfer assessment routed to Admissions Secretary', NULL),
+(82, 82, 1, 6, 'Individual', 19, 'Signed', 'Orientation program signed by Admissions Secretary', '2026-07-22 14:30:00'),
+(83, 83, 1, 4, 'Individual', 18, 'Waiting', 'R&D Secretary created and routed to IT', NULL),
+(84, 84, 1, 7, 'Individual', 20, 'Waiting', 'Research clearance routed to R&D Secretary', NULL),
+(85, 85, 1, 7, 'Individual', 20, 'Signed', 'Lab procurement signed by R&D Secretary', '2026-07-22 15:00:00');
 
 
 -- --------------------------------------------------------
@@ -377,7 +433,35 @@ INSERT INTO `document_trails` (`trail_id`, `document_id`, `action_by_user_id`, `
 (79, 59, 13, NULL, 5, 'Created', 'Staff promotion proposal submitted', '2026-08-01 14:00:00'),
 (80, 60, 13, NULL, 5, 'Created', 'Onboarding directive document created', '2026-08-03 11:00:00'),
 (81, 61, 16, NULL, 6, 'Created', 'International student clearance created', '2026-08-01 15:00:00'),
-(82, 62, 16, NULL, 6, 'Created', 'Scholarship grant recommendation created', '2026-08-02 08:30:00');
+(82, 62, 16, NULL, 6, 'Created', 'Scholarship grant recommendation created', '2026-08-02 08:30:00'),
+(83, 65, 2, NULL, 2, 'Created', 'Internal policy memo created by Registrar Secretary', '2026-07-20 08:00:00'),
+(84, 66, 6, NULL, 1, 'Created', 'Enrollment verification request submitted', '2026-07-21 09:00:00'),
+(85, 67, 11, NULL, 1, 'Created', 'Diploma release endorsement submitted', '2026-07-22 10:00:00'),
+(86, 67, 2, 1, NULL, 'Signed', 'Diploma release signed by Registrar Secretary', '2026-07-22 12:00:00'),
+(87, 68, 3, NULL, 4, 'Created', 'Financial compliance memo created by Finance Secretary', '2026-07-20 08:30:00'),
+(88, 69, 7, NULL, 2, 'Created', 'Tuition fee adjustment request submitted', '2026-07-21 09:30:00'),
+(89, 70, 14, NULL, 2, 'Created', 'Budget reconciliation certificate submitted', '2026-07-22 10:30:00'),
+(90, 70, 3, 2, NULL, 'Signed', 'Budget reconciliation signed by Finance Secretary', '2026-07-22 12:30:00'),
+(91, 71, 4, NULL, 1, 'Created', 'Operations summary created by Dean Secretary', '2026-07-20 09:00:00'),
+(92, 72, 10, NULL, 3, 'Created', 'Faculty workload plan submitted', '2026-07-21 10:00:00'),
+(93, 73, 15, NULL, 3, 'Created', 'Academic calendar amendment submitted', '2026-07-22 11:00:00'),
+(94, 73, 4, 3, NULL, 'Signed', 'Calendar amendment signed by Dean Secretary', '2026-07-22 13:00:00'),
+(95, 74, 5, NULL, 2, 'Created', 'IT quarterly review created by IT Secretary', '2026-07-20 09:30:00'),
+(96, 75, 12, NULL, 4, 'Created', 'Cybersecurity incident form submitted', '2026-07-21 10:30:00'),
+(97, 76, 18, NULL, 4, 'Created', 'Software license audit submitted', '2026-07-22 11:30:00'),
+(98, 76, 5, 4, NULL, 'Signed', 'License audit signed by IT Secretary', '2026-07-22 13:30:00'),
+(99, 77, 9, NULL, 4, 'Created', 'HR compliance cert created by HR Secretary', '2026-07-20 10:00:00'),
+(100, 78, 13, NULL, 5, 'Created', 'Employee grievance form submitted', '2026-07-21 11:00:00'),
+(101, 79, 13, NULL, 5, 'Created', 'Workplace safety report submitted', '2026-07-22 12:00:00'),
+(102, 79, 9, 5, NULL, 'Signed', 'Safety report signed by HR Secretary', '2026-07-22 14:00:00'),
+(103, 80, 19, NULL, 4, 'Created', 'Enrollment projections created by Admissions Secretary', '2026-07-20 10:30:00'),
+(104, 81, 16, NULL, 6, 'Created', 'Transfer credential assessment submitted', '2026-07-21 11:30:00'),
+(105, 82, 16, NULL, 6, 'Created', 'Freshmen orientation approval submitted', '2026-07-22 12:30:00'),
+(106, 82, 19, 6, NULL, 'Signed', 'Orientation program signed by Admissions Secretary', '2026-07-22 14:30:00'),
+(107, 83, 20, NULL, 4, 'Created', 'Grant utilization summary created by R&D Secretary', '2026-07-20 11:00:00'),
+(108, 84, 17, NULL, 7, 'Created', 'Research paper clearance submitted', '2026-07-21 12:00:00'),
+(109, 85, 17, NULL, 7, 'Created', 'Lab equipment procurement endorsement submitted', '2026-07-22 13:00:00'),
+(110, 85, 20, 7, NULL, 'Signed', 'Lab procurement signed by R&D Secretary', '2026-07-22 15:00:00');
 
 
 -- --------------------------------------------------------
@@ -735,25 +819,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `documents`
 --
 ALTER TABLE `documents`
-  MODIFY `document_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `document_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
 
 --
 -- AUTO_INCREMENT for table `document_assignments`
 --
 ALTER TABLE `document_assignments`
-  MODIFY `assignment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `assignment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT for table `document_routes`
 --
 ALTER TABLE `document_routes`
-  MODIFY `route_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `route_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
 
 --
 -- AUTO_INCREMENT for table `document_trails`
 --
 ALTER TABLE `document_trails`
-  MODIFY `trail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `trail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111;
 
 
 --
