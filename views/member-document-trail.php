@@ -23,6 +23,7 @@ if (!$documentId) {
 require_once __DIR__ . '/../models/document.php';
 require_once __DIR__ . '/../models/documentRoute.php';
 require_once __DIR__ . '/../models/documentTrail.php';
+require_once __DIR__ . '/../helpers/document_files.php';
 
 $userId = (int) $_SESSION['user_id'];
 $email = (string) ($_SESSION['email'] ?? '');
@@ -47,7 +48,7 @@ $routeOffices = array_map(
 );
 $routeSeparator = $isSimultaneous ? ' • ' : ' → ';
 $routePath = $routeOffices === [] ? 'No route assigned' : implode($routeSeparator, $routeOffices);
-$filePath = trim((string) ($document['file_path'] ?? ''));
+$filePath = docuflow_document_file_url($document['file_path'] ?? null);
 ?>
 <!doctype html>
 <html lang="en">
