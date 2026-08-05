@@ -72,7 +72,7 @@ $secretaryLabel = $isSecretaryInCharge ? 'Secretary in Charge' : 'Secretary';
           </a>
 
           <a class="action-button" href="admin-manage-document-types.php">
-            <span class="action-icon" aria-hidden="true"><i class="fas fa-file-circle-plus"></i></span>
+            <span class="action-icon" aria-hidden="true"><i class="fas fa-tags"></i></span>
             <span><strong>Manage Document Types</strong><small>Add and manage types for your office</small></span>
           </a>
 
