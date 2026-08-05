@@ -1,1 +1,10 @@
+PHPUnit 10.5.64 by Sebastian Bergmann and contributors.
 
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\CCDEVAP-S16-5-Docuflow\phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:00.019, Memory: 8.00 MB
+
+OK (2 tests, 7 assertions). 
