@@ -3,8 +3,8 @@
 Runtime:       PHP 8.2.12
 Configuration: C:\xampp\htdocs\CCDEVAP-S16-5-Docuflow\phpunit.xml
 
-..................................                                34 / 34 (100%)
+....................................                              36 / 36 (100%)
 
-Time: 00:00.010, Memory: 26.00 MB
+Time: 00:00.016, Memory: 26.00 MB
 
-OK (34 tests, 80 assertions)
+OK (36 tests, 109 assertions)

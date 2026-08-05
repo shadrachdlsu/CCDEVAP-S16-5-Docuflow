@@ -4,6 +4,9 @@
          bootstrap="config/connections.php"
          colors="true"
          verbose="true">
+    <php>
+        <env name="DOCUFLOW_DB_PASSWORD" value="admin"/>
+    </php>
     <testsuites>
         <testsuite name="DocuFlow Model Test Suite">
             <directory>test/models</directory>

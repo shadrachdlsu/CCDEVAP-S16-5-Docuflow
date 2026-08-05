@@ -95,7 +95,22 @@ INSERT INTO `documents` (`document_id`, `tracking_code`, `title`, `file_path`, `
 (47, 'DOC-2026-047', 'Honorarium Disbursement Form', 'pdfs/dummy-doc-047.pdf', 5, 1, 10, 5, 'Completed', '2026-08-20 02:57:00', '2026-08-23 03:57:00'),
 (48, 'DOC-2026-048', 'Building Renovation Permit', 'pdfs/dummy-doc-048.pdf', 6, 1, 11, 6, 'Signed', '2026-08-25 03:10:00', '2026-08-25 04:10:00'),
 (49, 'DOC-2026-049', 'Water Quality Test Results', 'pdfs/dummy-doc-049.pdf', 1, 1, 12, 7, 'Rejected', '2026-08-03 04:11:00', '2026-08-04 05:11:00'),
-(50, 'DOC-2026-050', 'Annual General Report 2026', 'pdfs/dummy-doc-050.pdf', 2, 0, 13, 1, 'Received', '2026-08-08 05:12:00', '2026-08-10 06:12:00');
+(50, 'DOC-2026-050', 'Annual General Report 2026', 'pdfs/dummy-doc-050.pdf', 2, 0, 13, 1, 'Received', '2026-08-08 05:12:00', '2026-08-10 06:12:00'),
+(51, 'DOC-2026-REG-01', 'Official Transcript of Records Request', 'pdfs/dummy-doc-001.pdf', 2, 1, 6, 1, 'Pending', '2026-08-01 09:00:00', '2026-08-01 09:00:00'),
+(52, 'DOC-2026-REG-02', 'Academic Clearance Certificate', 'pdfs/dummy-doc-002.pdf', 1, 1, 11, 1, 'Signed', '2026-08-02 10:00:00', '2026-08-02 11:30:00'),
+(53, 'DOC-2026-FIN-01', 'Q3 Departmental Budget Allocation Request', 'pdfs/dummy-doc-003.pdf', 1, 1, 7, 2, 'Pending', '2026-08-01 10:00:00', '2026-08-01 10:00:00'),
+(54, 'DOC-2026-FIN-02', 'Requisition Order for Lab Workstations', 'pdfs/dummy-doc-004.pdf', 5, 1, 14, 2, 'For Signature', '2026-08-02 14:00:00', '2026-08-02 14:30:00'),
+(55, 'DOC-2026-DEN-01', 'Faculty Sabbatical Leave Request', 'pdfs/dummy-doc-005.pdf', 2, 1, 10, 3, 'Pending', '2026-08-01 11:00:00', '2026-08-01 11:00:00'),
+(56, 'DOC-2026-DEN-02', 'Curriculum Revision Endorsement', 'pdfs/dummy-doc-006.pdf', 3, 1, 15, 3, 'Completed', '2026-08-03 09:00:00', '2026-08-03 16:00:00'),
+(57, 'DOC-2026-IT-01', 'Server Infrastructure Upgrade Procurement', 'pdfs/dummy-doc-007.pdf', 5, 1, 12, 4, 'Pending', '2026-08-01 13:00:00', '2026-08-01 13:00:00'),
+(58, 'DOC-2026-IT-02', 'Annual Network Security Audit Report', 'pdfs/dummy-doc-008.pdf', 4, 1, 18, 4, 'Received', '2026-08-02 15:00:00', '2026-08-02 15:15:00'),
+(59, 'DOC-2026-HR-01', 'Staff Promotion & Salary Adjustment Proposal', 'pdfs/dummy-doc-009.pdf', 2, 1, 13, 5, 'Pending', '2026-08-01 14:00:00', '2026-08-01 14:00:00'),
+(60, 'DOC-2026-HR-02', 'Institutional Onboarding Directive 2026', 'pdfs/dummy-doc-010.pdf', 6, 1, 13, 5, 'Signed', '2026-08-03 11:00:00', '2026-08-03 14:20:00'),
+(61, 'DOC-2026-ADM-01', 'International Student Eligibility Clearance', 'pdfs/dummy-doc-011.pdf', 2, 1, 16, 6, 'Pending', '2026-08-01 15:00:00', '2026-08-01 15:00:00'),
+(62, 'DOC-2026-ADM-02', 'Academic Scholarship Grant Recommendation', 'pdfs/dummy-doc-012.pdf', 1, 1, 16, 6, 'Completed', '2026-08-02 08:30:00', '2026-08-03 10:00:00'),
+(63, 'DOC-2026-RND-01', 'AI & Quantum Computing Research Grant Proposal', 'pdfs/dummy-doc-013.pdf', 1, 1, 17, 7, 'Pending', '2026-08-01 16:00:00', '2026-08-01 16:00:00'),
+(64, 'DOC-2026-RND-02', 'Publication Ethics & Integrity Directive', 'pdfs/dummy-doc-014.pdf', 6, 1, 17, 7, 'Signed', '2026-08-03 13:00:00', '2026-08-03 15:45:00');
+
 
 -- --------------------------------------------------------
 
@@ -160,7 +175,15 @@ INSERT INTO `document_assignments` (`assignment_id`, `document_id`, `assigned_to
 (37, 46, 7, 7, 4, 'Pending', 'Action required for approval workflow', NULL, '2026-08-15 01:56:00', NULL),
 (38, 47, 10, 10, 5, 'Signed', 'Action required for approval workflow', NULL, '2026-08-20 02:57:00', '2026-08-23 03:57:00'),
 (39, 48, 12, 11, 6, 'Signed', 'Action required for approval workflow', NULL, '2026-08-25 03:10:00', '2026-08-25 04:10:00'),
-(40, 49, 14, 12, 7, 'Rejected', 'Action required for approval workflow', NULL, '2026-08-03 04:11:00', '2026-08-04 05:11:00');
+(40, 49, 14, 12, 7, 'Rejected', 'Action required for approval workflow', NULL, '2026-08-03 04:11:00', '2026-08-04 05:11:00'),
+(41, 52, 11, 2, 1, 'Signed', 'Academic clearance assigned and signed', NULL, '2026-08-02 10:15:00', '2026-08-02 11:30:00'),
+(42, 54, 14, 3, 2, 'Pending', 'Requisition assigned to David Chen for verification', NULL, '2026-08-02 14:15:00', NULL),
+(43, 56, 15, 4, 3, 'Signed', 'Curriculum proposal assigned and finalized', NULL, '2026-08-03 09:30:00', '2026-08-03 16:00:00'),
+(44, 58, 18, 5, 4, 'Pending', 'Network audit assigned to Liam Wilson', NULL, '2026-08-02 15:10:00', NULL),
+(45, 60, 13, 9, 5, 'Signed', 'Onboarding policy assigned to Elena Gomez', NULL, '2026-08-03 11:30:00', '2026-08-03 14:20:00'),
+(46, 62, 16, 19, 6, 'Signed', 'Scholarship recommendation assigned to Robert Taylor', NULL, '2026-08-02 09:00:00', '2026-08-03 10:00:00'),
+(47, 64, 17, 20, 7, 'Signed', 'Ethics directive assigned to Sophia Martinez', NULL, '2026-08-03 13:30:00', '2026-08-03 15:45:00');
+
 
 -- --------------------------------------------------------
 
@@ -234,7 +257,22 @@ INSERT INTO `document_routes` (`route_id`, `document_id`, `step_no`, `office_id`
 (47, 47, 1, 5, 'Individual', 10, 'Signed', NULL, '2026-08-23 03:57:00'),
 (48, 48, 1, 6, 'Individual', 12, 'Signed', NULL, '2026-08-25 04:10:00'),
 (49, 49, 1, 7, 'Individual', 14, 'Rejected', NULL, '2026-08-04 05:11:00'),
-(50, 50, 1, 1, 'Individual', 15, 'Waiting', NULL, NULL);
+(50, 50, 1, 1, 'Individual', 15, 'Waiting', NULL, NULL),
+(51, 51, 1, 1, 'Office', NULL, 'Waiting', 'Routed to Registrar Office queue', NULL),
+(52, 52, 1, 1, 'Individual', 11, 'Signed', 'Signed by Alex Santos', '2026-08-02 11:30:00'),
+(53, 53, 1, 2, 'Office', NULL, 'Waiting', 'Routed to Finance Office queue', NULL),
+(54, 54, 1, 2, 'Individual', 14, 'For Signature', 'Assigned to David Chen', NULL),
+(55, 55, 1, 3, 'Office', NULL, 'Waiting', 'Routed to Dean Office queue', NULL),
+(56, 56, 1, 3, 'Individual', 15, 'Completed', 'Finalized by Dean Secretary', '2026-08-03 16:00:00'),
+(57, 57, 1, 4, 'Office', NULL, 'Waiting', 'Routed to IT Office queue', NULL),
+(58, 58, 1, 4, 'Individual', 18, 'Received', 'Received by IT Office', '2026-08-02 15:15:00'),
+(59, 59, 1, 5, 'Office', NULL, 'Waiting', 'Routed to HR Office queue', NULL),
+(60, 60, 1, 5, 'Individual', 13, 'Signed', 'Signed by HR Secretary', '2026-08-03 14:20:00'),
+(61, 61, 1, 6, 'Office', NULL, 'Waiting', 'Routed to Admissions Office queue', NULL),
+(62, 62, 1, 6, 'Individual', 16, 'Completed', 'Completed by Admissions Office', '2026-08-03 10:00:00'),
+(63, 63, 1, 7, 'Office', NULL, 'Waiting', 'Routed to R&D Office queue', NULL),
+(64, 64, 1, 7, 'Individual', 17, 'Signed', 'Signed by R&D Secretary', '2026-08-03 15:45:00');
+
 
 -- --------------------------------------------------------
 
@@ -325,7 +363,22 @@ INSERT INTO `document_trails` (`trail_id`, `document_id`, `action_by_user_id`, `
 (65, 48, 12, 6, NULL, 'Signed', 'Document reviewed and digitally approved', '2026-08-25 04:10:00'),
 (66, 49, 12, NULL, 7, 'Created', 'Document created and uploaded', '2026-08-03 04:11:00'),
 (67, 49, 14, 7, NULL, 'Rejected', 'Document returned due to missing attachments', '2026-08-04 05:11:00'),
-(68, 50, 13, NULL, 1, 'Created', 'Document created and uploaded', '2026-08-08 05:12:00');
+(68, 50, 13, NULL, 1, 'Created', 'Document created and uploaded', '2026-08-08 05:12:00'),
+(69, 51, 6, NULL, 1, 'Created', 'Official transcript request created by student member', '2026-08-01 09:00:00'),
+(70, 52, 11, NULL, 1, 'Created', 'Academic clearance certificate created', '2026-08-02 10:00:00'),
+(71, 52, 2, 1, NULL, 'Signed', 'Academic clearance signed by Registrar Secretary', '2026-08-02 11:30:00'),
+(72, 53, 7, NULL, 2, 'Created', 'Q3 Budget allocation request submitted', '2026-08-01 10:00:00'),
+(73, 54, 14, NULL, 2, 'Created', 'Requisition order for workstations created', '2026-08-02 14:00:00'),
+(74, 55, 10, NULL, 3, 'Created', 'Faculty sabbatical leave request submitted', '2026-08-01 11:00:00'),
+(75, 56, 15, NULL, 3, 'Created', 'Curriculum revision proposal created', '2026-08-03 09:00:00'),
+(76, 56, 4, 3, NULL, 'Finished', 'Curriculum revision endorsed and finalized', '2026-08-03 16:00:00'),
+(77, 57, 12, NULL, 4, 'Created', 'Server infrastructure upgrade request created', '2026-08-01 13:00:00'),
+(78, 58, 18, NULL, 4, 'Created', 'Network security audit report submitted', '2026-08-02 15:00:00'),
+(79, 59, 13, NULL, 5, 'Created', 'Staff promotion proposal submitted', '2026-08-01 14:00:00'),
+(80, 60, 13, NULL, 5, 'Created', 'Onboarding directive document created', '2026-08-03 11:00:00'),
+(81, 61, 16, NULL, 6, 'Created', 'International student clearance created', '2026-08-01 15:00:00'),
+(82, 62, 16, NULL, 6, 'Created', 'Scholarship grant recommendation created', '2026-08-02 08:30:00');
+
 
 -- --------------------------------------------------------
 
@@ -682,25 +735,26 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `documents`
 --
 ALTER TABLE `documents`
-  MODIFY `document_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `document_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT for table `document_assignments`
 --
 ALTER TABLE `document_assignments`
-  MODIFY `assignment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `assignment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `document_routes`
 --
 ALTER TABLE `document_routes`
-  MODIFY `route_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `route_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT for table `document_trails`
 --
 ALTER TABLE `document_trails`
-  MODIFY `trail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
+  MODIFY `trail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+
 
 --
 -- AUTO_INCREMENT for table `document_types`
