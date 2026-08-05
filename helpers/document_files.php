@@ -41,5 +41,59 @@ function docuflow_document_file_url(?string $storedPath): string
         return '';
     }
 
-    return '../' . implode('/', array_map('rawurlencode', $fileSegments));
+    $fileUrl = implode('/', array_map('rawurlencode', $fileSegments));
+    $projectUrl = docuflow_project_url_path();
+
+    return $projectUrl === null
+        ? '../' . $fileUrl
+        : $projectUrl . '/' . $fileUrl;
+}
+
+function docuflow_project_url_path(): ?string
+{
+    $documentRootSetting = trim((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+
+    if ($documentRootSetting === '') {
+        return null;
+    }
+
+    $documentRoot = realpath($documentRootSetting);
+    $projectRoot = realpath(dirname(__DIR__));
+
+    if ($documentRoot === false || $projectRoot === false) {
+        return null;
+    }
+
+    $normalizedDocumentRoot = rtrim(str_replace('\\', '/', $documentRoot), '/');
+    $normalizedProjectRoot = rtrim(str_replace('\\', '/', $projectRoot), '/');
+    $documentRootLength = strlen($normalizedDocumentRoot);
+    $isInsideDocumentRoot = strncasecmp(
+        $normalizedProjectRoot,
+        $normalizedDocumentRoot,
+        $documentRootLength
+    ) === 0;
+
+    if (
+        !$isInsideDocumentRoot
+        || (
+            strlen($normalizedProjectRoot) > $documentRootLength
+            && $normalizedProjectRoot[$documentRootLength] !== '/'
+        )
+    ) {
+        return null;
+    }
+
+    $relativeProjectPath = trim(
+        substr($normalizedProjectRoot, $documentRootLength),
+        '/'
+    );
+
+    if ($relativeProjectPath === '') {
+        return '';
+    }
+
+    return '/' . implode(
+        '/',
+        array_map('rawurlencode', explode('/', $relativeProjectPath))
+    );
 }
