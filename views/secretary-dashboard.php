@@ -53,7 +53,7 @@ $secretaryLabel = $isSecretaryInCharge ? 'Secretary in Charge' : 'Secretary';
           <i class="fas fa-sun" aria-hidden="true"></i>
         </button>
 
-        <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
+        <form class="logout-form" method="post" action="../controllers/UserLogoutController.php">
           <button class="icon-button" type="submit" aria-label="Log out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></button>
         </form>
       </div>

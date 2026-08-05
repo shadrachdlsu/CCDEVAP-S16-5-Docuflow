@@ -1,264 +1,498 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ================================================
+   BASE RESET
+   ================================================ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
+/* ================================================
+   TYPOGRAPHY & ROOT
+   ================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+
 body {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #eaf1ff;
-  color: #17213a;
-  font-family: Arial, Helvetica, sans-serif;
-  padding: 24px;
+    min-height: 100vh;
+    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    background: #f0f2f8;
+    color: #17213a;
+}
+
+/* ================================================
+   TWO-COLUMN PAGE WRAPPER
+   ================================================ */
+.page-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ================================================
+   LEFT HERO PANEL
+   ================================================ */
+.hero-panel {
+    position: relative;
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 64px 72px;
+    background: #eef0f8;
+    overflow: hidden;
+}
+
+.hero-arcs {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.arcs-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 460px;
+}
+
+.hero-headline {
+    font-size: clamp(28px, 3.2vw, 42px);
+    font-weight: 900;
+    line-height: 1.18;
+    color: #0f1a30;
+    letter-spacing: -0.5px;
+    margin-bottom: 20px;
+}
+
+.hero-sub {
+    font-size: 15px;
+    color: #6b7592;
+    line-height: 1.5;
+}
+
+.hero-accent {
+    color: #5333f5;
+    font-weight: 700;
+}
+
+/* ================================================
+   RIGHT CARD PANEL
+   ================================================ */
+.card-panel {
+    flex: 0 0 auto;
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 32px;
+    background: #f0f2f8;
 }
 
 .login-card {
-  width: 100%;
-  max-width: 448px;
-  padding: 32px;
-  background: #ffffff;
-  border-radius: 14px;
-  box-shadow: 0 18px 34px rgba(25, 38, 72, 0.18);
+    width: 100%;
+    max-width: 400px;
+    padding: 32px 36px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(20, 30, 70, 0.10);
 }
 
+/* ================================================
+   DARK MODE TOGGLE (top-right of card)
+   ================================================ */
+.top-icons {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+}
+
+.icon-button {
+    width: auto;
+    min-height: auto;
+    margin: 0;
+    padding: 4px;
+    border: 0;
+    background: transparent;
+    color: #9aa0b5;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.2s;
+}
+
+.icon-button:hover {
+    color: #5333f5;
+    background: transparent;
+}
+
+.sun-icon {
+    display: none;
+}
+
+/* ================================================
+   CARD HEADING
+   ================================================ */
 .brand {
-  text-align: center;
-  margin-bottom: 36px;
-}
-
-.brand-icon {
-  width: 56px;
-  height: 56px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 36px;
-  background: #5333f5;
-  border-radius: 14px;
-  color: #ffffff;
-  font-size: 20px;
-  font-weight: 700;
+    text-align: center;
+    margin-bottom: 24px;
 }
 
 h1 {
-  margin-bottom: 14px;
-  color: #071229;
-  font-size: 24px;
-  line-height: 1;
-  font-weight: 700;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f1a30;
+    margin-bottom: 6px;
+    letter-spacing: -0.2px;
 }
 
 .subtitle {
-  color: #65708a;
-  font-size: 15px;
-  line-height: 1.4;
+    font-size: 14px;
+    color: #6b7592;
 }
 
+.brand-accent {
+    color: #5333f5;
+    font-weight: 700;
+}
+
+/* ================================================
+   FORM FIELDS
+   ================================================ */
 .form-group {
-  margin-bottom: 24px;
+    margin-bottom: 18px;
 }
 
 label {
-  display: block;
-  margin-bottom: 10px;
-  color: #1f2a44;
-  font-size: 16px;
-  font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+    color: #1f2a44;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Input wrapper holds the icon + actual input */
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    display: flex;
+    align-items: center;
+    color: #9aa0b5;
+    pointer-events: none;
+    z-index: 1;
 }
 
 input,
 select {
-  width: 100%;
-  min-height: 50px;
-  padding: 0 16px;
-  border: 1px solid #dbe1eb;
-  border-radius: 10px;
-  background: #fbfcfe;
-  color: #17213a;
-  font-size: 15px;
-  outline: none;
-}
-
-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath fill='%236e7788' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  background-size: 14px 10px;
+    width: 100%;
+    min-height: 46px;
+    padding: 0 16px 0 42px;
+    border: 1.5px solid #e0e4ef;
+    border-radius: 10px;
+    background: #fafbfe;
+    color: #17213a;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input::placeholder {
-  color: #6e7788;
-  opacity: 1;
+    color: #b0b7cc;
+    opacity: 1;
 }
 
 input:focus,
 select:focus {
-  border-color: #5333f5;
-  box-shadow: 0 0 0 3px rgba(83, 51, 245, 0.12);
+    border-color: #5333f5;
+    box-shadow: 0 0 0 3px rgba(83, 51, 245, 0.10);
+    background: #ffffff;
 }
 
-button {
-  width: 100%;
-  min-height: 48px;
-  margin-top: -4px;
-  border: 0;
-  border-radius: 9px;
-  background: #5333f5;
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
+/* ================================================
+   SUBMIT BUTTON
+   ================================================ */
+button[type="submit"] {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    margin-top: 8px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 10px;
+    background: #5333f5;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
 }
 
-button:hover {
-  background: #4628df;
+button[type="submit"]:hover {
+    background: #4225d9;
 }
 
-.top-icons {
-  display: flex;
-  gap: 18px;
-  align-items: center;
-  justify-content: flex-end;
-  margin-bottom: 24px;
+button[type="submit"]:active {
+    transform: scale(0.98);
 }
 
-.top-icons .icon-button {
-  width: auto;
-  min-height: auto;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #64748b;
-  font-size: 24px;
-  line-height: 1;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.top-icons .icon-button:hover {
-  background: transparent;
-  color: #5333f5;
-}
-
-.sun-icon {
-  display: none;
-}
-
-.demo-users {
-  max-width: 330px;
-  margin: 26px auto 0;
-  color: #59657c;
-  font-size: 13px;
-  line-height: 1.45;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .login-card {
-    padding: 28px 22px;
-  }
-
-  .brand {
-    margin-bottom: 30px;
-  }
-}
-
+/* ================================================
+   REGISTER LINK
+   ================================================ */
 .register-link {
-  color: #5333f5;
-  font-weight: 700;
-  text-decoration: none;
-  display: block;
-  margin-top: 18px;
-  text-align: center;
+    display: block;
+    margin-top: 16px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: #5333f5;
+    text-decoration: none;
+    transition: color 0.2s;
 }
 
 .register-link:hover {
-  text-decoration: underline;
+    color: #4225d9;
+    text-decoration: underline;
 }
 
+/* ================================================
+   ALERT MESSAGES
+   ================================================ */
 .message {
-  min-height: 22px;
-  margin: 0 0 16px;
-  padding: 12px 14px;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  color: #59657c;
-  font-size: 14px;
-  line-height: 1.4;
-  text-align: center;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: center;
 }
 
 .message.success {
-  border-color: #86efac;
-  background: #f0fdf4;
-  color: #15803d;
-  font-weight: 700;
+    border-color: #86efac;
+    background: #f0fdf4;
+    color: #15803d;
 }
 
 .message.error {
-  border-color: #fecaca;
-  background: #fef2f2;
-  color: #dc2626;
-  font-weight: 700;
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
 }
 
+/* ================================================
+   DARK / NIGHT MODE
+   ================================================ */
 body.night-mode {
-  background: #111827;
-  color: #e5e7eb;
+    background: #0d1117;
+    color: #e5e7eb;
+}
+
+body.night-mode .hero-panel {
+    background: #161b27;
+}
+
+body.night-mode .arcs-svg circle {
+    stroke: #2a3148;
+}
+
+body.night-mode .hero-headline {
+    color: #f0f4ff;
+}
+
+body.night-mode .hero-sub {
+    color: #8b93ad;
+}
+
+body.night-mode .card-panel {
+    background: #0d1117;
 }
 
 body.night-mode .login-card {
-  background: #1f2937;
-  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.35);
+    background: #1a2235;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
 }
 
-body.night-mode h1,
+body.night-mode h1 {
+    color: #f0f4ff;
+}
+
+body.night-mode .subtitle {
+    color: #8b93ad;
+}
+
 body.night-mode label {
-  color: #f9fafb;
-}
-
-body.night-mode .subtitle,
-body.night-mode .demo-users {
-  color: #cbd5e1;
+    color: #c7d0e8;
 }
 
 body.night-mode input,
 body.night-mode select {
-  border-color: #4b5563;
-  background: #111827;
-  color: #f9fafb;
+    border-color: #2e3a52;
+    background: #0d1117;
+    color: #e5e7eb;
 }
 
-body.night-mode .top-icons .icon-button {
-  color: #cbd5e1;
+body.night-mode input::placeholder {
+    color: #4a5568;
+}
+
+body.night-mode input:focus,
+body.night-mode select:focus {
+    border-color: #5333f5;
+    background: #111827;
+}
+
+body.night-mode .icon-button {
+    color: #5a637a;
 }
 
 body.night-mode .moon-icon {
-  display: none;
+    display: none;
 }
 
 body.night-mode .sun-icon {
-  display: inline;
-  color: #facc15;
+    display: inline;
+    color: #facc15;
 }
 
 body.night-mode .register-link {
-  color: #f9fafb;
+    color: #a599ff;
+}
+
+body.night-mode .register-link:hover {
+    color: #c4bbff;
 }
 
 body.night-mode .message.success {
-  border-color: #166534;
-  background: rgba(20, 83, 45, 0.3);
-  color: #86efac;
+    border-color: #166534;
+    background: rgba(20, 83, 45, 0.25);
+    color: #86efac;
 }
 
 body.night-mode .message.error {
-  border-color: #991b1b;
-  background: rgba(127, 29, 29, 0.3);
-  color: #fecaca;
+    border-color: #991b1b;
+    background: rgba(127, 29, 29, 0.25);
+    color: #fecaca;
 }
+
+/* ================================================
+   RESPONSIVE BREAKPOINTS
+   ================================================ */
+@media (max-width: 768px) {
+    .page-wrapper {
+        flex-direction: column;
+    }
+
+    .hero-panel {
+        flex: none;
+        padding: 48px 32px 36px;
+        min-height: 240px;
+    }
+
+    .hero-headline {
+        font-size: 26px;
+    }
+
+    .card-panel {
+        width: 100%;
+        flex: 1;
+        padding: 32px 20px;
+        background: #f0f2f8;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 28px 22px;
+    }
+}
+
+/* ================================================
+   REGISTER PAGE — FULL-PAGE ARC BACKGROUND LAYOUT
+   ================================================ */
+
+/* Full-page arc background */
+body.register-page {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    background: #eef0f8;
+    overflow: hidden;
+}
+
+.register-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.register-arcs-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Card centered over the background */
+.register-card-wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 440px;
+}
+
+/* Ensure select inside input-wrapper has correct padding for icon */
+.input-wrapper select {
+    padding-left: 42px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%239aa0b5' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px 8px;
+    cursor: pointer;
+}
+
+/* Dark mode — register page */
+body.night-mode.register-page {
+    background: #0d1117;
+}
+
+body.night-mode .register-arcs-svg circle {
+    stroke: #1e2640;
+}
+
+body.night-mode .register-card-wrap .login-card {
+    background: #1a2235;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    body.register-page {
+        padding: 24px 16px;
+        align-items: flex-start;
+    }
+
+    .register-card-wrap .login-card {
+        padding: 28px 20px;
+    }
+}
+

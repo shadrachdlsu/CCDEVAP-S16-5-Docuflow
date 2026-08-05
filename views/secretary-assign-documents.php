@@ -43,7 +43,7 @@ $documents = (new DocumentRoute())->getForSecretaryOffice($officeId);
           <span class="user-role">Secretary in Charge &middot; <?= htmlspecialchars((string) $office['office_name'], ENT_QUOTES, 'UTF-8') ?></span>
         </div>
         <button id="themeToggle" class="icon-button" type="button" aria-label="Toggle dark or light mode"><i class="fas fa-sun" aria-hidden="true"></i></button>
-        <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
+        <form class="logout-form" method="post" action="../controllers/UserLogoutController.php">
           <button class="icon-button" type="submit" aria-label="Log out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></button>
         </form>
       </div>

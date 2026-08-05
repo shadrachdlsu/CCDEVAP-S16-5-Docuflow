@@ -16,8 +16,8 @@ require_once __DIR__ . "/../models/documentType.php";
 |--------------------------------------------------------------------------
 */
 
-if (!isset($_SESSION["logged_in"]) || $_SESSION["role_id"] != 1) {
-    header("Location: ../views/login.php?error=unauthorized");
+if (!isset($_SESSION["user_id"]) || ($_SESSION["role"] ?? "") !== "Admin") {
+    header("Location: ../views/login.php");
     exit;
 }
 

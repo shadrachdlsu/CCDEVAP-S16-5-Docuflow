@@ -1,9 +1,19 @@
 (function () {
   "use strict";
 
+  /* Auto-inject the companion stylesheet if it is not already loaded. */
+  if (!document.querySelector('link[href*="navigation.css"]')) {
+    const cssHref = new URL("../css/navigation.css", document.currentScript?.src || location.href).href;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = cssHref;
+    document.head.appendChild(link);
+  }
+
   const pageName = () => (
     window.location.pathname.split("/").pop() || ""
   ).toLowerCase();
+
 
   const activeKeyForPage = (page, role) => {
     if (role === "admin") {

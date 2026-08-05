@@ -56,7 +56,7 @@ unset($_SESSION['admin_user_success'], $_SESSION['admin_user_error']);
         </div>
         <div class="header-actions">
           <button class="icon-btn toggle-theme" id="themeToggle" type="button" aria-label="Toggle dark/light mode"><i class="fas fa-moon"></i></button>
-          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
+          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php">
             <button class="icon-btn" type="submit" aria-label="Exit / Logout"><i class="fas fa-sign-out-alt"></i></button>
           </form>
         </div>

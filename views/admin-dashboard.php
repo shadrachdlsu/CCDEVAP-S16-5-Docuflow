@@ -71,7 +71,7 @@ try {
             class="logout-form"
             method="post"
             action="../controllers/UserLogoutController.php"
-            onsubmit="return confirm('Are you sure you want to logout?')"
+           
           >
             <button class="icon-btn" type="submit" aria-label="Exit / Logout">
               <i class="fas fa-sign-out-alt"></i>
