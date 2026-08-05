@@ -1,0 +1,54 @@
+Document Model
+ [x] Count all and by status
+ [x] Get documents for office
+ [x] Get status distribution
+
+Document Request Model
+ [x] Create executes insert
+ [x] Get by user returns request rows
+ [x] Count by user returns integer
+ [x] Delete pending returns boolean
+
+Document Route Model
+ [x] Count by signatory and status returns integer
+ [x] Get pending for signatory returns rows
+ [x] Sign route returns true when rows updated
+ [x] Sign route returns false when no rows updated
+
+Document Trail Model
+ [x] Add entry executes insert
+ [x] Get by document returns trail list
+ [x] Get recent returns rows from limited query
+
+Document Type Model
+ [x] Get all active returns document types
+ [x] Type exists returns boolean
+ [x] Create with offices handles transaction
+ [x] Delete type executes delete
+
+Office Model
+ [x] Get admin directory returns rows
+ [x] Count all offices returns integer
+ [x] Create executes insert
+ [x] Set active executes update
+ [x] Delete office executes delete
+
+Role Model
+ [x] Get all returns roles array
+ [x] Get all returns empty array when no roles
+
+Setting Model
+ [x] Get returns value and default fallback
+ [x] Set executes upsert
+ [x] Requires admin approval returns boolean
+
+User Model
+ [x] Find by email returns user data
+ [x] Find by email returns null when not found
+ [x] Email exists returns true and false
+ [x] Create user executes insert statement
+ [x] Decide registration approves and rejects pending users
+ [x] Set active from admin activates user
+ [x] Delete user executes delete statement
+ [x] Update password hash executes update
+

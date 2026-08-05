@@ -56,7 +56,7 @@ unset($_SESSION['admin_user_success'], $_SESSION['admin_user_error']);
         </div>
         <div class="header-actions">
           <button class="icon-btn toggle-theme" id="themeToggle" type="button" aria-label="Toggle dark/light mode"><i class="fas fa-moon"></i></button>
-          <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
             <button class="icon-btn" type="submit" aria-label="Exit / Logout"><i class="fas fa-sign-out-alt"></i></button>
           </form>
         </div>
@@ -79,7 +79,7 @@ unset($_SESSION['admin_user_success'], $_SESSION['admin_user_error']);
         <?php if ($success !== ''): ?><div class="admin-message success" role="status"><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
         <?php if ($error !== ''): ?><div class="admin-message error" role="alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
 
-        <form class="admin-user-form" method="post" action="../controller/admin_update_user.php">
+        <form class="admin-user-form" method="post" action="../controllers/AdminUpdateUserController.php">
           <input type="hidden" name="user_id" value="<?= (int) $user['user_id'] ?>" />
 
           <div class="admin-form-field">

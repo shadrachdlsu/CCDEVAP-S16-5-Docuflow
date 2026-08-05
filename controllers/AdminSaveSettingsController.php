@@ -13,14 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-require_once __DIR__ . '/../helpers/csrf.php';
-
-if (!docuflow_verify_csrf_token($_POST['csrf_token'] ?? null)) {
-    $_SESSION['admin_settings_error'] = 'Your session token expired. Please try again.';
-    header('Location: ../views/admin-settings.php');
-    exit;
-}
-
 $approvalPolicy = (string) ($_POST['require_admin_approval'] ?? '');
 
 if (!in_array($approvalPolicy, ['0', '1'], true)) {

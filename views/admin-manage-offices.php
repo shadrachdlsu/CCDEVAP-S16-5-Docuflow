@@ -9,7 +9,6 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'Admin') {
 }
 
 require_once __DIR__ . '/../models/office.php';
-require_once __DIR__ . '/../helpers/csrf.php';
 
 $email = (string) ($_SESSION['email'] ?? '');
 $fullName = (string) ($_SESSION['full_name'] ?? 'Administrator');
@@ -19,7 +18,6 @@ $oldOfficeName = (string) ($_SESSION['admin_office_name'] ?? '');
 unset($_SESSION['admin_office_success'], $_SESSION['admin_office_error'], $_SESSION['admin_office_name']);
 
 $offices = (new Office())->getAdminDirectory();
-$csrfToken = docuflow_csrf_token();
 ?>
 <!doctype html>
 <html lang="en">
@@ -41,7 +39,7 @@ $csrfToken = docuflow_csrf_token();
         </div>
         <div class="header-actions">
           <button class="icon-btn toggle-theme" id="themeToggle" type="button" aria-label="Toggle dark/light mode"><i class="fas fa-moon"></i></button>
-          <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
             <button class="icon-btn" type="submit" aria-label="Exit / Logout"><i class="fas fa-sign-out-alt"></i></button>
           </form>
         </div>
@@ -65,7 +63,7 @@ $csrfToken = docuflow_csrf_token();
           <h2 id="add-office-title">Add Office</h2>
           <p>Create another destination for users and document routes.</p>
         </div>
-        <form class="admin-office-create-form" method="post" action="../controller/admin_save_office.php">
+        <form class="admin-office-create-form" method="post" action="../controllers/AdminSaveOfficeController.php">
           <div class="admin-form-field">
             <label for="officeName">Office Name</label>
             <input id="officeName" name="office_name" type="text" maxlength="100" value="<?= htmlspecialchars($oldOfficeName, ENT_QUOTES, 'UTF-8') ?>" placeholder="e.g. Records Office" required />
@@ -97,8 +95,7 @@ $csrfToken = docuflow_csrf_token();
                   <td><?= (int) $office['user_count'] ?></td>
                   <td><?= (int) $office['route_count'] ?></td>
                   <td>
-                    <form class="admin-inline-form admin-office-status-form" method="post" action="../controller/admin_office_action.php">
-                      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>" />
+                    <form class="admin-inline-form admin-office-status-form" method="post" action="../controllers/AdminOfficeActionController.php">
                       <input type="hidden" name="action" value="toggle_status" />
                       <input type="hidden" name="office_id" value="<?= (int) $office['office_id'] ?>" />
                       <input class="admin-office-status-value" type="hidden" name="is_active" value="<?= (bool) $office['is_active'] ? 1 : 0 ?>" />
@@ -117,8 +114,7 @@ $csrfToken = docuflow_csrf_token();
                   <td>
                     <div class="admin-action-group">
                       <a class="admin-table-action" href="admin-office.php?id=<?= (int) $office['office_id'] ?>">View / Edit</a>
-                      <form class="admin-delete-office-form" method="post" action="../controller/admin_office_action.php">
-                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>" />
+                      <form class="admin-delete-office-form" method="post" action="../controllers/AdminOfficeActionController.php">
                         <input type="hidden" name="action" value="delete" />
                         <input type="hidden" name="office_id" value="<?= (int) $office['office_id'] ?>" />
                         <button class="admin-icon-delete-button" type="submit" aria-label="Delete <?= htmlspecialchars((string) $office['office_name'], ENT_QUOTES, 'UTF-8') ?>" data-office-name="<?= htmlspecialchars((string) $office['office_name'], ENT_QUOTES, 'UTF-8') ?>">

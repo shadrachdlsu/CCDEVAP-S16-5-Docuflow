@@ -52,7 +52,7 @@ unset($_SESSION['admin_office_success'], $_SESSION['admin_office_error']);
         </div>
         <div class="header-actions">
           <button class="icon-btn toggle-theme" id="themeToggle" type="button" aria-label="Toggle dark/light mode"><i class="fas fa-moon"></i></button>
-          <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
             <button class="icon-btn" type="submit" aria-label="Exit / Logout"><i class="fas fa-sign-out-alt"></i></button>
           </form>
         </div>
@@ -72,7 +72,7 @@ unset($_SESSION['admin_office_success'], $_SESSION['admin_office_error']);
         <?php if ($success !== ''): ?><div class="admin-message success" role="status"><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
         <?php if ($error !== ''): ?><div class="admin-message error" role="alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
 
-        <form class="admin-user-form" method="post" action="../controller/admin_save_office.php">
+        <form class="admin-user-form" method="post" action="../controllers/AdminSaveOfficeController.php">
           <input type="hidden" name="office_id" value="<?= (int) $office['office_id'] ?>" />
           <div class="admin-form-field">
             <label for="officeName">Office Name</label>

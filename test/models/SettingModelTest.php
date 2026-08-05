@@ -25,9 +25,6 @@ class SettingModelTest extends TestCase
         $this->pdoMock = $this->createMock(PDO::class);
         $this->stmtMock = $this->createMock(PDOStatement::class);
 
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
-
         $pdo = $this->pdoMock;
     }
 
@@ -37,32 +34,89 @@ class SettingModelTest extends TestCase
         $pdo = $this->backupPdo;
     }
 
-    public function testGetSettingReturnsValueAndDefaultFallback(): void
+    public function testGetReturnsValueAndDefaultFallback(): void
     {
-        $this->stmtMock->method('fetchColumn')->willReturnOnConsecutiveCalls(1, '1', false);
+        $getStatement = $this->createMock(PDOStatement::class);
+
+        $this->pdoMock->expects($this->once())
+            ->method('exec');
+
+        $this->pdoMock->expects($this->exactly(3))
+            ->method('prepare')
+            ->willReturnOnConsecutiveCalls(
+                $this->stmtMock,
+                $getStatement,
+                $getStatement
+            );
+
+        $this->stmtMock->expects($this->once())
+            ->method('execute');
+
+        $getStatement->expects($this->exactly(2))
+            ->method('execute')
+            ->withConsecutive(
+                [['require_admin_approval']],
+                [['nonexistent_key']]
+            );
+
+        $getStatement->expects($this->exactly(2))
+            ->method('fetchColumn')
+            ->willReturnOnConsecutiveCalls('1', false);
 
         $settingModel = new Setting();
-        
-        $val1 = $settingModel->getSetting('require_admin_approval');
+
+        $val1 = $settingModel->get('require_admin_approval');
         $this->assertEquals('1', $val1);
 
-        $val2 = $settingModel->getSetting('nonexistent_key', 'default_val');
+        $val2 = $settingModel->get('nonexistent_key', 'default_val');
         $this->assertEquals('default_val', $val2);
     }
 
-    public function testSetSettingExecutesUpsert(): void
+    public function testSetExecutesUpsert(): void
     {
-        $settingModel = new Setting();
-        $result = $settingModel->setSetting("require_admin_approval", "0");
+        $setStatement = $this->createMock(PDOStatement::class);
 
-        $this->assertTrue($result);
+        $this->pdoMock->expects($this->once())
+            ->method('exec');
+
+        $this->pdoMock->expects($this->exactly(2))
+            ->method('prepare')
+            ->willReturnOnConsecutiveCalls($this->stmtMock, $setStatement);
+
+        $this->stmtMock->expects($this->once())
+            ->method('execute');
+
+        $setStatement->expects($this->once())
+            ->method('execute')
+            ->with(['require_admin_approval', '0']);
+
+        $settingModel = new Setting();
+        $settingModel->set('require_admin_approval', '0');
     }
 
-    public function testIsRequireAdminApprovalBooleanHelper(): void
+    public function testRequiresAdminApprovalReturnsBoolean(): void
     {
-        $this->stmtMock->method('fetchColumn')->willReturn('1');
+        $getStatement = $this->createMock(PDOStatement::class);
+
+        $this->pdoMock->expects($this->once())
+            ->method('exec');
+
+        $this->pdoMock->expects($this->exactly(2))
+            ->method('prepare')
+            ->willReturnOnConsecutiveCalls($this->stmtMock, $getStatement);
+
+        $this->stmtMock->expects($this->once())
+            ->method('execute');
+
+        $getStatement->expects($this->once())
+            ->method('execute')
+            ->with(['require_admin_approval']);
+
+        $getStatement->expects($this->once())
+            ->method('fetchColumn')
+            ->willReturn('1');
 
         $settingModel = new Setting();
-        $this->assertTrue($settingModel->isRequireAdminApproval());
+        $this->assertTrue($settingModel->requiresAdminApproval());
     }
 }

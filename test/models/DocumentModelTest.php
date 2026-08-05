@@ -36,8 +36,20 @@ class DocumentModelTest extends TestCase
 
     public function testCountAllAndByStatus(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute');
+        $this->pdoMock->expects($this->once())
+            ->method('query')
+            ->with('SELECT COUNT(*) FROM documents')
+            ->willReturn($this->stmtMock);
+
+        $this->pdoMock->expects($this->once())
+            ->method('prepare')
+            ->with('SELECT COUNT(*) FROM documents WHERE status = ?')
+            ->willReturn($this->stmtMock);
+
+        $this->stmtMock->expects($this->once())
+            ->method('execute')
+            ->with(['Pending']);
+
         $this->stmtMock->expects($this->exactly(2))
             ->method('fetchColumn')
             ->willReturnOnConsecutiveCalls(10, 3);
@@ -75,17 +87,27 @@ class DocumentModelTest extends TestCase
 
     public function testGetStatusDistribution(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute');
-        $this->stmtMock->method('fetchColumn')->willReturn(10);
-        $this->stmtMock->method('fetchAll')->willReturn([
-            ['label' => 'Pending', 'value' => 5],
-            ['label' => 'Completed', 'value' => 5]
-        ]);
+        $this->pdoMock->expects($this->exactly(2))
+            ->method('query')
+            ->willReturn($this->stmtMock);
+
+        $this->stmtMock->expects($this->once())
+            ->method('fetchColumn')
+            ->willReturn(10);
+
+        $this->stmtMock->expects($this->once())
+            ->method('fetchAll')
+            ->with(PDO::FETCH_ASSOC)
+            ->willReturn([
+                ['label' => 'Pending', 'value' => 5],
+                ['label' => 'Completed', 'value' => 5],
+            ]);
 
         $docModel = new Document();
         $dist = $docModel->getStatusDistribution();
 
-        $this->assertIsArray($dist);
+        $this->assertSame(10, $dist['total']);
+        $this->assertCount(2, $dist['rows']);
+        $this->assertSame('Pending - 50%', $dist['rows'][0]['label']);
     }
 }

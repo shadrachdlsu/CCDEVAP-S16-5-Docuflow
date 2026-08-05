@@ -10,7 +10,6 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'Admin') {
 
 require_once __DIR__ . '/../models/user.php';
 require_once __DIR__ . '/../models/document.php';
-require_once __DIR__ . '/../helpers/csrf.php';
 
 $fullName = trim((string) ($_SESSION['full_name'] ?? 'Administrator'));
 $nameParts = preg_split('/\s+/', $fullName);
@@ -18,7 +17,6 @@ $firstName = $nameParts[0] ?? 'Administrator';
 $email = (string) ($_SESSION['email'] ?? '');
 $success = (string) ($_SESSION['admin_dashboard_success'] ?? '');
 $error = (string) ($_SESSION['admin_dashboard_error'] ?? '');
-$csrfToken = docuflow_csrf_token();
 unset($_SESSION['admin_dashboard_success'], $_SESSION['admin_dashboard_error']);
 
 try {
@@ -72,7 +70,7 @@ try {
           <form
             class="logout-form"
             method="post"
-            action="../controller/logout.php"
+            action="../controllers/UserLogoutController.php"
             onsubmit="return confirm('Are you sure you want to logout?')"
           >
             <button class="icon-btn" type="submit" aria-label="Exit / Logout">
@@ -130,14 +128,12 @@ try {
                       </span>
                     </a>
                     <div class="admin-registration-actions">
-                      <form method="post" action="../controller/admin_registration_action.php">
-                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>" />
+                      <form method="post" action="../controllers/AdminRegistrationActionController.php">
                         <input type="hidden" name="user_id" value="<?= (int) $pendingUser['user_id'] ?>" />
                         <input type="hidden" name="decision" value="approve" />
                         <button class="admin-registration-button approve" type="submit" title="Approve registration"><i class="fas fa-check" aria-hidden="true"></i><span>Approve</span></button>
                       </form>
-                      <form method="post" action="../controller/admin_registration_action.php" onsubmit="return confirm('Reject this registration?')">
-                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>" />
+                      <form method="post" action="../controllers/AdminRegistrationActionController.php" onsubmit="return confirm('Reject this registration?')">
                         <input type="hidden" name="user_id" value="<?= (int) $pendingUser['user_id'] ?>" />
                         <input type="hidden" name="decision" value="reject" />
                         <button class="admin-registration-button reject" type="submit" title="Reject registration"><i class="fas fa-xmark" aria-hidden="true"></i><span>Reject</span></button>

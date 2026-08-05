@@ -61,7 +61,7 @@ $documentTypes = $isSecretary
         </div>
         <div class="header-actions">
           <button class="<?= $isSecretary ? 'icon-button' : 'icon-btn toggle-theme' ?>" id="themeToggle" type="button" aria-label="Toggle dark/light mode"><i class="fas <?= $isSecretary ? 'fa-sun' : 'fa-moon' ?>"></i></button>
-          <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
             <button class="<?= $isSecretary ? 'icon-button' : 'icon-btn' ?>" type="submit" aria-label="Exit / Logout"><i class="fas fa-sign-out-alt"></i></button>
           </form>
         </div>
@@ -91,7 +91,7 @@ $documentTypes = $isSecretary
               ? 'Create another option for document creators in your office.'
               : 'Create another option for the document creation form.' ?></p>
         </div>
-        <form class="admin-document-type-create-form<?= $isSecretary ? ' create-document-form secretary-document-type-form' : '' ?>" method="post" action="../controller/admin_save_document_type.php">
+        <form class="admin-document-type-create-form<?= $isSecretary ? ' create-document-form secretary-document-type-form' : '' ?>" method="post" action="../controllers/AdminSaveDocumentTypeController.php">
           <div class="admin-form-field<?= $isSecretary ? ' form-field' : '' ?>">
             <label for="documentTypeName">Type Name</label>
             <input id="documentTypeName" name="type_name" type="text" maxlength="50" value="<?= htmlspecialchars($oldTypeName, ENT_QUOTES, 'UTF-8') ?>" placeholder="e.g. Clearance Form" required />
@@ -125,7 +125,7 @@ $documentTypes = $isSecretary
                   <td><?= htmlspecialchars((string) $type['type_name'], ENT_QUOTES, 'UTF-8') ?></td>
                   <td><?= htmlspecialchars((string) ($type['description'] ?: 'No description'), ENT_QUOTES, 'UTF-8') ?></td>
                   <td>
-                    <form class="admin-inline-form admin-status-toggle-form" method="post" action="../controller/admin_delete_document_type.php">
+                    <form class="admin-inline-form admin-status-toggle-form" method="post" action="../controllers/AdminDeleteDocumentTypeController.php">
                       <input type="hidden" name="type_id" value="<?= (int) $type['type_id'] ?>" />
                       <input class="admin-status-toggle-value" type="hidden" name="is_active" value="<?= $isActive ? 1 : 0 ?>" />
                       <label class="admin-status-toggle">

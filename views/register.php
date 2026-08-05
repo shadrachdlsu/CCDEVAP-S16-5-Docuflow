@@ -46,7 +46,7 @@ unset(
         <p class="subtitle">Create your account</p>
       </div>
 
-      <form method="post" action="../controller/register_process.php">
+      <form method="post" action="../controllers/UserRegisterController.php">
         <div class="form-group">
           <label for="fullName">Full Name</label>
           <input id="fullName" name="full_name" type="text" maxlength="100" value="<?= htmlspecialchars($fullName, ENT_QUOTES, 'UTF-8') ?>" autocomplete="name" required />

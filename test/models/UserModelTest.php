@@ -117,18 +117,47 @@ class UserModelTest extends TestCase
         $userModel->create(3, 1, 'New User', 'new@docuflow.local', 'hash123', 0, 'Pending');
     }
 
-    public function testApproveAndDeactivateUserStatements(): void
+    public function testDecideRegistrationApprovesAndRejectsPendingUsers(): void
     {
+        $approveStatement = $this->createMock(PDOStatement::class);
+        $rejectStatement = $this->createMock(PDOStatement::class);
+
         $this->pdoMock->expects($this->exactly(2))
             ->method('prepare')
-            ->willReturn($this->stmtMock);
+            ->willReturnOnConsecutiveCalls($approveStatement, $rejectStatement);
 
-        $this->stmtMock->expects($this->exactly(2))
-            ->method('execute');
+        $approveStatement->expects($this->once())
+            ->method('execute')
+            ->with([1, 'Approved', 1]);
+        $approveStatement->method('rowCount')->willReturn(1);
+
+        $rejectStatement->expects($this->once())
+            ->method('execute')
+            ->with([0, 'Rejected', 2]);
+        $rejectStatement->method('rowCount')->willReturn(1);
 
         $userModel = new User();
-        $userModel->approveUser(1);
-        $userModel->deactivateUser(1);
+        $userModel->decideRegistration(1, 'approve');
+        $userModel->decideRegistration(2, 'reject');
+    }
+
+    public function testSetActiveFromAdminActivatesUser(): void
+    {
+        $this->pdoMock->expects($this->once())
+            ->method('beginTransaction');
+        $this->pdoMock->expects($this->once())
+            ->method('prepare')
+            ->willReturn($this->stmtMock);
+        $this->pdoMock->expects($this->once())
+            ->method('commit');
+
+        $this->stmtMock->expects($this->once())
+            ->method('execute')
+            ->with([1, 1]);
+        $this->stmtMock->method('rowCount')->willReturn(1);
+
+        $userModel = new User();
+        $userModel->setActiveFromAdmin(1, true);
     }
 
     public function testDeleteUserExecutesDeleteStatement(): void
@@ -145,25 +174,19 @@ class UserModelTest extends TestCase
         $userModel->delete(1);
     }
 
-    public function testValidatePasswordComplexity(): void
+    public function testUpdatePasswordHashExecutesUpdate(): void
     {
-        // Valid password
-        $this->assertNull(User::validatePasswordComplexity("Docuflow2026!"));
+        $this->pdoMock->expects($this->once())
+            ->method('prepare')
+            ->with('UPDATE users SET password_hash = ? WHERE user_id = ?')
+            ->willReturn($this->stmtMock);
 
-        // Too short (< 8 chars)
-        $this->assertEquals("Password must be at least 8 characters long.", User::validatePasswordComplexity("Pass1!"));
+        $this->stmtMock->expects($this->once())
+            ->method('execute')
+            ->with(['new-password-hash', 1]);
 
-        // Missing uppercase
-        $this->assertEquals("Password must contain at least one uppercase letter.", User::validatePasswordComplexity("docuflow2026!"));
-
-        // Missing lowercase
-        $this->assertEquals("Password must contain at least one lowercase letter.", User::validatePasswordComplexity("DOCUFLOW2026!"));
-
-        // Missing number
-        $this->assertEquals("Password must contain at least one number.", User::validatePasswordComplexity("DocuflowPass!"));
-
-        // Missing special character
-        $this->assertEquals("Password must contain at least one special character.", User::validatePasswordComplexity("Docuflow2026"));
+        $userModel = new User();
+        $userModel->updatePasswordHash(1, 'new-password-hash');
     }
 }
 ?>

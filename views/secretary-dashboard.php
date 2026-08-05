@@ -53,7 +53,7 @@ $secretaryLabel = $isSecretaryInCharge ? 'Secretary in Charge' : 'Secretary';
           <i class="fas fa-sun" aria-hidden="true"></i>
         </button>
 
-        <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+        <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
           <button class="icon-button" type="submit" aria-label="Log out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></button>
         </form>
       </div>
@@ -83,7 +83,7 @@ $secretaryLabel = $isSecretaryInCharge ? 'Secretary in Charge' : 'Secretary';
 
           <?php if ($isSecretaryInCharge): ?>
             <a class="action-button" href="secretary-assign-documents.php">
-              <span class="action-icon" aria-hidden="true"><i class="fas fa-user-pen"></i></span>
+              <span class="action-icon" aria-hidden="true"><i class="fas fa-tasks"></i></span>
               <span><strong>Assign Documents</strong><small>Assign office documents to a member</small></span>
             </a>
           <?php endif; ?>

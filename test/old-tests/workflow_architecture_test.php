@@ -62,7 +62,7 @@ assertWorkflow(
 
 $requestWorkflowReferences = [];
 
-foreach (['controller', 'views', 'js'] as $directory) {
+foreach (['controllers', 'views', 'js'] as $directory) {
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator(
             __DIR__ . '/../' . $directory,

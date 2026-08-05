@@ -42,11 +42,9 @@ class DocumentTypeModelTest extends TestCase
         ];
 
         $this->pdoMock->expects($this->once())
-            ->method('prepare')
+            ->method('query')
+            ->with($this->stringContains('WHERE is_active=1'))
             ->willReturn($this->stmtMock);
-
-        $this->stmtMock->expects($this->once())
-            ->method('execute');
 
         $this->stmtMock->expects($this->once())
             ->method('fetchAll')
@@ -88,13 +86,14 @@ class DocumentTypeModelTest extends TestCase
         $docTypeModel->createWithOffices("New Type", [1], 1);
     }
 
-    public function testDeleteTypeCleansOfficesAndType(): void
+    public function testDeleteTypeExecutesDelete(): void
     {
-        $this->pdoMock->expects($this->exactly(2))
+        $this->pdoMock->expects($this->once())
             ->method('prepare')
+            ->with('DELETE FROM document_types WHERE type_id = :id')
             ->willReturn($this->stmtMock);
 
-        $this->stmtMock->expects($this->exactly(2))
+        $this->stmtMock->expects($this->once())
             ->method('execute')
             ->with([':id' => 1]);
 

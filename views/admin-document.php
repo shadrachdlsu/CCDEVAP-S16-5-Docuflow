@@ -18,7 +18,8 @@ if (!$documentId) {
 require_once __DIR__ . '/../models/document.php';
 require_once __DIR__ . '/../models/documentRoute.php';
 require_once __DIR__ . '/../models/documentTrail.php';
-require_once __DIR__ . '/../controller/document_duration.php';
+require_once __DIR__ . '/../controllers/SharedDocumentDurationController.php';
+require_once __DIR__ . '/../helpers/document_files.php';
 
 $email = (string) ($_SESSION['email'] ?? '');
 $fullName = (string) ($_SESSION['full_name'] ?? 'Administrator');
@@ -38,7 +39,7 @@ $isSimultaneous = $routes !== [] && array_reduce(
 );
 $sendingMethod = $isSimultaneous ? 'Simultaneous' : 'Sequential';
 
-$filePath = trim((string) ($document['file_path'] ?? ''));
+$filePath = docuflow_document_file_url($document['file_path'] ?? null);
 $documentStatusClass = strtolower((string) $document['status']);
 $isCompleted = (string) $document['status'] === 'Completed';
 $completedAt = trim((string) ($document['completed_at'] ?? ''));
@@ -63,7 +64,7 @@ $completedAt = trim((string) ($document['completed_at'] ?? ''));
         </div>
         <div class="header-actions">
           <button class="icon-btn toggle-theme" id="themeToggle" type="button" aria-label="Toggle dark/light mode"><i class="fas fa-moon"></i></button>
-          <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
             <button class="icon-btn" type="submit" aria-label="Exit / Logout"><i class="fas fa-sign-out-alt"></i></button>
           </form>
         </div>

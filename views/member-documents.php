@@ -54,7 +54,7 @@ $documents = (new DocumentRoute())->getAddressedToUser($userId);
         <form
           class="logout-form"
           method="post"
-          action="../controller/logout.php"
+          action="../controllers/UserLogoutController.php"
           onsubmit="return confirm('Are you sure you want to logout?')"
         >
           <button class="icon-button" type="submit" aria-label="Log out">

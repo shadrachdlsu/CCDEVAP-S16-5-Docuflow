@@ -15,7 +15,9 @@ class OfficeModelTest extends TestCase
 {
     private $pdoMock;
     private $stmtMock;
+    private $schemaStmtMock;
     private $backupPdo;
+    private array $preparedSql = [];
 
     protected function setUp(): void
     {
@@ -24,9 +26,24 @@ class OfficeModelTest extends TestCase
 
         $this->pdoMock = $this->createMock(PDO::class);
         $this->stmtMock = $this->createMock(PDOStatement::class);
+        $this->schemaStmtMock = $this->createMock(PDOStatement::class);
+        $this->preparedSql = [];
 
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute')->willReturn(true);
+        $this->schemaStmtMock->expects($this->once())
+            ->method('execute')
+            ->with(['offices', 'is_active']);
+        $this->schemaStmtMock->method('fetchColumn')->willReturn(1);
+
+        $this->pdoMock->method('prepare')
+            ->willReturnCallback(function (string $sql): PDOStatement {
+                $this->preparedSql[] = $sql;
+
+                if (str_contains($sql, 'information_schema.COLUMNS')) {
+                    return $this->schemaStmtMock;
+                }
+
+                return $this->stmtMock;
+            });
 
         $pdo = $this->pdoMock;
     }
@@ -37,38 +54,42 @@ class OfficeModelTest extends TestCase
         $pdo = $this->backupPdo;
     }
 
-    public function testGetAllOfficesDetailedReturnsRows(): void
+    public function testGetAdminDirectoryReturnsRows(): void
     {
         $expectedOffices = [
             [
-                'id' => 1,
-                'name' => 'Registrar',
-                'code' => 'REGI',
-                'location' => 'Building A',
-                'contact_email' => 'registrar@docuflow.local',
+                'office_id' => 1,
+                'office_name' => 'Registrar',
                 'is_active' => 1,
-                'secretary_id' => 2,
                 'secretary_name' => 'Jane Secretary',
-                'secretary_email' => 'secretary@docuflow.local',
-                'member_count' => 5,
-                'active_doc_count' => 2
-            ]
+                'user_count' => 5,
+                'route_count' => 2,
+            ],
         ];
 
+        $this->pdoMock->expects($this->once())
+            ->method('query')
+            ->with($this->stringContains('FROM offices AS office'))
+            ->willReturn($this->stmtMock);
+
         $this->stmtMock->method('fetchAll')
-            ->with(PDO::FETCH_ASSOC)
             ->willReturn($expectedOffices);
 
         $officeModel = new Office();
-        $offices = $officeModel->getAllOfficesDetailed();
+        $offices = $officeModel->getAdminDirectory();
 
         $this->assertIsArray($offices);
         $this->assertCount(1, $offices);
-        $this->assertEquals('Registrar', $offices[0]['name']);
+        $this->assertEquals('Registrar', $offices[0]['office_name']);
     }
 
     public function testCountAllOfficesReturnsInteger(): void
     {
+        $this->pdoMock->expects($this->once())
+            ->method('query')
+            ->with('SELECT COUNT(*) FROM offices')
+            ->willReturn($this->stmtMock);
+
         $this->stmtMock->method('fetchColumn')->willReturn(4);
 
         $officeModel = new Office();
@@ -77,24 +98,50 @@ class OfficeModelTest extends TestCase
         $this->assertEquals(4, $count);
     }
 
-    public function testCreateOfficeExecutesInsert(): void
+    public function testCreateExecutesInsert(): void
     {
+        $this->stmtMock->expects($this->once())
+            ->method('execute')
+            ->with([':name' => 'Finance']);
+
         $officeModel = new Office();
-        $officeModel->createOffice("Finance", "FINA", "Building B", "finance@docuflow.local", 1);
-        $this->assertTrue(true);
+        $officeModel->create('Finance');
+
+        $this->assertContains(
+            'INSERT INTO offices (office_name) VALUES (:name)',
+            $this->preparedSql
+        );
     }
 
-    public function testToggleStatusExecutesUpdate(): void
+    public function testSetActiveExecutesUpdate(): void
     {
+        $this->stmtMock->expects($this->once())
+            ->method('execute')
+            ->with([0, 1]);
+
+        $this->stmtMock->method('rowCount')->willReturn(1);
+
         $officeModel = new Office();
-        $officeModel->toggleStatus(1, 0);
-        $this->assertTrue(true);
+        $officeModel->setActive(1, false);
+
+        $this->assertContains(
+            'UPDATE offices SET is_active = ? WHERE office_id = ?',
+            $this->preparedSql
+        );
     }
 
     public function testDeleteOfficeExecutesDelete(): void
     {
+        $this->stmtMock->expects($this->once())
+            ->method('execute')
+            ->with([':id' => 1]);
+
         $officeModel = new Office();
         $officeModel->delete(1);
-        $this->assertTrue(true);
+
+        $this->assertContains(
+            'DELETE FROM offices WHERE office_id = :id',
+            $this->preparedSql
+        );
     }
 }

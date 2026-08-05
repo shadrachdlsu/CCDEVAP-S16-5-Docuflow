@@ -8,7 +8,6 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'Admin') {
     exit;
 }
 
-require_once __DIR__ . '/../helpers/csrf.php';
 require_once __DIR__ . '/../models/setting.php';
 
 $email = (string) ($_SESSION['email'] ?? '');
@@ -16,7 +15,6 @@ $fullName = (string) ($_SESSION['full_name'] ?? 'Administrator');
 $success = (string) ($_SESSION['admin_settings_success'] ?? '');
 $error = (string) ($_SESSION['admin_settings_error'] ?? '');
 $requiresAdminApproval = (new Setting())->requiresAdminApproval();
-$csrfToken = docuflow_csrf_token();
 
 unset($_SESSION['admin_settings_success'], $_SESSION['admin_settings_error']);
 ?>
@@ -39,7 +37,7 @@ unset($_SESSION['admin_settings_success'], $_SESSION['admin_settings_error']);
         </div>
         <div class="header-actions">
           <button class="icon-btn toggle-theme" id="themeToggle" type="button" aria-label="Toggle dark/light mode"><i class="fas fa-moon"></i></button>
-          <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
             <button class="icon-btn" type="submit" aria-label="Exit / Logout"><i class="fas fa-sign-out-alt"></i></button>
           </form>
         </div>
@@ -70,8 +68,7 @@ unset($_SESSION['admin_settings_success'], $_SESSION['admin_settings_error']);
           </span>
         </div>
 
-        <form class="admin-settings-form" method="post" action="../controller/admin_save_settings.php">
-          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>" />
+        <form class="admin-settings-form" method="post" action="../controllers/AdminSaveSettingsController.php">
 
           <fieldset class="admin-policy-options">
             <legend>Registration Approval Policy</legend>

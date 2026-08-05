@@ -82,18 +82,12 @@ class DocumentTrailModelTest extends TestCase
         $this->assertEquals('Created', $trail[0]['action']);
     }
 
-    public function testGetRecentBindsLimitParameter(): void
+    public function testGetRecentReturnsRowsFromLimitedQuery(): void
     {
         $this->pdoMock->expects($this->once())
-            ->method('prepare')
+            ->method('query')
+            ->with($this->stringContains('LIMIT 5'))
             ->willReturn($this->stmtMock);
-
-        $this->stmtMock->expects($this->once())
-            ->method('bindValue')
-            ->with(':limit', 5, PDO::PARAM_INT);
-
-        $this->stmtMock->expects($this->once())
-            ->method('execute');
 
         $this->stmtMock->expects($this->once())
             ->method('fetchAll')

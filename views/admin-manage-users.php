@@ -9,7 +9,6 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'Admin') {
 }
 
 require_once __DIR__ . '/../models/user.php';
-require_once __DIR__ . '/../helpers/csrf.php';
 
 $email = (string) ($_SESSION['email'] ?? '');
 $fullName = (string) ($_SESSION['full_name'] ?? 'Administrator');
@@ -17,7 +16,6 @@ $success = (string) ($_SESSION['admin_user_success'] ?? '');
 $error = (string) ($_SESSION['admin_user_error'] ?? '');
 unset($_SESSION['admin_user_success'], $_SESSION['admin_user_error']);
 $users = (new User())->getAdminList();
-$csrfToken = docuflow_csrf_token();
 ?>
 <!doctype html>
 <html lang="en">
@@ -41,7 +39,7 @@ $csrfToken = docuflow_csrf_token();
           <button class="icon-btn toggle-theme" id="themeToggle" type="button" aria-label="Toggle dark/light mode">
             <i class="fas fa-moon"></i>
           </button>
-          <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
             <button class="icon-btn" type="submit" aria-label="Exit / Logout"><i class="fas fa-sign-out-alt"></i></button>
           </form>
         </div>
@@ -91,7 +89,7 @@ $csrfToken = docuflow_csrf_token();
                   <td><?= htmlspecialchars((string) ($user['office_name'] ?? 'No office'), ENT_QUOTES, 'UTF-8') ?></td>
                   <td>
                     <?php $isCurrentAdmin = (int) $user['user_id'] === (int) $_SESSION['user_id']; ?>
-                    <form class="admin-inline-form admin-status-toggle-form" method="post" action="../controller/admin_toggle_user_status.php">
+                    <form class="admin-inline-form admin-status-toggle-form" method="post" action="../controllers/AdminToggleUserStatusController.php">
                       <input type="hidden" name="user_id" value="<?= (int) $user['user_id'] ?>" />
                       <input class="admin-status-toggle-value" type="hidden" name="is_active" value="<?= (bool) $user['is_active'] ? 1 : 0 ?>" />
                       <label class="admin-status-toggle<?= $isCurrentAdmin ? ' is-locked' : '' ?>">
@@ -143,8 +141,7 @@ $csrfToken = docuflow_csrf_token();
                               Delete user
                             </span>
                           <?php else: ?>
-                            <form class="admin-delete-user-form" method="post" action="../controller/admin_user_action.php">
-                              <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>" />
+                            <form class="admin-delete-user-form" method="post" action="../controllers/AdminUserActionController.php">
                               <input type="hidden" name="action" value="delete" />
                               <input type="hidden" name="user_id" value="<?= (int) $user['user_id'] ?>" />
                               <button class="admin-action-menu-item danger" type="submit" role="menuitem" data-user-name="<?= htmlspecialchars((string) $user['full_name'], ENT_QUOTES, 'UTF-8') ?>">
@@ -173,8 +170,7 @@ $csrfToken = docuflow_csrf_token();
         <h2 id="resetPasswordTitle">Reset password</h2>
         <p>Set a new password for <strong id="resetPasswordUserName"></strong>.</p>
 
-        <form class="admin-modal-form" method="post" action="../controller/admin_user_action.php">
-          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>" />
+        <form class="admin-modal-form" method="post" action="../controllers/AdminUserActionController.php">
           <input type="hidden" name="action" value="reset_password" />
           <input id="resetPasswordUserId" type="hidden" name="user_id" value="" />
           <div class="admin-form-field">

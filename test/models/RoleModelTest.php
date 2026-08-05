@@ -43,12 +43,9 @@ class RoleModelTest extends TestCase
         ];
 
         $this->pdoMock->expects($this->once())
-            ->method('prepare')
+            ->method('query')
             ->with('SELECT role_id, role_name FROM roles ORDER BY role_name')
             ->willReturn($this->stmtMock);
-
-        $this->stmtMock->expects($this->once())
-            ->method('execute');
 
         $this->stmtMock->expects($this->once())
             ->method('fetchAll')
@@ -65,8 +62,11 @@ class RoleModelTest extends TestCase
 
     public function testGetAllReturnsEmptyArrayWhenNoRoles(): void
     {
-        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
-        $this->stmtMock->method('execute');
+        $this->pdoMock->expects($this->once())
+            ->method('query')
+            ->with('SELECT role_id, role_name FROM roles ORDER BY role_name')
+            ->willReturn($this->stmtMock);
+
         $this->stmtMock->method('fetchAll')->willReturn([]);
 
         $roleModel = new Role();

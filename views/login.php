@@ -45,7 +45,7 @@ function redirectForRole(string $role): never
         <p class="subtitle">Document Tracking System</p>
       </div>
 
-      <form method="post" action="../controller/login_process.php">
+      <form method="post" action="../controllers/UserLoginController.php">
         <div class="form-group">
           <label for="email">Email Address</label>
           <input id="email" name="email" type="email" placeholder="your.email@office.gov" value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>" autocomplete="email" required />

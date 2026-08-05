@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'Admin') {
 }
 
 require_once __DIR__ . '/../models/report.php';
-require_once __DIR__ . '/../controller/document_duration.php';
+require_once __DIR__ . '/../controllers/SharedDocumentDurationController.php';
 
 $email = (string) ($_SESSION['email'] ?? '');
 $fullName = (string) ($_SESSION['full_name'] ?? 'Administrator');
@@ -110,7 +110,7 @@ $completedDocuments = $documentStatusCounts['Completed'] ?? 0;
         </div>
         <div class="header-actions">
           <button class="icon-btn toggle-theme" id="themeToggle" type="button" aria-label="Toggle dark/light mode"><i class="fas fa-moon"></i></button>
-          <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+          <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
             <button class="icon-btn" type="submit" aria-label="Exit / Logout"><i class="fas fa-sign-out-alt"></i></button>
           </form>
         </div>

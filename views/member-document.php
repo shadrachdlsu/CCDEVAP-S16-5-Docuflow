@@ -22,7 +22,8 @@ if (!$documentId) {
 
 require_once __DIR__ . '/../models/documentRoute.php';
 require_once __DIR__ . '/../models/documentTrail.php';
-require_once __DIR__ . '/../controller/document_duration.php';
+require_once __DIR__ . '/../controllers/SharedDocumentDurationController.php';
+require_once __DIR__ . '/../helpers/document_files.php';
 
 $userId = (int) $_SESSION['user_id'];
 $email = (string) ($_SESSION['email'] ?? '');
@@ -47,7 +48,7 @@ $routeOffices = array_map(
 $routeSeparator = (string) $document['sending_method'] === 'Simultaneous' ? ' • ' : ' → ';
 $routePath = $routeOffices === [] ? 'No route assigned' : implode($routeSeparator, $routeOffices);
 
-$filePath = trim((string) ($document['file_path'] ?? ''));
+$filePath = docuflow_document_file_url($document['file_path'] ?? null);
 $terminalRouteStatuses = ['Signed', 'Rejected', 'Released', 'Skipped', 'Completed'];
 $canEnterRemarks = (bool) $document['is_actionable']
     && !in_array((string) $document['route_status'], $terminalRouteStatuses, true);
@@ -77,7 +78,7 @@ $completedAt = trim((string) ($document['completed_at'] ?? ''));
           <i class="fas fa-sun" aria-hidden="true"></i>
         </button>
 
-        <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+        <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
           <button class="icon-button" type="submit" aria-label="Log out">
             <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
           </button>
@@ -196,7 +197,7 @@ $completedAt = trim((string) ($document['completed_at'] ?? ''));
         <?php else: ?>
           <div class="document-action-buttons">
             <?php if ($document['route_status'] === 'Waiting'): ?>
-              <form method="post" action="../controller/member_document_action.php">
+              <form method="post" action="../controllers/MemberDocumentActionController.php">
                 <input type="hidden" name="route_id" value="<?= (int) $document['route_id'] ?>" />
                 <input type="hidden" name="document_id" value="<?= $documentId ?>" />
                 <button class="document-action-button receive" type="submit" name="action" value="receive">
@@ -206,7 +207,7 @@ $completedAt = trim((string) ($document['completed_at'] ?? ''));
               </form>
             <?php endif; ?>
 
-            <form id="documentDecisionForm" class="document-decision-form" method="post" action="../controller/member_document_action.php">
+            <form id="documentDecisionForm" class="document-decision-form" method="post" action="../controllers/MemberDocumentActionController.php">
               <input type="hidden" name="route_id" value="<?= (int) $document['route_id'] ?>" />
               <input type="hidden" name="document_id" value="<?= $documentId ?>" />
               <button class="document-action-button sign" type="submit" name="action" value="sign" onclick="return confirm('Sign this document<?= (int) $document['step_no'] > 0 ? ' and advance it to the next route step' : '' ?>?')">

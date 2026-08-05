@@ -17,6 +17,7 @@ if (!$routeId) {
 
 require_once __DIR__ . '/../models/documentRoute.php';
 require_once __DIR__ . '/../models/user.php';
+require_once __DIR__ . '/../helpers/document_files.php';
 
 $userId = (int) $_SESSION['user_id'];
 $officeId = (int) ($_SESSION['office_id'] ?? 0);
@@ -56,7 +57,7 @@ $assignedMemberValue = !empty($document['signatory_user_id'])
     ? (string) $document['assignee_name'] . ' — ' . (string) $document['assignee_email']
     : '';
 
-$filePath = trim((string) ($document['file_path'] ?? ''));
+$filePath = docuflow_document_file_url($document['file_path'] ?? null);
 $terminalStatuses = ['Signed', 'Rejected', 'Released', 'Skipped', 'Completed'];
 $canAssign = !in_array((string) $document['route_status'], $terminalStatuses, true);
 ?>
@@ -78,7 +79,7 @@ $canAssign = !in_array((string) $document['route_status'], $terminalStatuses, tr
           <span class="user-role">Secretary in Charge &middot; <?= htmlspecialchars((string) $document['office_name'], ENT_QUOTES, 'UTF-8') ?></span>
         </div>
         <button id="themeToggle" class="icon-button" type="button" aria-label="Toggle dark or light mode"><i class="fas fa-sun" aria-hidden="true"></i></button>
-        <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+        <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
           <button class="icon-button" type="submit" aria-label="Log out"><i class="fas fa-sign-out-alt" aria-hidden="true"></i></button>
         </form>
       </div>
@@ -128,7 +129,7 @@ $canAssign = !in_array((string) $document['route_status'], $terminalStatuses, tr
         <?php if (!$canAssign): ?>
           <span class="route-action-complete">This route is already <?= htmlspecialchars(strtolower((string) $document['route_status']), ENT_QUOTES, 'UTF-8') ?> and can no longer be reassigned.</span>
         <?php else: ?>
-          <form class="secretary-assignment-form" method="post" action="../controller/secretary_assign_document.php">
+          <form class="secretary-assignment-form" method="post" action="../controllers/SecretaryAssignDocumentController.php">
             <input type="hidden" name="route_id" value="<?= (int) $document['route_id'] ?>" />
             <input id="assignedMemberId" type="hidden" name="member_user_id" value="<?= (int) ($document['signatory_user_id'] ?? 0) ?>" />
             <label for="assignedMemberSearch">Assign to Secretary or Member</label>

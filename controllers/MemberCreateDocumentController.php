@@ -84,8 +84,7 @@ if (!move_uploaded_file((string) $file['tmp_name'], $absoluteFilePath)) {
 require_once __DIR__ . '/../models/document.php';
 
 $trackingCode = 'DOC-' . date('Y') . '-' . strtoupper(bin2hex(random_bytes(4)));
-$projectFolder = rawurlencode(basename(dirname(__DIR__)));
-$storedFilePath = '/' . $projectFolder . '/uploads/' . rawurlencode($fileName);
+$storedFilePath = 'uploads/' . $fileName;
 $creatorId = (int) $_SESSION['user_id'];
 
 try {

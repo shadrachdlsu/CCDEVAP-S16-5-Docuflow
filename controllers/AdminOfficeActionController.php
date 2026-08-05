@@ -15,14 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-require_once __DIR__ . '/../helpers/csrf.php';
-
-if (!docuflow_verify_csrf_token($_POST['csrf_token'] ?? null)) {
-    $_SESSION['admin_office_error'] = 'Your session token expired. Please try again.';
-    header('Location: ' . $redirect);
-    exit;
-}
-
 $action = (string) ($_POST['action'] ?? '');
 $officeId = filter_input(INPUT_POST, 'office_id', FILTER_VALIDATE_INT);
 

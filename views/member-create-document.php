@@ -63,7 +63,7 @@ $offices = (new Office())->getActive();
           <i class="fas fa-sun" aria-hidden="true"></i>
         </button>
 
-        <form class="logout-form" method="post" action="../controller/logout.php" onsubmit="return confirm('Are you sure you want to logout?')">
+        <form class="logout-form" method="post" action="../controllers/UserLogoutController.php" onsubmit="return confirm('Are you sure you want to logout?')">
           <button class="icon-button" type="submit" aria-label="Log out">
             <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
           </button>
@@ -92,7 +92,7 @@ $offices = (new Office())->getActive();
           <div class="form-message success" role="status"><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></div>
         <?php endif; ?>
 
-        <form class="create-document-form" method="post" action="../controller/member_create_document.php" enctype="multipart/form-data">
+        <form class="create-document-form" method="post" action="../controllers/MemberCreateDocumentController.php" enctype="multipart/form-data">
           <div class="form-field full-width">
             <label for="documentTitle">Document Title</label>
             <input id="documentTitle" name="title" type="text" maxlength="255" value="<?= htmlspecialchars($oldTitle, ENT_QUOTES, 'UTF-8') ?>" required />
