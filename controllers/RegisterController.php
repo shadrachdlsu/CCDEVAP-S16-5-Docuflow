@@ -23,6 +23,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
+    $passwordErr = User::validatePasswordComplexity($password);
+    if ($passwordErr !== null) {
+        header("Location: ../views/register.php?type=error&msg=weak_password");
+        exit;
+    }
+
     $userModel = new User();
     $settingModel = new Setting();
 

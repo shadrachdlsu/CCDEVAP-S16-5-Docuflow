@@ -37,6 +37,7 @@ $officesList = $officeModel->getAllOffices();
           style="font-weight: 700; text-align: center; margin-bottom: 15px;" >
           <?php
             if ($_GET['msg'] == 'mismatch') echo "Passwords do not match.";
+            elseif ($_GET['msg'] == 'weak_password') echo "Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character.";
             elseif ($_GET['msg'] == 'exists') echo "Email is already registered.";
             elseif ($_GET['msg'] == 'pending') echo "Registration submitted! Your account is pending admin approval before logging in.";
             elseif ($_GET['msg'] == 'success') echo "Account created and approved! You can now log in.";
@@ -78,6 +79,7 @@ $officesList = $officeModel->getAllOffices();
             placeholder="••••••••"
             required
           />
+          <small style="font-size: 0.75rem; opacity: 0.75; display: block; margin-top: 4px;">Must be at least 8 characters with uppercase, lowercase, number, and special character.</small>
         </div>
 
         <div class="form-group">

@@ -144,4 +144,26 @@ class UserModelTest extends TestCase
         $userModel = new User();
         $userModel->delete(1);
     }
+
+    public function testValidatePasswordComplexity(): void
+    {
+        // Valid password
+        $this->assertNull(User::validatePasswordComplexity("Docuflow2026!"));
+
+        // Too short (< 8 chars)
+        $this->assertEquals("Password must be at least 8 characters long.", User::validatePasswordComplexity("Pass1!"));
+
+        // Missing uppercase
+        $this->assertEquals("Password must contain at least one uppercase letter.", User::validatePasswordComplexity("docuflow2026!"));
+
+        // Missing lowercase
+        $this->assertEquals("Password must contain at least one lowercase letter.", User::validatePasswordComplexity("DOCUFLOW2026!"));
+
+        // Missing number
+        $this->assertEquals("Password must contain at least one number.", User::validatePasswordComplexity("DocuflowPass!"));
+
+        // Missing special character
+        $this->assertEquals("Password must contain at least one special character.", User::validatePasswordComplexity("Docuflow2026"));
+    }
 }
+?>

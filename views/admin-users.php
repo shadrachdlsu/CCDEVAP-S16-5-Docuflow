@@ -523,6 +523,8 @@ require_once "../controllers/AdminUsersController.php";
                     type="password"
                     placeholder="Required for new users, leave blank to keep current">
 
+                <small style="font-size: 0.75rem; color: var(--gray-500); display: block; margin-top: 4px;">Must be at least 8 characters with uppercase, lowercase, number, and special character.</small>
+
             </label>
 
             <label class="admin-field">
@@ -911,6 +913,8 @@ require_once "../controllers/AdminUsersController.php";
                     </button>
 
                 </div>
+
+                <small style="font-size: 0.75rem; color: var(--gray-500); display: block; margin-top: 4px;">Must be at least 8 characters with uppercase, lowercase, number, and special character.</small>
 
             </label>
 

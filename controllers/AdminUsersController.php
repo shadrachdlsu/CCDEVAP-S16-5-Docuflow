@@ -58,6 +58,11 @@ if (isset($_POST["action"])) {
                 throw new Exception("Name, Email, Password, and Role are required.");
             }
 
+            $passwordErr = User::validatePasswordComplexity($password);
+            if ($passwordErr !== null) {
+                throw new Exception($passwordErr);
+            }
+
             $is_active = ($status === "Active") ? 1 : 0;
             $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
@@ -96,6 +101,13 @@ if (isset($_POST["action"])) {
 
             if (empty($office_id)) {
                 $office_id = null;
+            }
+
+            if (!empty($password)) {
+                $passwordErr = User::validatePasswordComplexity($password);
+                if ($passwordErr !== null) {
+                    throw new Exception($passwordErr);
+                }
             }
 
             $password_hash = !empty($password) ? password_hash($password, PASSWORD_DEFAULT) : null;
@@ -202,6 +214,11 @@ if (isset($_POST["action"])) {
 
             if (empty($id) || empty($password)) {
                 throw new Exception("User ID and Password are required.");
+            }
+
+            $passwordErr = User::validatePasswordComplexity($password);
+            if ($passwordErr !== null) {
+                throw new Exception($passwordErr);
             }
 
             $userModel->resetPassword($id, $password);
