@@ -158,6 +158,9 @@ class DocumentType
      */
     public function deleteType(int $id): void
     {
+        $stmtOffices = $this->pdo->prepare("DELETE FROM document_type_offices WHERE type_id = :id");
+        $stmtOffices->execute([':id' => $id]);
+
         $stmt = $this->pdo->prepare("DELETE FROM document_types WHERE type_id = :id");
         $stmt->execute([':id' => $id]);
     }

@@ -1,0 +1,10 @@
+﻿PHPUnit 9.6.35 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.2.12
+Configuration: C:\xampp\htdocs\CCDEVAP-S16-5-Docuflow\phpunit.xml
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:00.003, Memory: 24.00 MB
+
+OK (2 tests, 7 assertions)
